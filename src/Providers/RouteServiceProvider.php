@@ -26,23 +26,18 @@ class RouteServiceProvider extends ServiceProvider
             return;
         }
 
-        foreach ($routes as $route) {
-            if ($route instanceof Closure) {
+        foreach ($routes as $definition) {
+            if ($definition instanceof Closure) {
                 // 如果是个闭包，直接执行
-                call_user_func($route, $router);
+                call_user_func($definition, $router);
 
                 continue;
             }
 
-            if (is_array($route)) {
-                $path = array_pull($route, 'path');
-            } else {
-                $path = $route;
-                $route = [];
-            }
+            $path = array_pull($definition, 'path');
 
             if (file_exists($path)) {
-                $router->group($route, function ($router) use ($path) {
+                $router->group($definition, function ($router) use ($path) {
                     include $path;
                 });
             }

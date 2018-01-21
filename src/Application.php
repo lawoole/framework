@@ -134,6 +134,12 @@ class Application extends Container implements ApplicationContract
             \Illuminate\Contracts\Console\Kernel::class,
             \Lawoole\Console\Kernel::class
         );
+
+        // Swoole 处理核心
+        $this->singleton(
+            \Lawoole\Contracts\Swoole\Kernel::class,
+            \Lawoole\Swoole\Kernel::class
+        );
     }
 
     /**
@@ -626,11 +632,15 @@ class Application extends Container implements ApplicationContract
             \Illuminate\Contracts\Cache\Factory::class              => 'cache',
             \Illuminate\Contracts\Cache\Repository::class           => 'cache',
             \Illuminate\Contracts\Config\Repository::class          => 'config',
+            \Illuminate\Support\Composer::class                     => 'composer',
             \Illuminate\Database\ConnectionResolverInterface::class => 'db',
             \Illuminate\Database\DatabaseManager::class             => 'db',
+            \Illuminate\Database\Migrations\Migrator::class         => 'migrator',
+            \Illuminate\Database\Migrations\MigrationCreator::class => 'migration.creator',
             \Lawoole\Routing\ControllerDispatcher::class            => 'dispatcher',
             \Illuminate\Contracts\Encryption\Encrypter::class       => 'encrypter',
             \Illuminate\Contracts\Events\Dispatcher::class          => 'events',
+            \Illuminate\Filesystem\Filesystem::class                => 'files',
             \Illuminate\Contracts\Hashing\Hasher::class             => 'hash',
             \Psr\Log\LoggerInterface::class                         => 'log',
             \Illuminate\Contracts\Queue\Factory::class              => 'queue',
@@ -640,6 +650,7 @@ class Application extends Container implements ApplicationContract
             \Lawoole\Routing\Router::class                          => 'router',
             \Illuminate\Contracts\Validation\Factory::class         => 'validator',
             \Illuminate\Contracts\View\Factory::class               => 'view',
+            \Illuminate\Console\Scheduling\Schedule::class          => 'schedule',
         ];
 
         foreach ($aliases as $alias => $abstract) {

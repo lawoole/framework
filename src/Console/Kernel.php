@@ -38,7 +38,6 @@ class Kernel implements KernelContract
         \Lawoole\Bootstrap\RegisterFacades::class,
         \Lawoole\Bootstrap\RegisterServiceProviders::class,
         \Lawoole\Bootstrap\BootProviders::class,
-        \Lawoole\Bootstrap\RegisterCommands::class,
     ];
 
     /**
@@ -47,9 +46,11 @@ class Kernel implements KernelContract
      * @var array
      */
     protected $internalCommands = [
+        'command.up',
+        'command.down',
+        'command.serve',
+        'command.shutdown',
         'command.app.name',
-        'command.app.up',
-        'command.app.down',
         'command.cache.clear',
         'command.cache.forget',
         'command.cache.table',
@@ -62,6 +63,8 @@ class Kernel implements KernelContract
         'command.migrate.reset',
         'command.migrate.rollback',
         'command.migrate.status',
+        'command.schedule.run',
+        'command.schedule.finish',
         'command.seeder.make',
         'command.seed',
         'command.session.table',
@@ -193,15 +196,23 @@ class Kernel implements KernelContract
             $this->artisan->setName($this->app->name());
 
             // 注册命令
-            $commands = array_merge(
-                $this->internalCommands,
-                $this->app->make('config')->get('console.commands', [])
-            );
-
-            $this->artisan->resolveCommands($commands);
+            $this->artisan->resolveCommands($this->getUsableCommands());
         }
 
         return $this->artisan;
+    }
+
+    /**
+     * 获得可用的命令
+     *
+     * @return array
+     */
+    protected function getUsableCommands()
+    {
+        return array_merge(
+            $this->internalCommands,
+            $this->app->make('config')->get('console.commands', [])
+        );
     }
 
     /**

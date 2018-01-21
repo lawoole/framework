@@ -4,7 +4,7 @@ namespace Lawoole\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\InteractsWithTime;
 
-class AppDownCommand extends Command
+class DownCommand extends Command
 {
     use InteractsWithTime;
 
@@ -13,7 +13,7 @@ class AppDownCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'app:down {--message= : The message for the maintenance mode. }
+    protected $signature = 'down {--message= : The message for the maintenance mode. }
                                      {--retry= : The number of seconds after which the request may be retried.}';
 
     /**
@@ -29,7 +29,7 @@ class AppDownCommand extends Command
     public function handle()
     {
         file_put_contents(
-            $this->laravel->storagePath('framework/down'),
+            $this->laravel->storagePath('framework/down.lock'),
             json_encode($this->getDownFilePayload(), JSON_PRETTY_PRINT)
         );
 

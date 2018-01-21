@@ -1,9 +1,11 @@
 <?php
-namespace Lawoole\Bootstrap;
+namespace Lawoole\Providers;
 
 use Illuminate\Cache\Console\CacheTableCommand;
 use Illuminate\Cache\Console\ClearCommand as CacheClearCommand;
 use Illuminate\Cache\Console\ForgetCommand as CacheForgetCommand;
+use Illuminate\Console\Scheduling\ScheduleFinishCommand;
+use Illuminate\Console\Scheduling\ScheduleRunCommand;
 use Illuminate\Database\Console\Factories\FactoryMakeCommand;
 use Illuminate\Database\Console\Migrations\FreshCommand as MigrateFreshCommand;
 use Illuminate\Database\Console\Migrations\InstallCommand as MigrateInstallCommand;
@@ -16,30 +18,27 @@ use Illuminate\Database\Console\Migrations\StatusCommand as MigrateStatusCommand
 use Illuminate\Database\Console\Seeds\SeedCommand;
 use Illuminate\Database\Console\Seeds\SeederMakeCommand;
 use Illuminate\Session\Console\SessionTableCommand;
-use Lawoole\Application;
-use Lawoole\Console\Commands\AppDownCommand;
+use Illuminate\Support\ServiceProvider;
 use Lawoole\Console\Commands\AppNameCommand;
-use Lawoole\Console\Commands\AppUpCommand;
+use Lawoole\Console\Commands\DownCommand;
+use Lawoole\Console\Commands\UpCommand;
 use Lawoole\Console\Commands\ViewClearCommand;
+use Lawoole\Swoole\Commands\ServeCommand;
+use Lawoole\Swoole\Commands\ShutdownCommand;
 
-class RegisterCommands
+class ArtisanServiceProvider extends ServiceProvider
 {
-    /**
-     * 服务容器
-     *
-     * @var \Lawoole\Application
-     */
-    protected $app;
-
     /**
      * 所有支持的命令
      *
      * @var array
      */
     protected $commands = [
+        'Up'              => 'command.up',
+        'Down'            => 'command.down',
+        'Serve'           => 'command.serve',
+        'Shutdown'        => 'command.shutdown',
         'AppName'         => 'command.app.name',
-        'AppUp'           => 'command.app.up',
-        'AppDown'         => 'command.app.down',
         'CacheClear'      => 'command.cache.clear',
         'CacheForget'     => 'command.cache.forget',
         'CacheTable'      => 'command.cache.table',
@@ -52,6 +51,8 @@ class RegisterCommands
         'MigrateReset'    => 'command.migrate.reset',
         'MigrateRollback' => 'command.migrate.rollback',
         'MigrateStatus'   => 'command.migrate.status',
+        'ScheduleRun'     => 'command.schedule.run',
+        'ScheduleFinish'  => 'command.schedule.finish',
         'Seed'            => 'command.seed',
         'SeederMake'      => 'command.seeder.make',
         'SessionTable'    => 'command.session.table',
@@ -59,14 +60,10 @@ class RegisterCommands
     ];
 
     /**
-     * 注册命令
-     *
-     * @param \Lawoole\Application $app
+     * 注册服务提供者
      */
-    public function bootstrap(Application $app)
+    public function register()
     {
-        $this->app = $app;
-
         $this->registerCommands($this->commands);
     }
 
@@ -74,14 +71,54 @@ class RegisterCommands
      * 注册命令
      *
      * @param array $commands
-     *
-     * @return void
      */
     protected function registerCommands(array $commands)
     {
         foreach (array_keys($commands) as $command) {
-            call_user_func([$this, "register{$command}Command"]);
+            call_user_func_array([$this, "register{$command}Command"], []);
         }
+
+        $this->commands(array_values($commands));
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerUpCommand()
+    {
+        $this->app->singleton('command.up', function () {
+            return new UpCommand;
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerAppDownCommand()
+    {
+        $this->app->singleton('command.down', function () {
+            return new DownCommand;
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerServeCommand()
+    {
+        $this->app->singleton('command.serve', function () {
+            return new ServeCommand;
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerShutdownCommand()
+    {
+        $this->app->singleton('command.shutdown', function () {
+            return new ShutdownCommand;
+        });
     }
 
     /**
@@ -91,26 +128,6 @@ class RegisterCommands
     {
         $this->app->singleton('command.app.name', function () {
             return new AppNameCommand;
-        });
-    }
-
-    /**
-     * 注册命令
-     */
-    protected function registerAppUpCommand()
-    {
-        $this->app->singleton('command.app.up', function () {
-            return new AppUpCommand;
-        });
-    }
-
-    /**
-     * 注册命令
-     */
-    protected function registerAppDownCommand()
-    {
-        $this->app->singleton('command.app.down', function () {
-            return new AppDownCommand;
         });
     }
 
@@ -237,6 +254,26 @@ class RegisterCommands
     /**
      * 注册命令
      */
+    protected function registerScheduleRunCommand()
+    {
+        $this->app->singleton('command.schedule.run', function ($app) {
+            return new ScheduleRunCommand($app['schedule']);
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerScheduleFinishCommand()
+    {
+        $this->app->singleton('command.schedule.finish', function ($app) {
+            return new ScheduleFinishCommand($app['schedule']);
+        });
+    }
+
+    /**
+     * 注册命令
+     */
     protected function registerSeedCommand()
     {
         $this->app->singleton('command.seed', function ($app) {
@@ -272,5 +309,15 @@ class RegisterCommands
         $this->app->singleton('command.view.clear', function ($app) {
             return new ViewClearCommand($app['files']);
         });
+    }
+
+    /**
+     * 获得提供的服务名
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return array_values($this->commands);
     }
 }

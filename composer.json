@@ -1,6 +1,6 @@
 {
     "name": "lawoole/framework",
-    "description": "The Lawoole Framework.",
+    "description": "A fast framework with Laravel components based on Swoole",
     "keywords": ["framework", "swoole", "laravel", "lawoole"],
     "license": "MIT",
     "homepage": "https://github.com/lawoole/framework",
@@ -32,6 +32,7 @@
         "illuminate/support": "5.5.*",
         "illuminate/validation": "5.5.*",
         "illuminate/view": "5.5.*",
+        "symfony/process": "~3.3",
         "nikic/fast-route": "~1.2",
         "monolog/monolog": "~1.23"
     },
