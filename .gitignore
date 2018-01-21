@@ -11,6 +11,8 @@ Thumbs.db
 nbproject
 
 # Composer
-/vendor
-composer.phar
+vendor
 composer.lock
+
+# Test
+phpunit.xml

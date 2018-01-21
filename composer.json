@@ -1,43 +1,57 @@
 {
-  "name": "lawoole/framework",
-  "description": "The Lawoole Framework.",
-  "keywords": ["framework", "swoole", "laravel", "lawoole"],
-  "license": "MIT",
-  "homepage": "https://github.com/lawoole/framework",
-  "prefer-stable": true,
-  "minimum-stability": "dev",
-  "support": {
-    "issues": "https://github.com/lawoole/framework/issues",
-    "source": "https://github.com/lawoole/framework"
-  },
-  "authors": [
-    {
-      "name": "You Ming",
-      "email": "youming@funcuter.org"
-    }
-  ],
-  "require": {
-    "php": ">=7.0",
-    "illuminate/config": "5.5.*",
-    "illuminate/container": "5.5.*",
-    "illuminate/contracts": "5.5.*",
-    "illuminate/events": "5.5.*",
-    "illuminate/http": "5.5.*",
-    "illuminate/log": "5.5.*",
-    "illuminate/support": "5.5.*",
-    "nikic/fast-route": "~1.2",
-    "monolog/monolog": "~1.23"
-  },
-  "require-dev": {
-    "phpunit/phpunit": "~5.7",
-    "eaglewu/swoole-ide-helper": "dev-master"
-  },
-  "autoload": {
-    "psr-4": {
-      "Lawoole\\": "src/"
+    "name": "lawoole/framework",
+    "description": "The Lawoole Framework.",
+    "keywords": ["framework", "swoole", "laravel", "lawoole"],
+    "license": "MIT",
+    "homepage": "https://github.com/lawoole/framework",
+    "support": {
+        "issues": "https://github.com/lawoole/framework/issues",
+        "source": "https://github.com/lawoole/framework"
     },
-    "files": [
-      "src/helpers.php"
-    ]
-  }
+    "authors": [
+        {
+            "name": "You Ming",
+            "email": "youming@funcuter.org"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "lawoole/swoole": "~0.1",
+        "illuminate/cache": "5.5.*",
+        "illuminate/config": "5.5.*",
+        "illuminate/console": "5.5.*",
+        "illuminate/container": "5.5.*",
+        "illuminate/contracts": "5.5.*",
+        "illuminate/database": "5.5.*",
+        "illuminate/encryption": "5.5.*",
+        "illuminate/events": "5.5.*",
+        "illuminate/http": "5.5.*",
+        "illuminate/log": "5.5.*",
+        "illuminate/pipeline": "5.5.*",
+        "illuminate/redis": "5.5.*",
+        "illuminate/support": "5.5.*",
+        "illuminate/validation": "5.5.*",
+        "illuminate/view": "5.5.*",
+        "nikic/fast-route": "~1.2",
+        "monolog/monolog": "~1.23"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~5.7",
+        "lawoole/swoole-api": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lawoole\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
