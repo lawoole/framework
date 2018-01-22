@@ -57,7 +57,7 @@ class StartCommand extends Command
     protected function configureServer($server, array $config)
     {
         // 共享一个统一的输出
-        $this->laravel->singleton(OutputStyle::class, new OutputStyle($this->input, $this->output));
+        $this->laravel->instance(OutputStyle::class, new OutputStyle($this->input, $this->output));
 
         $server->setExceptionHandler(
             $this->laravel->make(Arr::get($config, 'exception.handler', ServerExceptionHandler::class))
