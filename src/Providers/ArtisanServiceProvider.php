@@ -92,7 +92,7 @@ class ArtisanServiceProvider extends ServiceProvider
     /**
      * 注册命令
      */
-    protected function registerAppDownCommand()
+    protected function registerDownCommand()
     {
         $this->app->singleton('command.down', function () {
             return new DownCommand;
