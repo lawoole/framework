@@ -24,6 +24,7 @@
         "illuminate/contracts": "5.5.*",
         "illuminate/database": "5.5.*",
         "illuminate/events": "5.5.*",
+        "illuminate/filesystem": "5.5.*",
         "illuminate/http": "5.5.*",
         "illuminate/log": "5.5.*",
         "illuminate/pipeline": "5.5.*",
