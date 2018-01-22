@@ -59,13 +59,23 @@ class LogManager
      */
     public function writer($name = null)
     {
-        $name = $name ?: 'default';
+        $name = $name ?: $this->getDefaultWriter();
 
         if (isset($this->writers[$name])) {
             return $this->writers[$name];
         }
 
         return $this->writers[$name] = $this->createLogger($name);
+    }
+
+    /**
+     * 获得默认写入器名
+     *
+     * @return string
+     */
+    public function getDefaultWriter()
+    {
+        return $this->config['default'];
     }
 
     /**
