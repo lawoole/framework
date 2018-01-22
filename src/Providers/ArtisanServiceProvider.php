@@ -17,7 +17,6 @@ use Illuminate\Database\Console\Migrations\RollbackCommand as MigrateRollbackCom
 use Illuminate\Database\Console\Migrations\StatusCommand as MigrateStatusCommand;
 use Illuminate\Database\Console\Seeds\SeedCommand;
 use Illuminate\Database\Console\Seeds\SeederMakeCommand;
-use Illuminate\Session\Console\SessionTableCommand;
 use Illuminate\Support\ServiceProvider;
 use Lawoole\Console\Commands\AppNameCommand;
 use Lawoole\Console\Commands\DownCommand;
@@ -55,7 +54,6 @@ class ArtisanServiceProvider extends ServiceProvider
         'ScheduleFinish'  => 'command.schedule.finish',
         'Seed'            => 'command.seed',
         'SeederMake'      => 'command.seeder.make',
-        'SessionTable'    => 'command.session.table',
         'ViewClear'       => 'command.view.clear',
     ];
 
@@ -288,16 +286,6 @@ class ArtisanServiceProvider extends ServiceProvider
     {
         $this->app->singleton('command.seeder.make', function ($app) {
             return new SeederMakeCommand($app['files'], $app['composer']);
-        });
-    }
-
-    /**
-     * 注册命令
-     */
-    protected function registerSessionTableCommand()
-    {
-        $this->app->singleton('command.session.table', function ($app) {
-            return new SessionTableCommand($app['files'], $app['composer']);
         });
     }
 

@@ -67,7 +67,6 @@ class Kernel implements KernelContract
         'command.schedule.finish',
         'command.seeder.make',
         'command.seed',
-        'command.session.table',
         'command.view.clear',
     ];
 
