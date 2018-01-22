@@ -85,6 +85,7 @@ class Handler implements ExceptionHandlerContract
      * @param \Exception $e
      *
      * @return mixed
+     *
      * @throws \Exception
      */
     public function report(Exception $e)

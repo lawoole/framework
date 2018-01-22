@@ -137,8 +137,8 @@ class Application extends Container implements ApplicationContract
 
         // Swoole 处理核心
         $this->singleton(
-            \Lawoole\Contracts\Swoole\Kernel::class,
-            \Lawoole\Swoole\Kernel::class
+            \Lawoole\Contracts\Server\Kernel::class,
+            \Lawoole\Server\Kernel::class
         );
     }
 

@@ -1,5 +1,5 @@
 <?php
-namespace Lawoole\Contracts\Swoole;
+namespace Lawoole\Contracts\Server;
 
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 

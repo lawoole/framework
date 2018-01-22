@@ -23,8 +23,8 @@ use Lawoole\Console\Commands\AppNameCommand;
 use Lawoole\Console\Commands\DownCommand;
 use Lawoole\Console\Commands\UpCommand;
 use Lawoole\Console\Commands\ViewClearCommand;
-use Lawoole\Swoole\Commands\ServeCommand;
-use Lawoole\Swoole\Commands\ShutdownCommand;
+use Lawoole\Server\Commands\ShutdownCommand;
+use Lawoole\Server\Commands\StartCommand;
 
 class ArtisanServiceProvider extends ServiceProvider
 {
@@ -36,7 +36,7 @@ class ArtisanServiceProvider extends ServiceProvider
     protected $commands = [
         'Up'              => 'command.up',
         'Down'            => 'command.down',
-        'Serve'           => 'command.serve',
+        'Start'           => 'command.start',
         'Shutdown'        => 'command.shutdown',
         'AppName'         => 'command.app.name',
         'CacheClear'      => 'command.cache.clear',
@@ -104,10 +104,10 @@ class ArtisanServiceProvider extends ServiceProvider
     /**
      * 注册命令
      */
-    protected function registerServeCommand()
+    protected function registerStartCommand()
     {
-        $this->app->singleton('command.serve', function () {
-            return new ServeCommand;
+        $this->app->singleton('command.start', function () {
+            return new StartCommand;
         });
     }
 

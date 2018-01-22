@@ -56,6 +56,7 @@ class Kernel implements KernelContract
      * @param \Illuminate\Http\Request $request
      *
      * @return \Symfony\Component\HttpFoundation\Response
+     *
      * @throws \Exception
      */
     public function handle($request)
@@ -130,6 +131,7 @@ class Kernel implements KernelContract
      * @param \Exception $e
      *
      * @return \Symfony\Component\HttpFoundation\Response
+     *
      * @throws \Exception
      */
     protected function handleException($request, Exception $e)

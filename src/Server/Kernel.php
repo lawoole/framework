@@ -1,9 +1,10 @@
 <?php
-namespace Lawoole\Swoole;
+namespace Lawoole\Server;
 
 use Lawoole\Console\Kernel as ConsoleKernel;
+use Lawoole\Contracts\Server\Kernel as KernelContract;
 
-class Kernel extends ConsoleKernel
+class Kernel extends ConsoleKernel implements KernelContract
 {
     /**
      * Swoole 服务命令集合
@@ -11,8 +12,8 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $swooleServerCommands = [
-        'command.swoole.run',
-        'command.swoole.stop',
+        'command.start',
+        'command.shutdown',
     ];
 
     /**

@@ -48,7 +48,7 @@ class Kernel implements KernelContract
     protected $internalCommands = [
         'command.up',
         'command.down',
-        'command.serve',
+        'command.start',
         'command.shutdown',
         'command.app.name',
         'command.cache.clear',
@@ -96,6 +96,7 @@ class Kernel implements KernelContract
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      *
      * @return int
+     *
      * @throws \Exception
      */
     public function handle($input, $output = null)

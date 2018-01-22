@@ -5,12 +5,20 @@ use Illuminate\Console\OutputStyle as LaravelOutputStyle;
 use Illuminate\Contracts\Support\Arrayable;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\Question;
 
 class OutputStyle extends LaravelOutputStyle
 {
+    /**
+     * 控制台输出
+     *
+     * @var \Symfony\Component\Console\Output\OutputInterface
+     */
+    private $output;
+
     /**
      * 默认是信息级别
      *
@@ -30,6 +38,29 @@ class OutputStyle extends LaravelOutputStyle
         'quiet'  => OutputInterface::VERBOSITY_QUIET,
         'normal' => OutputInterface::VERBOSITY_NORMAL,
     ];
+
+    /**
+     * 创建输出样式
+     *
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
+    public function __construct(InputInterface $input, OutputInterface $output)
+    {
+        $this->output = $output;
+
+        parent::__construct($input, $output);
+    }
+
+    /**
+     * 获得输出对象
+     *
+     * @return \Symfony\Component\Console\Output\OutputInterface
+     */
+    public function getOutput()
+    {
+        return $this->output;
+    }
 
     /**
      * 显示确认

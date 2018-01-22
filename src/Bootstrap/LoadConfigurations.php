@@ -54,7 +54,7 @@ class LoadConfigurations
     public function loadEnvironmentConfigurations(Application $app, Repository $repository)
     {
         $files = $this->getConfigurationFiles(
-            $repository->get('config.production', $app->configPath('production'))
+            $repository->get('config.environment', $app->configPath('environment'))
         );
 
         foreach ($files as $scope => $path) {

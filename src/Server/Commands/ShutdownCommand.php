@@ -1,5 +1,5 @@
 <?php
-namespace Lawoole\Swoole\Commands;
+namespace Lawoole\Server\Commands;
 
 use Illuminate\Console\Command;
 

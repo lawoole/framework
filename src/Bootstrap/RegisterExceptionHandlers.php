@@ -60,19 +60,15 @@ class RegisterExceptionHandlers
     /**
      * 处理未捕获的异常
      *
-     * @param \Throwable $e
+     * @param \Exception $e
      *
      * @throws \Exception
      */
     public function handleException($e)
     {
-        if (!$e instanceof Exception) {
-            $e = new FatalThrowableError($e);
-        }
-
         try {
             $handler = $this->app->make(ExceptionHandler::class);
-        } catch (Exception $e) {
+        } catch (Exception $ex) {
             // 抛出原始错误
             throw $e;
         }

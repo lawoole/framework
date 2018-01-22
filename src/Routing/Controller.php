@@ -11,7 +11,8 @@ abstract class Controller
      * @param string $method
      * @param array $parameters
      *
-     * @return mixed
+     * @return
+     *
      * @throws \BadMethodCallException
      */
     public function __call($method, $parameters)

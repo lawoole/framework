@@ -16,7 +16,7 @@
     ],
     "require": {
         "php": ">=7.0",
-        "lawoole/swoole": "~0.1",
+        "lawoole/swoole": "dev-master",
         "illuminate/cache": "5.5.*",
         "illuminate/config": "5.5.*",
         "illuminate/console": "5.5.*",
