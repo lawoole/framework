@@ -35,7 +35,9 @@
     },
     "require-dev": {
         "phpunit/phpunit": "~5.7",
-        "lawoole/swoole-api": "dev-master"
+        "lawoole/swoole-api": "dev-master",
+        "illuminate/validation": "5.5.*",
+        "illuminate/view": "5.5.*"
     },
     "autoload": {
         "psr-4": {

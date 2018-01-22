@@ -12,6 +12,8 @@ class ScheduleServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->app->alias('schedule', Schedule::class);
+
         $this->app->singleton('schedule', function () {
             $schedule = new Schedule;
 
