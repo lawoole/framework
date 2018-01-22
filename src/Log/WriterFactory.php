@@ -105,7 +105,7 @@ class WriterFactory
      *
      * @param \Illuminate\Log\Writer $log
      */
-    protected function configureSystemLogHandler(Writer $log)
+    protected function configureSystemHandler(Writer $log)
     {
         $log->useSyslog($this->logName(), $this->logLevel());
     }
@@ -115,7 +115,7 @@ class WriterFactory
      *
      * @param \Illuminate\Log\Writer $log
      */
-    protected function configureErrorLogHandler(Writer $log)
+    protected function configureErrorHandler(Writer $log)
     {
         $log->useErrorLog($this->logLevel());
     }
