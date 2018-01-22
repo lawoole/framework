@@ -3,11 +3,13 @@ namespace Lawoole\Server\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Lawoole\Console\OutputStyle;
 use Lawoole\Server\HttpServerSocketHandler;
 use Lawoole\Server\ServerExceptionHandler;
 use Lawoole\Server\ServerHandler;
+use Lawoole\Server\TcpServerSocketHandler;
 use Lawoole\Swoole\HttpServerSocket;
 use Lawoole\Swoole\ServerSocket;
 use Lawoole\Swoole\WebSocketServer;
@@ -116,33 +118,68 @@ class StartCommand extends Command
     {
         $protocol = Arr::get($config, 'protocol', 'http');
 
-        // 创建服务 Socket 对象
-        switch (strtolower($protocol)) {
-            case 'http':
-                $serverSocket = new HttpServerSocket(
-                    Arr::get($config, 'host', '127.0.0.1'),
-                    Arr::get($config, 'port', 80)
-                );
-
-                // 默认处理器
-                $serverSocket->putEventHandler(new HttpServerSocketHandler($this->laravel));
-
-                break;
-            case 'web_socket':
-                $serverSocket = new WebSocketServerSocket(
-                    Arr::get($config, 'host', '127.0.0.1'),
-                    Arr::get($config, 'port', 80)
-                );
-                break;
-            case 'tcp':
-                $serverSocket = new ServerSocket(
-                    Arr::get($config, 'host', '127.0.0.1'),
-                    Arr::get($config, 'port', 9501)
-                );
-                break;
-            default:
-                throw new InvalidArgumentException("The protocol [{$protocol}] is not support.");
+        if (method_exists($this, $method = 'create'.Str::studly($protocol).'ServerSocket')) {
+            $serverSocket = $this->$method($config);
+        } else {
+            throw new InvalidArgumentException("The protocol [{$protocol}] is not support.");
         }
+
+        return $serverSocket;
+    }
+
+    /**
+     * 创建 Tcp 服务 Socket
+     *
+     * @param array $config
+     *
+     * @return \Lawoole\Swoole\ServerSocket
+     */
+    protected function createTcpServerSocket(array $config)
+    {
+        $serverSocket = new ServerSocket(
+            Arr::get($config, 'host', '127.0.0.1'),
+            Arr::get($config, 'port', 9501)
+        );
+
+        // 默认处理器
+        $serverSocket->putEventHandler(new TcpServerSocketHandler($this->laravel));
+
+        return $serverSocket;
+    }
+
+    /**
+     * 创建 Http 服务 Socket
+     *
+     * @param array $config
+     *
+     * @return \Lawoole\Swoole\HttpServerSocket
+     */
+    protected function createHttpServerSocket(array $config)
+    {
+        $serverSocket = new HttpServerSocket(
+            Arr::get($config, 'host', '127.0.0.1'),
+            Arr::get($config, 'port', 80)
+        );
+
+        // 默认处理器
+        $serverSocket->putEventHandler(new HttpServerSocketHandler($this->laravel));
+
+        return $serverSocket;
+    }
+
+    /**
+     * 创建 WebSocket 服务 Socket
+     *
+     * @param array $config
+     *
+     * @return \Lawoole\Swoole\WebSocketServerSocket
+     */
+    protected function createWebSocketServerSocket(array $config)
+    {
+        $serverSocket = new WebSocketServerSocket(
+            Arr::get($config, 'host', '127.0.0.1'),
+            Arr::get($config, 'port', 80)
+        );
 
         return $serverSocket;
     }
