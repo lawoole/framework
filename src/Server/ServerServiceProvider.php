@@ -1,5 +1,5 @@
 <?php
-namespace Lawoole\Support;
+namespace Lawoole\Server;
 
 use Illuminate\Support\ServiceProvider;
 use Lawoole\Server\Commands\ShutdownCommand;
