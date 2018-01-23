@@ -8,7 +8,7 @@ use Illuminate\Support\ServiceProvider;
 class ScheduleServiceProvider extends ServiceProvider
 {
     /**
-     * 注册服务提供�
+     * 注册服务提供者
      */
     public function register()
     {

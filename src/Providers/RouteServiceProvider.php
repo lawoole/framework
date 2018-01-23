@@ -7,7 +7,7 @@ use Illuminate\Support\ServiceProvider;
 class RouteServiceProvider extends ServiceProvider
 {
     /**
-     * 启动服务提供�
+     * 注册服务提供者
      */
     public function boot()
     {

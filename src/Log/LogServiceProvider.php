@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 class LogServiceProvider extends ServiceProvider
 {
     /**
-     * 注册服务提供�
+     * 注册服务提供者
      */
     public function register()
     {
