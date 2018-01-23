@@ -691,6 +691,8 @@ class Application extends Container implements ApplicationContract
             \Illuminate\Http\Request::class                         => 'request',
             \Lawoole\Routing\Router::class                          => 'router',
             \Illuminate\Console\Scheduling\Schedule::class          => 'schedule',
+            \Lawoole\Swoole\Server::class                           => 'server',
+            \Swoole\Server::class                                   => 'server.swoole',
             \Illuminate\Validation\Factory::class                   => 'validator',
             \Illuminate\Contracts\Validation\Factory::class         => 'validator',
             \Illuminate\Contracts\View\Factory::class               => 'view',
