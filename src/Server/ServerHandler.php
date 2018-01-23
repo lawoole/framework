@@ -1,11 +1,19 @@
 <?php
 namespace Lawoole\Server;
 
+use Exception;
+use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Support\Facades\Log;
 use Lawoole\Application;
 use Lawoole\Console\OutputStyle;
 use Lawoole\Swoole\Handlers\ServerHandler as ServerHandlerContract;
 use Lawoole\Swoole\Handlers\ServerSocketBufferHandler;
 use Lawoole\Swoole\Handlers\TcpServerSocketHandler;
+use Lawoole\Task\Message;
+use Lawoole\Task\Responses\TaskReceivedResponse;
+use Lawoole\Task\Task;
+use Lawoole\Task\TaskResponse;
+use RuntimeException;
 
 class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler, TcpServerSocketHandler
 {
@@ -52,7 +60,17 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onStart($server)
     {
+        $name = $this->app->name();
 
+        $this->outputStyle->info("{$name} server is running.");
+
+        // 设置进程名
+        swoole_set_process_name("{$name} : Master");
+
+        // 共享至容器
+        $this->app->singleton('server', $server);
+        $this->app->singleton('server.swoole', $server->getSwooleServer());
+        $this->app->singleton('server.output', $this->outputStyle);
     }
 
     /**
@@ -62,7 +80,10 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onShutdown($server)
     {
-
+        // 移除容器共享
+        $this->app->forgetInstance('server');
+        $this->app->forgetInstance('server.swoole');
+        $this->app->forgetInstance('server.output');
     }
 
     /**
@@ -72,7 +93,15 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onManagerStart($server)
     {
+        $name = $this->app->name();
 
+        // 设置进程名
+        swoole_set_process_name("{$name} : Manager");
+
+        // 共享至容器
+        $this->app->singleton('server', $server);
+        $this->app->singleton('server.swoole', $server->getSwooleServer());
+        $this->app->singleton('server.output', $this->outputStyle);
     }
 
     /**
@@ -82,7 +111,10 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onManagerStop($server)
     {
-
+        // 移除容器共享
+        $this->app->forgetInstance('server');
+        $this->app->forgetInstance('server.swoole');
+        $this->app->forgetInstance('server.output');
     }
 
     /**
@@ -93,7 +125,17 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onWorkerStart($server, $workerId)
     {
+        $name = $this->app->name();
 
+        // 设置进程名
+        swoole_set_process_name("{$name} : Worker {$workerId}");
+
+        // 共享至容器
+        $this->app->singleton('server', $server);
+        $this->app->singleton('server.swoole', $server->getSwooleServer());
+        $this->app->singleton('server.output', $this->outputStyle);
+        $this->app->singleton('server.worker.id', $workerId);
+        $this->app->singleton('server.worker.task', $server->isTaskWorker());
     }
 
     /**
@@ -104,7 +146,12 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onWorkerStop($server, $workerId)
     {
-
+        // 移除容器共享
+        $this->app->forgetInstance('server');
+        $this->app->forgetInstance('server.swoole');
+        $this->app->forgetInstance('server.output');
+        $this->app->forgetInstance('server.worker.id');
+        $this->app->forgetInstance('server.worker.task');
     }
 
     /**
@@ -129,7 +176,13 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onWorkerError($server, $workerId, $workerPid, $exitCode, $signal)
     {
+        $message = "Worker {$workerId} exit with code {$exitCode}, signal {$signal}, pid {$workerPid}.";
 
+        try {
+            $this->reportException(new RuntimeException($message));
+        } catch (Exception $e) {
+            // Ignore
+        }
     }
 
     /**
@@ -142,7 +195,23 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onTask($server, $taskId, $srcWorkerId, $data)
     {
+        if ($data instanceof Task) {
+            // 设置任务信息
+            $data->setTaskId($taskId);
+            $data->setSrcWorkerId($srcWorkerId);
 
+            if (method_exists($data, 'handle')) {
+                $response = $this->app->call([$data, 'handle']);
+
+                // 如果 handle 方法返回了任务响应对象，则推送响应
+                if ($response instanceof TaskResponse) {
+                    $server->pushTaskResponse($response);
+                }
+            } else {
+                // 默认：任务已接收响应
+                $server->pushTaskResponse(new TaskReceivedResponse);
+            }
+        }
     }
 
     /**
@@ -154,7 +223,15 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onFinish($server, $taskId, $data)
     {
+        if ($data instanceof TaskResponse) {
+            // 设置任务响应信息
+            $data->setTaskId($taskId);
+            $data->setSrcWorkerId($server->getWorkerId());
 
+            if (method_exists($data, 'handle')) {
+                $this->app->call([$data, 'handle']);
+            }
+        }
     }
 
     /**
@@ -166,7 +243,14 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onPipeMessage($server, $srcWorkerId, $data)
     {
+        if ($data instanceof Message) {
+            // 设置消息信息
+            $data->setSrcWorkerId($srcWorkerId);
 
+            if (method_exists($data, 'handle')) {
+                $this->app->call([$data, 'handle']);
+            }
+        }
     }
 
     /**
@@ -178,7 +262,11 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onBufferFull($server, $serverSocket, $fd)
     {
+        $message = "The buffer for [{$fd}] reached the high watermark.";
 
+        Log::warning($message);
+
+        $this->outputStyle->warn($message);
     }
 
     /**
@@ -190,7 +278,11 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onBufferEmpty($server, $serverSocket, $fd)
     {
+        $message = "The buffer for [{$fd}] reached the low watermark.";
 
+        Log::info($message);
+
+        $this->outputStyle->info($message);
     }
 
     /**
@@ -203,7 +295,6 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onConnect($server, $serverSocket, $fd, $reactorId)
     {
-
     }
 
     /**
@@ -217,7 +308,6 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onReceive($server, $serverSocket, $fd, $reactorId, $data)
     {
-
     }
 
     /**
@@ -230,6 +320,26 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onClose($server, $serverSocket, $fd, $reactorId)
     {
+    }
 
+    /**
+     * 报告异常
+     *
+     * @param \Exception $e
+     *
+     * @throws \Exception
+     */
+    protected function reportException(Exception $e)
+    {
+        try {
+            $handler = $this->app->make(ExceptionHandler::class);
+        } catch (Exception $ex) {
+            // 抛出原始错误
+            throw $e;
+        }
+
+        $handler->report($e);
+
+        $handler->renderForConsole($this->outputStyle->getOutput(), $e);
     }
 }
