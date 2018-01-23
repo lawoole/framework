@@ -68,9 +68,9 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
         swoole_set_process_name("{$name} : Master");
 
         // 共享至容器
-        $this->app->singleton('server', $server);
-        $this->app->singleton('server.swoole', $server->getSwooleServer());
-        $this->app->singleton('server.output', $this->outputStyle);
+        $this->app->instance('server', $server);
+        $this->app->instance('server.swoole', $server->getSwooleServer());
+        $this->app->instance('server.output', $this->outputStyle);
     }
 
     /**
@@ -99,9 +99,9 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
         swoole_set_process_name("{$name} : Manager");
 
         // 共享至容器
-        $this->app->singleton('server', $server);
-        $this->app->singleton('server.swoole', $server->getSwooleServer());
-        $this->app->singleton('server.output', $this->outputStyle);
+        $this->app->instance('server', $server);
+        $this->app->instance('server.swoole', $server->getSwooleServer());
+        $this->app->instance('server.output', $this->outputStyle);
     }
 
     /**
@@ -131,11 +131,11 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
         swoole_set_process_name("{$name} : Worker {$workerId}");
 
         // 共享至容器
-        $this->app->singleton('server', $server);
-        $this->app->singleton('server.swoole', $server->getSwooleServer());
-        $this->app->singleton('server.output', $this->outputStyle);
-        $this->app->singleton('server.worker.id', $workerId);
-        $this->app->singleton('server.worker.task', $server->isTaskWorker());
+        $this->app->instance('server', $server);
+        $this->app->instance('server.swoole', $server->getSwooleServer());
+        $this->app->instance('server.output', $this->outputStyle);
+        $this->app->instance('server.worker.id', $workerId);
+        $this->app->instance('server.worker.task', $server->isTaskWorker());
     }
 
     /**
