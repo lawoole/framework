@@ -196,7 +196,6 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
     public function onTask($server, $taskId, $srcWorkerId, $data)
     {
         if ($data instanceof Task) {
-            // 设置任务信息
             $data->setTaskId($taskId);
             $data->setSrcWorkerId($srcWorkerId);
 
@@ -227,16 +226,17 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
      */
     public function onFinish($server, $taskId, $data)
     {
+        // 任务执行中返回了任务响应，处理任务响应
         if ($data instanceof TaskResponse) {
-            // 设置任务响应信息
             $data->setTaskId($taskId);
             $data->setSrcWorkerId($server->getWorkerId());
 
             if (method_exists($data, 'handle')) {
                 $this->app->call([$data, 'handle']);
             }
-        } elseif ($data instanceof Task) {
-            // 设置任务响应信息
+        }
+        // 任务执行中返回了任务本身，执行任务的完成方法
+        elseif ($data instanceof Task) {
             $data->setTaskId($taskId);
             $data->setSrcWorkerId($server->getWorkerId());
 
