@@ -44,7 +44,7 @@ class ServerServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['server.manager'];
+        return ['server', 'server.manager', 'server.swoole'];
     }
 
     /**
