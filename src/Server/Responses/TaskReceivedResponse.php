@@ -1,5 +1,5 @@
 <?php
-namespace Lawoole\Task\Responses;
+namespace Lawoole\Server\Responses;
 
 use Lawoole\Task\TaskResponse;
 
