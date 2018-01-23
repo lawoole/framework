@@ -4,7 +4,6 @@ namespace Lawoole\Server;
 use Illuminate\Support\ServiceProvider;
 use Lawoole\Server\Commands\ShutdownCommand;
 use Lawoole\Server\Commands\StartCommand;
-use Lawoole\Server\ServerManager;
 
 class ServerServiceProvider extends ServiceProvider
 {

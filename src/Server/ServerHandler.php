@@ -207,6 +207,10 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
                 if ($response instanceof TaskResponse) {
                     $server->pushTaskResponse($response);
                 }
+                // 如果任务存在完成方法，则响应任务本身
+                elseif (method_exists($data, 'finish')) {
+                    $server->pushTaskResponse($data);
+                }
             } else {
                 // 默认：任务已接收响应
                 $server->pushTaskResponse(new TaskReceivedResponse);
@@ -230,6 +234,14 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
 
             if (method_exists($data, 'handle')) {
                 $this->app->call([$data, 'handle']);
+            }
+        } elseif ($data instanceof Task) {
+            // 设置任务响应信息
+            $data->setTaskId($taskId);
+            $data->setSrcWorkerId($server->getWorkerId());
+
+            if (method_exists($data, 'finish')) {
+                $this->app->call([$data, 'finish']);
             }
         }
     }
