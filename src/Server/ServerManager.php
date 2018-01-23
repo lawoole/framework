@@ -63,7 +63,7 @@ class ServerManager
      * @param \Symfony\Component\Console\Input\InputInterface $input
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
-    protected function prepare(InputInterface $input, OutputInterface $output)
+    public function prepare(InputInterface $input, OutputInterface $output)
     {
         if ($this->prepared) {
             return;
