@@ -174,7 +174,7 @@ if (!function_exists('report')) {
     }
 }
 
-if (! function_exists('view')) {
+if (!function_exists('view')) {
     /**
      * 获得视图
      *
