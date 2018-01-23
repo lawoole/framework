@@ -71,7 +71,7 @@ class ServerManager
 
         $this->prepared = true;
 
-        if ($this->app->bound(OutputStyle::class)) {
+        if (!$this->app->bound(OutputStyle::class)) {
             // 共享一个统一的输出
             $this->app->instance(OutputStyle::class, new OutputStyle($input, $output));
         }
