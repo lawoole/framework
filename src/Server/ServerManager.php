@@ -48,6 +48,16 @@ class ServerManager
     }
 
     /**
+     * 获得 Swoole 服务
+     *
+     * @return \Lawoole\Swoole\Server
+     */
+    public function getServer()
+    {
+        return $this->server;
+    }
+
+    /**
      * 准备 Swoole 服务
      *
      * @param \Symfony\Component\Console\Input\InputInterface $input

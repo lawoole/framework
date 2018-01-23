@@ -26,6 +26,14 @@ class ServerServiceProvider extends ServiceProvider
             return new ServerManager($app);
         });
 
+        $this->app->singleton('server', function ($app) {
+            return $app->make('server.manager')->getServer();
+        });
+
+        $this->app->singleton('server.swoole', function ($app) {
+            return $app->make('server')->getSwooleServer();
+        });
+
         $this->registerCommands($this->commands);
     }
 
