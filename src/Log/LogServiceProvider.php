@@ -6,13 +6,6 @@ use Illuminate\Support\ServiceProvider;
 class LogServiceProvider extends ServiceProvider
 {
     /**
-     * 服务容器
-     *
-     * @var \Lawoole\Application
-     */
-    protected $app;
-
-    /**
      * 注册服务提供者
      */
     public function register()
