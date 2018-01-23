@@ -106,7 +106,7 @@ class Application extends Container implements ApplicationContract
         static::setInstance($this);
 
         $this->instance('app', $this);
-        $this->instance(Application::class, $this);
+        $this->instance(self::class, $this);
         $this->instance(Container::class, $this);
 
         $this->registerCoreAliases();
@@ -231,6 +231,7 @@ class Application extends Container implements ApplicationContract
     {
         return $this->basePath.($path ? DIRECTORY_SEPARATOR.$path : $path);
     }
+
     /**
      * 获得初始化文件路径
      *

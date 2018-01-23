@@ -4,7 +4,6 @@ namespace Lawoole\Http;
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel as KernelContract;
-use Illuminate\Http\Response;
 use Lawoole\Application;
 use Lawoole\Routing\RequestManager;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
