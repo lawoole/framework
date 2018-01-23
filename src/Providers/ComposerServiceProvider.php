@@ -7,7 +7,7 @@ use Illuminate\Support\ServiceProvider;
 class ComposerServiceProvider extends ServiceProvider
 {
     /**
-     * 注册服务提供者
+     * 注册服务提供�
      */
     public function register()
     {

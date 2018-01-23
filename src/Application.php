@@ -137,7 +137,7 @@ class Application extends Container implements ApplicationContract
     }
 
     /**
-     * 注册基础服务提供者
+     * 注册基础服务提供�
      */
     protected function registerBaseServiceProviders()
     {
@@ -402,7 +402,7 @@ class Application extends Container implements ApplicationContract
     }
 
     /**
-     * 注册所有已配置的服务提供者
+     * 注册所有已配置的服务提供�
      */
     public function registerConfiguredProviders()
     {
@@ -504,7 +504,7 @@ class Application extends Container implements ApplicationContract
     }
 
     /**
-     * 启动应用和其中的服务提供者
+     * 启动应用和其中的服务提供�
      */
     public function boot()
     {
