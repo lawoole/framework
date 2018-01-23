@@ -106,7 +106,7 @@ class Application extends Container implements ApplicationContract
         static::setInstance($this);
 
         $this->instance('app', $this);
-        $this->instance(Application::class, $this);
+        $this->instance(self::class, $this);
         $this->instance(Container::class, $this);
 
         $this->registerCoreAliases();
@@ -137,7 +137,7 @@ class Application extends Container implements ApplicationContract
     }
 
     /**
-     * 注册基础服务提供者
+     * 注册基础服务提供�
      */
     protected function registerBaseServiceProviders()
     {
@@ -231,6 +231,7 @@ class Application extends Container implements ApplicationContract
     {
         return $this->basePath.($path ? DIRECTORY_SEPARATOR.$path : $path);
     }
+
     /**
      * 获得初始化文件路径
      *
@@ -401,7 +402,7 @@ class Application extends Container implements ApplicationContract
     }
 
     /**
-     * 注册所有已配置的服务提供者
+     * 注册所有已配置的服务提供�
      */
     public function registerConfiguredProviders()
     {
@@ -503,7 +504,7 @@ class Application extends Container implements ApplicationContract
     }
 
     /**
-     * 启动应用和其中的服务提供者
+     * 启动应用和其中的服务提供�
      */
     public function boot()
     {
