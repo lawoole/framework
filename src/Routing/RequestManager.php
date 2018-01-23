@@ -107,7 +107,7 @@ class RequestManager
         $this->events = $app['events'];
 
         // 记录到容器中
-        $app->singleton("http.request.manager.{$this->id}", $this);
+        $app->instance("http.request.manager.{$this->id}", $this);
     }
 
     /**

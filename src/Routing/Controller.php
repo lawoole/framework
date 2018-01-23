@@ -36,7 +36,7 @@ abstract class Controller
      */
     protected function pushTask(Task $task)
     {
-        if (!$task instanceof BindRequestManager) {
+        if (!in_array(BindRequestManager::class, class_uses($task))) {
             throw new RuntimeException('Task to be pushed must use BindRequestManager trait.');
         }
 
