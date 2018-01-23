@@ -41,34 +41,6 @@ class Kernel implements KernelContract
     ];
 
     /**
-     * 内置命令集合
-     *
-     * @var array
-     */
-    protected $internalCommands = [
-        'command.up',
-        'command.down',
-        'command.app.name',
-        'command.cache.clear',
-        'command.cache.forget',
-        'command.cache.table',
-        'command.factory.make',
-        'command.migrate',
-        'command.migrate.fresh',
-        'command.migrate.install',
-        'command.migrate.make',
-        'command.migrate.refresh',
-        'command.migrate.reset',
-        'command.migrate.rollback',
-        'command.migrate.status',
-        'command.schedule.run',
-        'command.schedule.finish',
-        'command.seeder.make',
-        'command.seed',
-        'command.view.clear',
-    ];
-
-    /**
      * 创建 Console 处理核心
      *
      * @param \Lawoole\Application $app
@@ -192,25 +164,9 @@ class Kernel implements KernelContract
         if ($this->artisan == null) {
             $this->artisan = new Artisan($this->app, $this->app['events'], $this->app->version());
             $this->artisan->setName($this->app->name());
-
-            // 注册命令
-            $this->artisan->resolveCommands($this->getUsableCommands());
         }
 
         return $this->artisan;
-    }
-
-    /**
-     * 获得可用的命令
-     *
-     * @return array
-     */
-    protected function getUsableCommands()
-    {
-        return array_merge(
-            $this->internalCommands,
-            $this->app->make('config')->get('console.commands', [])
-        );
     }
 
     /**
