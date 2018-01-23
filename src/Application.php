@@ -134,12 +134,6 @@ class Application extends Container implements ApplicationContract
             \Illuminate\Contracts\Console\Kernel::class,
             \Lawoole\Console\Kernel::class
         );
-
-        // Swoole 处理核心
-        $this->singleton(
-            \Lawoole\Contracts\Server\Kernel::class,
-            \Lawoole\Server\Kernel::class
-        );
     }
 
     /**
@@ -692,9 +686,11 @@ class Application extends Container implements ApplicationContract
             \Lawoole\Routing\Router::class                          => 'router',
             \Illuminate\Console\Scheduling\Schedule::class          => 'schedule',
             \Lawoole\Swoole\Server::class                           => 'server',
+            \Lawoole\Server\ServerManager::class                    => 'server.manager',
             \Swoole\Server::class                                   => 'server.swoole',
             \Illuminate\Validation\Factory::class                   => 'validator',
             \Illuminate\Contracts\Validation\Factory::class         => 'validator',
+            \Illuminate\View\Factory::class                         => 'view',
             \Illuminate\Contracts\View\Factory::class               => 'view',
         ];
 

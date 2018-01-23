@@ -3,7 +3,7 @@ namespace Lawoole\Support\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
-class Swoole extends Facade
+class Server extends Facade
 {
     /**
      * 获得服务名
@@ -12,6 +12,6 @@ class Swoole extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return 'swoole';
+        return 'server';
     }
 }

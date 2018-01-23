@@ -48,8 +48,6 @@ class Kernel implements KernelContract
     protected $internalCommands = [
         'command.up',
         'command.down',
-        'command.start',
-        'command.shutdown',
         'command.app.name',
         'command.cache.clear',
         'command.cache.forget',

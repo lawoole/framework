@@ -22,21 +22,17 @@ use Lawoole\Console\Commands\AppNameCommand;
 use Lawoole\Console\Commands\DownCommand;
 use Lawoole\Console\Commands\UpCommand;
 use Lawoole\Console\Commands\ViewClearCommand;
-use Lawoole\Server\Commands\ShutdownCommand;
-use Lawoole\Server\Commands\StartCommand;
 
 class ArtisanServiceProvider extends ServiceProvider
 {
     /**
-     * 所有支持的命令
+     * 支持的命令
      *
      * @var array
      */
     protected $commands = [
         'Up'              => 'command.up',
         'Down'            => 'command.down',
-        'Start'           => 'command.start',
-        'Shutdown'        => 'command.shutdown',
         'AppName'         => 'command.app.name',
         'CacheClear'      => 'command.cache.clear',
         'CacheForget'     => 'command.cache.forget',
@@ -75,6 +71,8 @@ class ArtisanServiceProvider extends ServiceProvider
         foreach (array_keys($commands) as $command) {
             call_user_func_array([$this, "register{$command}Command"], []);
         }
+
+        $this->commands(array_values($commands));
     }
 
     /**
@@ -94,26 +92,6 @@ class ArtisanServiceProvider extends ServiceProvider
     {
         $this->app->singleton('command.down', function () {
             return new DownCommand;
-        });
-    }
-
-    /**
-     * 注册命令
-     */
-    protected function registerStartCommand()
-    {
-        $this->app->singleton('command.start', function () {
-            return new StartCommand;
-        });
-    }
-
-    /**
-     * 注册命令
-     */
-    protected function registerShutdownCommand()
-    {
-        $this->app->singleton('command.shutdown', function () {
-            return new ShutdownCommand;
         });
     }
 

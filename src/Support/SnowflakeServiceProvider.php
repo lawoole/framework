@@ -14,4 +14,14 @@ class SnowflakeServiceProvider extends ServiceProvider
             return new Snowflake;
         });
     }
+
+    /**
+     * 获得提供的服务名
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return ['snowflake'];
+    }
 }
