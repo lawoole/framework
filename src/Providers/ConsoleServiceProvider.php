@@ -1,8 +1,8 @@
 <?php
 namespace Lawoole\Providers;
 
-use Illuminate\Support\AggregateServiceProvider;
 use Illuminate\Database\MigrationServiceProvider;
+use Illuminate\Support\AggregateServiceProvider;
 
 class ConsoleServiceProvider extends AggregateServiceProvider
 {
