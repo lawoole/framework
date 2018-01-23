@@ -172,7 +172,7 @@ class RequestManager
         $this->handled = true;
 
         // 在请求开始处理时注入容器
-        $this->app->instance(RequestManager::class, $this);
+        $this->app->instance(self::class, $this);
         $this->app->instance(Request::class, $this->request);
 
         try {
@@ -204,7 +204,7 @@ class RequestManager
         $this->sendResponse($response);
 
         // 在请求处理结束时注销容器内实例
-        $this->app->forgetInstance(RequestManager::class);
+        $this->app->forgetInstance(self::class);
         $this->app->forgetInstance(Request::class);
 
         return $response;

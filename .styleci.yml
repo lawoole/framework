@@ -4,6 +4,7 @@ risky: true
 
 enabled:
   - align_double_arrow
+  - alpha_ordered_imports
   - binary_operator_spaces
   - blank_line_after_namespace
   - blank_line_before_return
@@ -20,7 +21,6 @@ enabled:
   - hash_to_slash_comment
   - heredoc_to_nowdoc
   - include
-  - length_ordered_imports
   - lowercase_cast
   - lowercase_constants
   - lowercase_keywords
@@ -66,12 +66,11 @@ enabled:
   - normalize_index_brace
   - object_operator_without_whitespace
   - php_unit_fqcn_annotation
-  - phpdoc_annotation_without_dot
+  - phpdoc_add_missing_param_annotation
   - phpdoc_no_access
   - phpdoc_no_empty_return
   - phpdoc_no_package
   - phpdoc_no_useless_inheritdoc
-  - phpdoc_order
   - phpdoc_return_self_reference
   - phpdoc_scalar
   - phpdoc_to_comment
@@ -85,7 +84,6 @@ enabled:
   - self_accessor
   - short_array_syntax
   - short_scalar_cast
-  - simplified_null_return
   - single_blank_line_at_eof
   - single_class_element_per_statement
   - single_import_per_statement
