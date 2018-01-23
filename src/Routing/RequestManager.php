@@ -5,6 +5,7 @@ use ArrayObject;
 use BadMethodCallException;
 use Closure;
 use Exception;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
@@ -13,6 +14,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Str;
 use JsonSerializable;
 use Lawoole\Application;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
@@ -28,6 +30,13 @@ class RequestManager
      * @var \Lawoole\Application
      */
     protected $app;
+
+    /**
+     * 管理器编号
+     *
+     * @var string
+     */
+    protected $id;
 
     /**
      * 请求对象实例
@@ -91,8 +100,41 @@ class RequestManager
         $this->request = $request;
         $this->sender = $sender;
 
+        // 生成编号
+        $this->id = Str::random(16);
+
         $this->dispatcher = $app['router.dispatcher'];
         $this->events = $app['events'];
+
+        // 记录到容器中
+        $app->singleton("http.request.manager.{$this->id}", $this);
+    }
+
+    /**
+     * 获得管理器
+     *
+     * @param \Illuminate\Contracts\Container\Container $container
+     * @param string $id
+     *
+     * @return \Lawoole\Routing\RequestManager
+     */
+    public static function getManager(Container $container, $id)
+    {
+        if ($container->bound($key = "http.request.manager.{$id}")) {
+            return $container->make($key);
+        }
+
+        return null;
+    }
+
+    /**
+     * 获得管理器编号
+     *
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 
     /**
@@ -184,9 +226,9 @@ class RequestManager
 
         $this->responded = true;
 
-        $response = $this->prepareResponse($response);
-
         try {
+            $response = $this->prepareResponse($response);
+
             // 如果设置了响应发送者，则通过响应发送者发送响应
             if ($this->sender) {
                 call_user_func($this->sender, $response, $this);
@@ -200,6 +242,9 @@ class RequestManager
         } catch (Throwable $e) {
             // 记录异常
             $this->handleException($this->request, $e);
+        } finally {
+            // 发送完成后，从容器中移除自身
+            $this->app->forgetInstance("http.request.manager.{$this->id}");
         }
 
         return $response;
