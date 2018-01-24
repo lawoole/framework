@@ -35,7 +35,7 @@ class WebSocketServerSocket extends HttpServerSocket
      */
     public function bindToServer(Server $server, Port $swooleServerPort)
     {
-        if (!$server instanceof WebSocketServerSocket) {
+        if (!$server instanceof WebSocketServer) {
             throw new RuntimeException('WebSocket server socket must be bound on a WebSocket server.');
         }
 
