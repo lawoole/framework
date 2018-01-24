@@ -35,6 +35,16 @@
         "nikic/fast-route": "~1.2",
         "monolog/monolog": "~1.23"
     },
+    "replace": {
+        "lawoole/console": "self.version",
+        "lawoole/database": "self.version",
+        "lawoole/log": "self.version",
+        "lawoole/routing": "self.version",
+        "lawoole/server": "self.version",
+        "lawoole/swoole": "self.version",
+        "lawoole/support": "self.version",
+        "lawoole/task": "self.version"
+    },
     "require-dev": {
         "phpunit/phpunit": "~5.7",
         "lawoole/swoole-api": "dev-master",
