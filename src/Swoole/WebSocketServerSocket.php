@@ -42,7 +42,6 @@ class WebSocketServerSocket extends HttpServerSocket
         parent::bindToServer($server, $swooleServerPort);
     }
 
-
     /**
      * 注册事件回调
      */
