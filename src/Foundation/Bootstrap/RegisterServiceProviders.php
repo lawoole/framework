@@ -1,14 +1,14 @@
 <?php
-namespace Lawoole\Bootstrap;
+namespace Lawoole\Foundation\Bootstrap;
 
-use Lawoole\Application;
+use Lawoole\Contracts\Foundation\Application;
 
 class RegisterServiceProviders
 {
     /**
      * 注册配置中定义的服务提供者
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      */
     public function bootstrap(Application $app)
     {

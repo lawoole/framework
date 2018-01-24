@@ -4,7 +4,7 @@ use Illuminate\Container\Container;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Support\Carbon;
-use Lawoole\Application;
+use Lawoole\Contracts\Foundation\Application;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 
 if (!function_exists('app')) {
@@ -14,7 +14,7 @@ if (!function_exists('app')) {
      * @param string $abstract
      * @param array $parameters
      *
-     * @return \Lawoole\Application|mixed
+     * @return \Lawoole\Contracts\Foundation\Application|mixed
      */
     function app($abstract = null, $parameters = [])
     {

@@ -1,10 +1,10 @@
 <?php
-namespace Lawoole\Http;
+namespace Lawoole\Foundation\Http;
 
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel as KernelContract;
-use Lawoole\Application;
+use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Routing\RequestManager;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
@@ -14,7 +14,7 @@ class Kernel implements KernelContract
     /**
      * 服务容器
      *
-     * @var \Lawoole\Application
+     * @var \Lawoole\Contracts\Foundation\Application
      */
     protected $app;
 
@@ -24,17 +24,17 @@ class Kernel implements KernelContract
      * @var array
      */
     protected $bootstrappers = [
-        \Lawoole\Bootstrap\LoadConfigurations::class,
-        \Lawoole\Bootstrap\RegisterExceptionHandlers::class,
-        \Lawoole\Bootstrap\RegisterFacades::class,
-        \Lawoole\Bootstrap\RegisterServiceProviders::class,
-        \Lawoole\Bootstrap\BootProviders::class
+        \Lawoole\Foundation\Bootstrap\LoadConfigurations::class,
+        \Lawoole\Foundation\Bootstrap\RegisterExceptionHandlers::class,
+        \Lawoole\Foundation\Bootstrap\RegisterFacades::class,
+        \Lawoole\Foundation\Bootstrap\RegisterServiceProviders::class,
+        \Lawoole\Foundation\Bootstrap\BootProviders::class
     ];
 
     /**
      * 创建 Http 处理核心
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      */
     public function __construct(Application $app)
     {

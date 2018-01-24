@@ -1,15 +1,15 @@
 <?php
-namespace Lawoole\Bootstrap;
+namespace Lawoole\Foundation\Bootstrap;
 
 use Illuminate\Support\Facades\Facade;
-use Lawoole\Application;
+use Lawoole\Contracts\Foundation\Application;
 
 class RegisterFacades
 {
     /**
      * 初始化外观模块
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      */
     public function bootstrap(Application $app)
     {

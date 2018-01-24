@@ -3,8 +3,8 @@ namespace Lawoole\Server;
 
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
-use Lawoole\Application;
 use Lawoole\Console\OutputStyle;
+use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Swoole\HttpServerSocket;
 use Lawoole\Swoole\ServerSocket;
 use Lawoole\Swoole\WebSocketServer;
@@ -19,7 +19,7 @@ class ServerManager
     /**
      * 服务容器
      *
-     * @var \Lawoole\Application
+     * @var \Lawoole\Contracts\Foundation\Application
      */
     protected $app;
 
@@ -40,7 +40,7 @@ class ServerManager
     /**
      * 创建 Swoole 服务管理器
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      */
     public function __construct(Application $app)
     {

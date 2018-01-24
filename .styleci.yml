@@ -73,6 +73,7 @@ enabled:
   - phpdoc_no_useless_inheritdoc
   - phpdoc_return_self_reference
   - phpdoc_scalar
+  - phpdoc_to_comment
   - phpdoc_type_to_var
   - phpdoc_types
   - phpdoc_var_without_name

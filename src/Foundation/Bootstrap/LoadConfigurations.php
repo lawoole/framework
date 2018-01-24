@@ -1,9 +1,9 @@
 <?php
-namespace Lawoole\Bootstrap;
+namespace Lawoole\Foundation\Bootstrap;
 
 use Closure;
 use Illuminate\Config\Repository;
-use Lawoole\Application;
+use Lawoole\Contracts\Foundation\Application;
 use Symfony\Component\Finder\Finder;
 
 class LoadConfigurations
@@ -11,7 +11,7 @@ class LoadConfigurations
     /**
      * 加载配置文件
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      */
     public function bootstrap(Application $app)
     {
@@ -33,7 +33,7 @@ class LoadConfigurations
     /**
      * 载入配置文件
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      * @param \Illuminate\Config\Repository $repository
      */
     public function loadConfigurations(Application $app, Repository $repository)
@@ -48,7 +48,7 @@ class LoadConfigurations
     /**
      * 载入环境配置文件
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      * @param \Illuminate\Config\Repository $repository
      */
     public function loadEnvironmentConfigurations(Application $app, Repository $repository)

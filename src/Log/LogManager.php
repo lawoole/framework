@@ -4,14 +4,13 @@ namespace Lawoole\Log;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
-use Lawoole\Application;
 
 class LogManager
 {
     /**
      * 服务容器
      *
-     * @var \Lawoole\Application
+     * @var \Lawoole\Contracts\Foundation\Application
      */
     protected $app;
 
@@ -39,11 +38,11 @@ class LogManager
     /**
      * 创建日志管理器
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      * @param array $config
      * @param \Illuminate\Contracts\Events\Dispatcher $dispatcher
      */
-    public function __construct(Application $app, array $config, Dispatcher $dispatcher = null)
+    public function __construct($app, array $config, Dispatcher $dispatcher = null)
     {
         $this->app = $app;
         $this->config = $config;

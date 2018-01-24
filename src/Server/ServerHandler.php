@@ -4,7 +4,7 @@ namespace Lawoole\Server;
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Facades\Log;
-use Lawoole\Application;
+use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Console\OutputStyle;
 use Lawoole\Server\Responses\TaskReceivedResponse;
 use Lawoole\Swoole\Handlers\ServerHandler as ServerHandlerContract;
@@ -20,7 +20,7 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
     /**
      * 服务容器
      *
-     * @var \Lawoole\Application
+     * @var \Lawoole\Contracts\Foundation\Application
      */
     protected $app;
 
@@ -34,7 +34,7 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
     /**
      * 创建服务事件处理器
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      * @param \Lawoole\Console\OutputStyle $outputStyle
      */
     public function __construct(Application $app, OutputStyle $outputStyle)
@@ -46,7 +46,7 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
     /**
      * 获得服务容器
      *
-     * @return \Lawoole\Application
+     * @return \Lawoole\Contracts\Foundation\Application
      */
     public function getApp()
     {

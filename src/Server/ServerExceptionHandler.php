@@ -3,8 +3,8 @@ namespace Lawoole\Server;
 
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
-use Lawoole\Application;
 use Lawoole\Console\OutputStyle;
+use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Swoole\Exception\ExceptionHandlerInterface;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
@@ -14,7 +14,7 @@ class ServerExceptionHandler implements ExceptionHandlerInterface
     /**
      * 服务容器
      *
-     * @var \Lawoole\Application
+     * @var \Lawoole\Contracts\Foundation\Application
      */
     protected $app;
 
@@ -28,7 +28,7 @@ class ServerExceptionHandler implements ExceptionHandlerInterface
     /**
      * 创建异常处理器
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      * @param \Lawoole\Console\OutputStyle $outputStyle
      */
     public function __construct(Application $app, OutputStyle $outputStyle)

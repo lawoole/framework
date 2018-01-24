@@ -1,0 +1,29 @@
+{
+    "name": "lawoole/support",
+    "description": "Lawoole Support Component.",
+    "license": "MIT",
+    "homepage": "https://github.com/lawoole/framework",
+    "support": {
+        "issues": "https://github.com/lawoole/framework/issues",
+        "source": "https://github.com/lawoole/framework"
+    },
+    "authors": [
+        {
+            "name": "You Ming",
+            "email": "youming@funcuter.org"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "illuminate/support": "5.5.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lawoole\\Support": ""
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev"
+}

@@ -5,7 +5,6 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Log\Writer;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Lawoole\Application;
 use Monolog\Logger as Monolog;
 
 class WriterFactory
@@ -13,7 +12,7 @@ class WriterFactory
     /**
      * 服务容器
      *
-     * @var \Lawoole\Application
+     * @var \Illuminate\Contracts\Container\Container
      */
     protected $app;
 
@@ -41,12 +40,12 @@ class WriterFactory
     /**
      * 创建日志写入器工厂对象实例
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      * @param string $name
      * @param array $config
      * @param \Illuminate\Contracts\Events\Dispatcher|null $dispatcher
      */
-    public function __construct(Application $app, $name, array $config, Dispatcher $dispatcher = null)
+    public function __construct($app, $name, array $config, Dispatcher $dispatcher = null)
     {
         $this->app = $app;
         $this->name = $name;

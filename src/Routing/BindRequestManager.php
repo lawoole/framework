@@ -1,8 +1,7 @@
 <?php
-namespace Lawoole\Task;
+namespace Lawoole\Routing;
 
 use Illuminate\Contracts\Container\Container;
-use Lawoole\Routing\RequestManager;
 
 trait BindRequestManager
 {

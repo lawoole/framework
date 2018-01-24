@@ -1,8 +1,8 @@
 <?php
 namespace Lawoole\Server;
 
-use Lawoole\Application;
 use Lawoole\Console\OutputStyle;
+use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Swoole\Handlers\TcpServerSocketHandler as TcpServerSocketHandlerContract;
 
 class TcpServerSocketHandler implements TcpServerSocketHandlerContract
@@ -10,7 +10,7 @@ class TcpServerSocketHandler implements TcpServerSocketHandlerContract
     /**
      * 服务容器
      *
-     * @var \Lawoole\Application
+     * @var \Lawoole\Contracts\Foundation\Application
      */
     protected $app;
 
@@ -24,7 +24,7 @@ class TcpServerSocketHandler implements TcpServerSocketHandlerContract
     /**
      * 创建 Http 服务 Socket 处理器
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      */
     public function __construct(Application $app)
     {

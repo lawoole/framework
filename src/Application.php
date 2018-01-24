@@ -2,9 +2,9 @@
 namespace Lawoole;
 
 use Illuminate\Container\Container;
-use Illuminate\Contracts\Foundation\Application as ApplicationContract;
 use Illuminate\Events\EventServiceProvider;
 use Illuminate\Support\Str;
+use Lawoole\Contracts\Foundation\Application as ApplicationContract;
 use Lawoole\Log\LogServiceProvider;
 
 class Application extends Container implements ApplicationContract
@@ -106,8 +106,6 @@ class Application extends Container implements ApplicationContract
         static::setInstance($this);
 
         $this->instance('app', $this);
-        $this->instance(self::class, $this);
-        $this->instance(Container::class, $this);
 
         $this->registerCoreAliases();
     }
@@ -126,13 +124,13 @@ class Application extends Container implements ApplicationContract
         // Http 处理核心
         $this->singleton(
             \Illuminate\Contracts\Http\Kernel::class,
-            \Lawoole\Http\Kernel::class
+            \Lawoole\Foundation\Http\Kernel::class
         );
 
         // Console 处理核心
         $this->singleton(
             \Illuminate\Contracts\Console\Kernel::class,
-            \Lawoole\Console\Kernel::class
+            \Lawoole\Foundation\Console\Kernel::class
         );
     }
 
@@ -656,6 +654,8 @@ class Application extends Container implements ApplicationContract
     public function registerCoreAliases()
     {
         $aliases = [
+            \Lawoole\Application::class                             => 'app',
+            \Lawoole\Contracts\Foundation\Application::class        => 'app',
             \Illuminate\Container\Container::class                  => 'app',
             \Illuminate\Contracts\Container\Container::class        => 'app',
             \Illuminate\Contracts\Foundation\Application::class     => 'app',

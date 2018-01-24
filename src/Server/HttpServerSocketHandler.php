@@ -2,7 +2,7 @@
 namespace Lawoole\Server;
 
 use Illuminate\Http\Request;
-use Lawoole\Application;
+use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Routing\RequestManager;
 use Lawoole\Swoole\Handlers\HttpServerSocketHandler as HttpServerSocketHandlerContract;
 
@@ -11,14 +11,14 @@ class HttpServerSocketHandler implements HttpServerSocketHandlerContract
     /**
      * 服务容器
      *
-     * @var \Lawoole\Application
+     * @var \Lawoole\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
      * 创建 Http 服务 Socket 处理器
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      */
     public function __construct(Application $app)
     {

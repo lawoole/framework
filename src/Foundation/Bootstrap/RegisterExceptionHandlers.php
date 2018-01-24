@@ -1,10 +1,10 @@
 <?php
-namespace Lawoole\Bootstrap;
+namespace Lawoole\Foundation\Bootstrap;
 
 use ErrorException;
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
-use Lawoole\Application;
+use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Routing\RequestManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Debug\Exception\FatalErrorException;
@@ -14,14 +14,14 @@ class RegisterExceptionHandlers
     /**
      * 服务容器
      *
-     * @var \Lawoole\Application
+     * @var \Lawoole\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
      * 注册异常处理器
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      */
     public function bootstrap(Application $app)
     {
