@@ -1,3 +1,3 @@
-Lawoole Task Component
+Lawoole Log Component
 ====================
 
