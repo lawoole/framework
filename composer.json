@@ -37,12 +37,13 @@
     },
     "replace": {
         "lawoole/console": "self.version",
+        "lawoole/contracts": "self.version",
         "lawoole/database": "self.version",
         "lawoole/log": "self.version",
         "lawoole/routing": "self.version",
         "lawoole/server": "self.version",
-        "lawoole/swoole": "self.version",
         "lawoole/support": "self.version",
+        "lawoole/swoole": "self.version",
         "lawoole/task": "self.version"
     },
     "require-dev": {
