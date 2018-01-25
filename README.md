@@ -22,8 +22,8 @@ Lawoole 并不推崇那些过分最求性能而牺牲代码可读性，编写难
 
 由衷感谢巨人的肩膀：
 
-- [Laravel ( https://laravel.com )](https://laravel.com)
-- [Swoole ( https://www.swoole.com )](https://www.swoole.com)
+- Laravel ( [https://laravel.com](https://laravel.com) )
+- Swoole ( [https://www.swoole.com](https://www.swoole.com) )
 
 ## 开源许可证
 
