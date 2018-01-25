@@ -5,22 +5,20 @@ use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Facades\Log;
 use Lawoole\Console\OutputStyle;
-use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Server\Responses\TaskReceivedResponse;
 use Lawoole\Swoole\Handlers\ServerHandler as ServerHandlerContract;
 use Lawoole\Swoole\Handlers\ServerSocketBufferHandler;
-use Lawoole\Swoole\Handlers\TcpServerSocketHandler;
 use Lawoole\Task\Message;
 use Lawoole\Task\Task;
 use Lawoole\Task\TaskResponse;
 use RuntimeException;
 
-class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler, TcpServerSocketHandler
+class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler
 {
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Lawoole\Contracts\Foundation\ApplicationInterface
      */
     protected $app;
 
@@ -34,10 +32,10 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
     /**
      * 创建服务事件处理器
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      * @param \Lawoole\Console\OutputStyle $outputStyle
      */
-    public function __construct(Application $app, OutputStyle $outputStyle)
+    public function __construct($app, OutputStyle $outputStyle)
     {
         $this->app = $app;
         $this->outputStyle = $outputStyle;
@@ -46,7 +44,7 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
     /**
      * 获得服务容器
      *
-     * @return \Lawoole\Contracts\Foundation\Application
+     * @return \Lawoole\Contracts\Foundation\ApplicationInterface
      */
     public function getApp()
     {
@@ -353,5 +351,26 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler,
         $handler->report($e);
 
         $handler->renderForConsole($this->outputStyle->getOutput(), $e);
+    }
+
+    /**
+     * 在服务即将启动时调用
+     *
+     * @param \Lawoole\Swoole\Server $server
+     */
+    public function onLaunch($server)
+    {
+        // TODO: Implement onLaunch() method.
+    }
+
+    /**
+     * 在服务 Socket 绑定到服务时调用
+     *
+     * @param \Lawoole\Swoole\Server $server
+     * @param \Lawoole\Swoole\ServerSocket $serverSocket
+     */
+    public function onBind($server, $serverSocket)
+    {
+        // TODO: Implement onBind() method.
     }
 }

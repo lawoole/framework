@@ -40,7 +40,7 @@ class WriterFactory
     /**
      * 创建日志写入器工厂对象实例
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      * @param string $name
      * @param array $config
      * @param \Illuminate\Contracts\Events\Dispatcher|null $dispatcher

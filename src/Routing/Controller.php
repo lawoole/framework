@@ -2,7 +2,7 @@
 namespace Lawoole\Routing;
 
 use BadMethodCallException;
-use Lawoole\Contracts\Foundation\Application;
+use Illuminate\Contracts\Container\Container;
 use Lawoole\Support\Facades\Server;
 use Lawoole\Task\Task;
 use RuntimeException;
@@ -12,16 +12,16 @@ abstract class Controller
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Illuminate\Contracts\Container\Container
      */
     protected $app;
 
     /**
      * 创建控制器
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Illuminate\Contracts\Container\Container $app
      */
-    public function __construct(Application $app)
+    public function __construct(Container $app)
     {
         $this->app = $app;
     }

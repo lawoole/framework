@@ -190,6 +190,8 @@ class ServerSocket implements IteratorAggregate
 
         // 注册事件回调
         $this->registerEventCallbacks($this->serverSocketEvents);
+
+        $this->dispatchEvent('Bind', $server, $this);
     }
 
     /**
@@ -200,6 +202,14 @@ class ServerSocket implements IteratorAggregate
     public function getConnectionIterator()
     {
         return $this->swooleServerPort->connections;
+    }
+
+    /**
+     * 启动服务 Socket
+     */
+    public function launch()
+    {
+        $this->dispatchEvent('Launch', $this->server, $this);
     }
 
     /**

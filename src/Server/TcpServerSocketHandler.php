@@ -2,7 +2,6 @@
 namespace Lawoole\Server;
 
 use Lawoole\Console\OutputStyle;
-use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Swoole\Handlers\TcpServerSocketHandler as TcpServerSocketHandlerContract;
 
 class TcpServerSocketHandler implements TcpServerSocketHandlerContract
@@ -10,7 +9,7 @@ class TcpServerSocketHandler implements TcpServerSocketHandlerContract
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Lawoole\Contracts\Foundation\ApplicationInterface
      */
     protected $app;
 
@@ -24,9 +23,9 @@ class TcpServerSocketHandler implements TcpServerSocketHandlerContract
     /**
      * 创建 Http 服务 Socket 处理器
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      */
-    public function __construct(Application $app)
+    public function __construct($app)
     {
         $this->app = $app;
 

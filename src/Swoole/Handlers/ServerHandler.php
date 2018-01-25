@@ -4,6 +4,13 @@ namespace Lawoole\Swoole\Handlers;
 interface ServerHandler
 {
     /**
+     * 在服务即将启动时调用
+     *
+     * @param \Lawoole\Swoole\Server $server
+     */
+    public function onLaunch($server);
+
+    /**
      * 在主进程启动时调用
      *
      * @param \Lawoole\Swoole\Server $server

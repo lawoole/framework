@@ -4,10 +4,10 @@ namespace Lawoole;
 use Illuminate\Container\Container;
 use Illuminate\Events\EventServiceProvider;
 use Illuminate\Support\Str;
-use Lawoole\Contracts\Foundation\Application as ApplicationContract;
+use Lawoole\Contracts\Foundation\ApplicationInterface;
 use Lawoole\Log\LogServiceProvider;
 
-class Application extends Container implements ApplicationContract
+class Application extends Container implements ApplicationInterface
 {
     /**
      * 框架版本号
@@ -655,45 +655,45 @@ class Application extends Container implements ApplicationContract
     public function registerCoreAliases()
     {
         $aliases = [
-            \Lawoole\Application::class                             => 'app',
-            \Lawoole\Contracts\Foundation\Application::class        => 'app',
-            \Illuminate\Container\Container::class                  => 'app',
-            \Illuminate\Contracts\Container\Container::class        => 'app',
-            \Illuminate\Contracts\Foundation\Application::class     => 'app',
-            \Illuminate\View\Compilers\BladeCompiler::class         => 'blade.compiler',
-            \Illuminate\Contracts\Cache\Factory::class              => 'cache',
-            \Illuminate\Contracts\Cache\Repository::class           => 'cache',
-            \Illuminate\Cache\Repository::class                     => 'cache.store',
-            \Illuminate\Contracts\Cache\Repository::class           => 'cache.store',
-            \Illuminate\Contracts\Config\Repository::class          => 'config',
-            \Illuminate\Support\Composer::class                     => 'composer',
-            \Illuminate\Database\ConnectionResolverInterface::class => 'db',
-            \Illuminate\Database\DatabaseManager::class             => 'db',
-            \Lawoole\Routing\ControllerDispatcher::class            => 'dispatcher',
-            \Illuminate\Contracts\Encryption\Encrypter::class       => 'encrypter',
-            \Illuminate\Contracts\Events\Dispatcher::class          => 'events',
-            \Illuminate\Filesystem\Filesystem::class                => 'files',
-            \Illuminate\Filesystem\FilesystemManager::class         => 'filesystem',
-            \Illuminate\Contracts\Filesystem\Factory::class         => 'filesystem',
-            \Illuminate\Contracts\Filesystem\Filesystem::class      => 'filesystem.disk',
-            \Illuminate\Contracts\Filesystem\Cloud::class           => 'filesystem.cloud',
-            \Illuminate\Contracts\Hashing\Hasher::class             => 'hash',
-            \Psr\Log\LoggerInterface::class                         => 'log',
-            \Illuminate\Database\Migrations\Migrator::class         => 'migrator',
-            \Illuminate\Database\Migrations\MigrationCreator::class => 'migration.creator',
-            \Illuminate\Contracts\Queue\Factory::class              => 'queue',
-            \Illuminate\Contracts\Queue\Queue::class                => 'queue.connections',
-            \Symfony\Component\HttpFoundation\Request::class        => 'request',
-            \Illuminate\Http\Request::class                         => 'request',
-            \Lawoole\Routing\Router::class                          => 'router',
-            \Illuminate\Console\Scheduling\Schedule::class          => 'schedule',
-            \Lawoole\Swoole\Server::class                           => 'server',
-            \Lawoole\Server\ServerManager::class                    => 'server.manager',
-            \Swoole\Server::class                                   => 'server.swoole',
-            \Illuminate\Validation\Factory::class                   => 'validator',
-            \Illuminate\Contracts\Validation\Factory::class         => 'validator',
-            \Illuminate\View\Factory::class                         => 'view',
-            \Illuminate\Contracts\View\Factory::class               => 'view',
+            \Lawoole\Application::class                               => 'app',
+            \Lawoole\Contracts\Foundation\ApplicationInterface::class => 'app',
+            \Illuminate\Container\Container::class                    => 'app',
+            \Illuminate\Contracts\Container\Container::class          => 'app',
+            \Illuminate\Contracts\Foundation\Application::class       => 'app',
+            \Illuminate\View\Compilers\BladeCompiler::class           => 'blade.compiler',
+            \Illuminate\Contracts\Cache\Factory::class                => 'cache',
+            \Illuminate\Contracts\Cache\Repository::class             => 'cache',
+            \Illuminate\Cache\Repository::class                       => 'cache.store',
+            \Illuminate\Contracts\Cache\Repository::class             => 'cache.store',
+            \Illuminate\Contracts\Config\Repository::class            => 'config',
+            \Illuminate\Support\Composer::class                       => 'composer',
+            \Illuminate\Database\ConnectionResolverInterface::class   => 'db',
+            \Illuminate\Database\DatabaseManager::class               => 'db',
+            \Lawoole\Routing\ControllerDispatcher::class              => 'dispatcher',
+            \Illuminate\Contracts\Encryption\Encrypter::class         => 'encrypter',
+            \Illuminate\Contracts\Events\Dispatcher::class            => 'events',
+            \Illuminate\Filesystem\Filesystem::class                  => 'files',
+            \Illuminate\Filesystem\FilesystemManager::class           => 'filesystem',
+            \Illuminate\Contracts\Filesystem\Factory::class           => 'filesystem',
+            \Illuminate\Contracts\Filesystem\Filesystem::class        => 'filesystem.disk',
+            \Illuminate\Contracts\Filesystem\Cloud::class             => 'filesystem.cloud',
+            \Illuminate\Contracts\Hashing\Hasher::class               => 'hash',
+            \Psr\Log\LoggerInterface::class                           => 'log',
+            \Illuminate\Database\Migrations\Migrator::class           => 'migrator',
+            \Illuminate\Database\Migrations\MigrationCreator::class   => 'migration.creator',
+            \Illuminate\Contracts\Queue\Factory::class                => 'queue',
+            \Illuminate\Contracts\Queue\Queue::class                  => 'queue.connections',
+            \Symfony\Component\HttpFoundation\Request::class          => 'request',
+            \Illuminate\Http\Request::class                           => 'request',
+            \Lawoole\Routing\Router::class                            => 'router',
+            \Illuminate\Console\Scheduling\Schedule::class            => 'schedule',
+            \Lawoole\Swoole\Server::class                             => 'server',
+            \Lawoole\Server\ServerManager::class                      => 'server.manager',
+            \Swoole\Server::class                                     => 'server.swoole',
+            \Illuminate\Validation\Factory::class                     => 'validator',
+            \Illuminate\Contracts\Validation\Factory::class           => 'validator',
+            \Illuminate\View\Factory::class                           => 'view',
+            \Illuminate\Contracts\View\Factory::class                 => 'view',
         ];
 
         foreach ($aliases as $alias => $abstract) {

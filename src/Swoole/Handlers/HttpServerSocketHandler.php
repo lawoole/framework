@@ -1,7 +1,7 @@
 <?php
 namespace Lawoole\Swoole\Handlers;
 
-interface HttpServerSocketHandler
+interface HttpServerSocketHandler extends ServerSocketHandler
 {
     /**
      * 收到 Http 处理请求时调用

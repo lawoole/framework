@@ -16,7 +16,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use JsonSerializable;
-use Lawoole\Contracts\Foundation\Application;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -27,7 +26,7 @@ class RequestManager
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Lawoole\Contracts\Foundation\ApplicationInterface
      */
     protected $app;
 
@@ -90,11 +89,11 @@ class RequestManager
     /**
      * 创建请求管理器
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      * @param \Illuminate\Http\Request $request
      * @param \Closure $sender
      */
-    public function __construct(Application $app, Request $request, Closure $sender = null)
+    public function __construct($app, Request $request, Closure $sender = null)
     {
         $this->app = $app;
         $this->request = $request;

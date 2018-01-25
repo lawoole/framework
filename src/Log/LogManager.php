@@ -10,7 +10,7 @@ class LogManager
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Lawoole\Contracts\Foundation\ApplicationInterface
      */
     protected $app;
 
@@ -38,7 +38,7 @@ class LogManager
     /**
      * 创建日志管理器
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      * @param array $config
      * @param \Illuminate\Contracts\Events\Dispatcher $dispatcher
      */

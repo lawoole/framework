@@ -5,7 +5,6 @@ use Exception;
 use Illuminate\Console\Application as Artisan;
 use Illuminate\Contracts\Console\Kernel as KernelContract;
 use Illuminate\Contracts\Debug\ExceptionHandler;
-use Lawoole\Contracts\Foundation\Application;
 use RuntimeException;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
@@ -16,7 +15,7 @@ class Kernel implements KernelContract
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Lawoole\Contracts\Foundation\ApplicationInterface
      */
     protected $app;
 
@@ -43,9 +42,9 @@ class Kernel implements KernelContract
     /**
      * 创建 Console 处理核心
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      */
-    public function __construct(Application $app)
+    public function __construct($app)
     {
         $this->app = $app;
     }

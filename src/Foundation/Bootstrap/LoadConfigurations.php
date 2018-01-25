@@ -3,7 +3,6 @@ namespace Lawoole\Foundation\Bootstrap;
 
 use Closure;
 use Illuminate\Config\Repository;
-use Lawoole\Contracts\Foundation\Application;
 use Symfony\Component\Finder\Finder;
 
 class LoadConfigurations
@@ -11,9 +10,9 @@ class LoadConfigurations
     /**
      * 加载配置文件
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      */
-    public function bootstrap(Application $app)
+    public function bootstrap($app)
     {
         // 实例化配置对象
         $app->instance('config', $repository = new Repository);
@@ -33,10 +32,10 @@ class LoadConfigurations
     /**
      * 载入配置文件
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      * @param \Illuminate\Config\Repository $repository
      */
-    public function loadConfigurations(Application $app, Repository $repository)
+    public function loadConfigurations($app, Repository $repository)
     {
         $files = $this->getConfigurationFiles($app->configPath());
 
@@ -48,10 +47,10 @@ class LoadConfigurations
     /**
      * 载入环境配置文件
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      * @param \Illuminate\Config\Repository $repository
      */
-    public function loadEnvironmentConfigurations(Application $app, Repository $repository)
+    public function loadEnvironmentConfigurations($app, Repository $repository)
     {
         $files = $this->getConfigurationFiles(
             $repository->get('config.environment', $app->configPath('environment'))

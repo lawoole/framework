@@ -325,6 +325,13 @@ class Server implements IteratorAggregate
     {
         $this->serving = true;
 
+        $this->dispatchEvent('Launch', $this);
+
+        // 服务 Socket 启动
+        foreach ($this->serverSockets as $serverSocket) {
+            $serverSocket->launch();
+        }
+
         $this->swooleServer->start();
 
         $this->serving = false;

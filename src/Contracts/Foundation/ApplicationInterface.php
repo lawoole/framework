@@ -3,7 +3,7 @@ namespace Lawoole\Contracts\Foundation;
 
 use Illuminate\Contracts\Foundation\Application as ApplicationContract;
 
-interface Application extends ApplicationContract
+interface ApplicationInterface extends ApplicationContract
 {
     /**
      * 获得当前配置的地区

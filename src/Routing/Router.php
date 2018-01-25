@@ -5,7 +5,6 @@ use FastRoute\DataGenerator\GroupCountBased as DataGeneratorGroupCount;
 use FastRoute\RouteCollector;
 use FastRoute\RouteParser\Std as StdRouteParser;
 use Illuminate\Support\Traits\Macroable;
-use Lawoole\Contracts\Foundation\Application;
 
 class Router
 {
@@ -21,7 +20,7 @@ class Router
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Lawoole\Contracts\Foundation\ApplicationInterface
      */
     protected $app;
 
@@ -70,9 +69,9 @@ class Router
     /**
      * 创建路由器实例
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      */
-    public function __construct(Application $app)
+    public function __construct($app)
     {
         $this->app = $app;
 
@@ -83,7 +82,7 @@ class Router
     /**
      * 获得服务容器
      *
-     * @return \Lawoole\Contracts\Foundation\Application
+     * @return \Lawoole\Contracts\Foundation\ApplicationInterface
      */
     public function app()
     {
