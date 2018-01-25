@@ -7,7 +7,7 @@
 
 ## 关于 Lawoole
 
-> **注意** 这个仓库是 Lawoole 框架核心的代码仓库，如果你仅仅是想通过 Lawoole 建立自己的应用，请访问 [Lawoole 项目仓库](https://github.com/lawoole/lawoole)。
+> **注意** 这个仓库是 Lawoole 的核心代码仓库，如果你仅仅是想通过 Lawoole 建立自己的应用，请访问 [Lawoole 项目仓库](https://github.com/lawoole/lawoole)
 
 Lawoole 是基于 Laravel 和 Swoole 的高性能 PHP 框架。
 
