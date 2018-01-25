@@ -335,6 +335,7 @@ class Application extends Container implements ApplicationContract
         $this->instance('path.bootstrap', $this->bootstrapPath());
         $this->instance('path.config', $this->configPath());
         $this->instance('path.database', $this->databasePath());
+        $this->instance('path.lang', $this->langPath());
         $this->instance('path.public', $this->publicPath());
         $this->instance('path.resource', $this->resourcePath());
         $this->instance('path.route', $this->routePath());
