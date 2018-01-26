@@ -5,6 +5,7 @@ use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Facades\Log;
 use Lawoole\Console\OutputStyle;
+use Lawoole\Contracts\Foundation\ApplicationInterface;
 use Lawoole\Server\Responses\TaskReceivedResponse;
 use Lawoole\Swoole\Handlers\ServerHandlerInterface;
 use Lawoole\Swoole\Handlers\ServerSocketBufferHandlerInterface;
@@ -37,7 +38,7 @@ class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandler
      * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      * @param \Lawoole\Console\OutputStyle $outputStyle
      */
-    public function __construct($app, OutputStyle $outputStyle)
+    public function __construct(ApplicationInterface $app, OutputStyle $outputStyle)
     {
         $this->app = $app;
         $this->outputStyle = $outputStyle;

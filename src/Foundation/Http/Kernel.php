@@ -4,6 +4,7 @@ namespace Lawoole\Foundation\Http;
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel as KernelContract;
+use Lawoole\Contracts\Foundation\ApplicationInterface;
 use Lawoole\Routing\RequestManager;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
@@ -35,7 +36,7 @@ class Kernel implements KernelContract
      *
      * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      */
-    public function __construct($app)
+    public function __construct(ApplicationInterface $app)
     {
         $this->app = $app;
     }

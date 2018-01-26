@@ -2,6 +2,7 @@
 namespace Lawoole\Server;
 
 use Illuminate\Http\Request;
+use Lawoole\Contracts\Foundation\ApplicationInterface;
 use Lawoole\Routing\RequestManager;
 use Lawoole\Swoole\Handlers\HttpServerSocketHandlerInterface;
 
@@ -19,7 +20,7 @@ class HttpServerSocketHandler implements HttpServerSocketHandlerInterface
      *
      * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      */
-    public function __construct($app)
+    public function __construct(ApplicationInterface $app)
     {
         $this->app = $app;
     }

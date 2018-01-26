@@ -237,6 +237,7 @@ class ServerManager
     protected function saveRuntime()
     {
         $payload = [
+            'pid'       => getmypid(),
             'unix_sock' => $this->server->getUnixSock()
         ];
 

@@ -4,6 +4,7 @@ namespace Lawoole\Server;
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Lawoole\Console\OutputStyle;
+use Lawoole\Contracts\Foundation\ApplicationInterface;
 use Lawoole\Swoole\Exception\ExceptionHandlerInterface;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
@@ -30,7 +31,7 @@ class ServerExceptionHandler implements ExceptionHandlerInterface
      * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      * @param \Lawoole\Console\OutputStyle $outputStyle
      */
-    public function __construct($app, OutputStyle $outputStyle)
+    public function __construct(ApplicationInterface $app, OutputStyle $outputStyle)
     {
         $this->app = $app;
         $this->outputStyle = $outputStyle;

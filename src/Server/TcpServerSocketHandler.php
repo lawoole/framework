@@ -2,6 +2,7 @@
 namespace Lawoole\Server;
 
 use Lawoole\Console\OutputStyle;
+use Lawoole\Contracts\Foundation\ApplicationInterface;
 use Lawoole\Swoole\Handlers\TcpServerSocketHandlerInterface;
 
 class TcpServerSocketHandler implements TcpServerSocketHandlerInterface
@@ -25,7 +26,7 @@ class TcpServerSocketHandler implements TcpServerSocketHandlerInterface
      *
      * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      */
-    public function __construct($app)
+    public function __construct(ApplicationInterface $app)
     {
         $this->app = $app;
 
