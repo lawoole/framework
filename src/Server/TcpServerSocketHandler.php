@@ -2,9 +2,9 @@
 namespace Lawoole\Server;
 
 use Lawoole\Console\OutputStyle;
-use Lawoole\Swoole\Handlers\TcpServerSocketHandler as TcpServerSocketHandlerContract;
+use Lawoole\Swoole\Handlers\TcpServerSocketHandlerInterface;
 
-class TcpServerSocketHandler implements TcpServerSocketHandlerContract
+class TcpServerSocketHandler implements TcpServerSocketHandlerInterface
 {
     /**
      * 服务容器
@@ -30,6 +30,32 @@ class TcpServerSocketHandler implements TcpServerSocketHandlerContract
         $this->app = $app;
 
         $this->outputStyle = $app->make(OutputStyle::class);
+    }
+
+    /**
+     * 在服务 Socket 绑定到服务时调用
+     *
+     * @param \Lawoole\Swoole\Server $server
+     * @param \Lawoole\Swoole\ServerSocket $serverSocket
+     */
+    public function onBind($server, $serverSocket)
+    {
+    }
+
+    /**
+     * 在服务 Socket 即将暴露调用
+     *
+     * @param \Lawoole\Swoole\Server $server
+     * @param \Lawoole\Swoole\ServerSocket $serverSocket
+     */
+    public function onExport($server, $serverSocket)
+    {
+        $host = $serverSocket->getHost();
+        $port = $serverSocket->getPort();
+
+        $address = $host.($port ? ':'.$port : '');
+
+        $this->outputStyle->line("Listen to {$address}.");
     }
 
     /**

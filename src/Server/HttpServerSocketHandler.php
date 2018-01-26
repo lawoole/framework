@@ -3,9 +3,9 @@ namespace Lawoole\Server;
 
 use Illuminate\Http\Request;
 use Lawoole\Routing\RequestManager;
-use Lawoole\Swoole\Handlers\HttpServerSocketHandler as HttpServerSocketHandlerContract;
+use Lawoole\Swoole\Handlers\HttpServerSocketHandlerInterface;
 
-class HttpServerSocketHandler implements HttpServerSocketHandlerContract
+class HttpServerSocketHandler implements HttpServerSocketHandlerInterface
 {
     /**
      * 服务容器
@@ -35,12 +35,12 @@ class HttpServerSocketHandler implements HttpServerSocketHandlerContract
     }
 
     /**
-     * 在服务即将启动时调用
+     * 在服务 Socket 即将暴露调用
      *
      * @param \Lawoole\Swoole\Server $server
      * @param \Lawoole\Swoole\ServerSocket $serverSocket
      */
-    public function onLaunch($server, $serverSocket)
+    public function onExport($server, $serverSocket)
     {
     }
 

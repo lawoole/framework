@@ -6,14 +6,16 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Facades\Log;
 use Lawoole\Console\OutputStyle;
 use Lawoole\Server\Responses\TaskReceivedResponse;
-use Lawoole\Swoole\Handlers\ServerHandler as ServerHandlerContract;
-use Lawoole\Swoole\Handlers\ServerSocketBufferHandler;
+use Lawoole\Swoole\Handlers\ServerHandlerInterface;
+use Lawoole\Swoole\Handlers\ServerSocketBufferHandlerInterface;
+use Lawoole\Swoole\Handlers\TcpServerSocketHandlerInterface;
 use Lawoole\Task\Message;
 use Lawoole\Task\Task;
 use Lawoole\Task\TaskResponse;
 use RuntimeException;
 
-class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler
+class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandlerInterface,
+    TcpServerSocketHandlerInterface
 {
     /**
      * 服务容器
@@ -49,6 +51,18 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler
     public function getApp()
     {
         return $this->app;
+    }
+
+    /**
+     * 在服务即将启动时调用
+     *
+     * @param \Lawoole\Swoole\Server $server
+     */
+    public function onLaunch($server)
+    {
+        $name = $this->app->name();
+
+        $this->outputStyle->line("{$name} server is launching.");
     }
 
     /**
@@ -296,6 +310,26 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler
     }
 
     /**
+     * 在服务 Socket 绑定到服务时调用
+     *
+     * @param \Lawoole\Swoole\Server $server
+     * @param \Lawoole\Swoole\ServerSocket $serverSocket
+     */
+    public function onBind($server, $serverSocket)
+    {
+    }
+
+    /**
+     * 在服务 Socket 即将暴露调用
+     *
+     * @param \Lawoole\Swoole\Server $server
+     * @param \Lawoole\Swoole\ServerSocket $serverSocket
+     */
+    public function onExport($server, $serverSocket)
+    {
+    }
+
+    /**
      * 新连接进入时调用
      *
      * @param \Lawoole\Swoole\Server $server
@@ -351,26 +385,5 @@ class ServerHandler implements ServerHandlerContract, ServerSocketBufferHandler
         $handler->report($e);
 
         $handler->renderForConsole($this->outputStyle->getOutput(), $e);
-    }
-
-    /**
-     * 在服务即将启动时调用
-     *
-     * @param \Lawoole\Swoole\Server $server
-     */
-    public function onLaunch($server)
-    {
-        // TODO: Implement onLaunch() method.
-    }
-
-    /**
-     * 在服务 Socket 绑定到服务时调用
-     *
-     * @param \Lawoole\Swoole\Server $server
-     * @param \Lawoole\Swoole\ServerSocket $serverSocket
-     */
-    public function onBind($server, $serverSocket)
-    {
-        // TODO: Implement onBind() method.
     }
 }
