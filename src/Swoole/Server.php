@@ -277,6 +277,8 @@ class Server implements IteratorAggregate
 
         $this->processes[] = $process;
 
+        $this->swooleServer->addProcess($process->getSwooleProcess());
+
         $process->bindToServer($this);
     }
 

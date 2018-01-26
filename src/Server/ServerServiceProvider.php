@@ -2,6 +2,7 @@
 namespace Lawoole\Server;
 
 use Illuminate\Support\ServiceProvider;
+use Lawoole\Server\Commands\ReloadCommand;
 use Lawoole\Server\Commands\ShutdownCommand;
 use Lawoole\Server\Commands\StartCommand;
 
@@ -15,6 +16,7 @@ class ServerServiceProvider extends ServiceProvider
     protected $commands = [
         'Start'    => 'command.start',
         'Shutdown' => 'command.shutdown',
+        'Reload'   => 'command.reload',
     ];
 
     /**
@@ -78,6 +80,16 @@ class ServerServiceProvider extends ServiceProvider
     {
         $this->app->singleton('command.shutdown', function () {
             return new ShutdownCommand;
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerReloadCommand()
+    {
+        $this->app->singleton('command.reload', function () {
+            return new ReloadCommand;
         });
     }
 }

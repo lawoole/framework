@@ -116,6 +116,20 @@ if (!function_exists('route_path')) {
     }
 }
 
+if (!function_exists('schedule_path')) {
+    /**
+     * 获得定时任务存储路径
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    function schedule_path($path = '')
+    {
+        return app()->schedulePath($path);
+    }
+}
+
 if (!function_exists('storage_path')) {
     /**
      * 获得本地存储文件目录
@@ -193,5 +207,37 @@ if (!function_exists('view')) {
         }
 
         return $factory->make($view, $data, $mergeData);
+    }
+}
+
+if (!function_exists('info')) {
+    /**
+     * 记录日志
+     *
+     * @param string $message
+     * @param array $context
+     */
+    function info($message, $context = [])
+    {
+        app('log')->info($message, $context);
+    }
+}
+
+if (!function_exists('logger')) {
+    /**
+     * 记录日志
+     *
+     * @param string $message
+     * @param array $context
+     *
+     * @return \Psr\Log\LoggerInterface|null
+     */
+    function logger($message = null, array $context = [])
+    {
+        if (is_null($message)) {
+            return app('log');
+        }
+
+        return app('log')->debug($message, $context);
     }
 }

@@ -2,7 +2,6 @@
 namespace Lawoole\Server\Schedule;
 
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Support\Facades\Log;
 use Lawoole\Contracts\Foundation\ApplicationInterface;
 use Lawoole\Swoole\Handlers\ProcessHandlerInterface;
 use Swoole\Timer;
@@ -42,8 +41,15 @@ class ScheduleProcessHandler implements ProcessHandlerInterface
      */
     public function onStart($process)
     {
+        $name = $this->app->name();
+
+        // 设置进程名
+        swoole_set_process_name("{$name} : Schedule");
+
         // 定时器
-        Timer::tick(60000, [$this, 'schedule']);
+        Timer::tick(1000, function () {
+            $this->schedule();
+        });
     }
 
     /**

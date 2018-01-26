@@ -43,7 +43,9 @@ class Process
      */
     protected function createProcess()
     {
-        return new SwooleProcess([$this, 'run'], true, 1);
+        return new SwooleProcess(function () {
+            $this->run();
+        }, true, 1);
     }
 
     /**

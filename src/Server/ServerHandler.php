@@ -175,7 +175,6 @@ class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandler
      */
     public function onWorkerExit($server, $workerId)
     {
-
     }
 
     /**
