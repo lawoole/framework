@@ -58,6 +58,11 @@ class ArtisanServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        if (defined('ARTISAN_BINARY') && ARTISAN_BINARY == 'server') {
+            // 作为 Swoole 服务启动时，不注册控制台命令，减少多余的消耗
+            return;
+        }
+
         $this->registerCommands($this->commands);
 
         // 注册自定义命令
