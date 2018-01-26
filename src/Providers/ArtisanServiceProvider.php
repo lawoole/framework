@@ -59,6 +59,11 @@ class ArtisanServiceProvider extends ServiceProvider
     public function register()
     {
         $this->registerCommands($this->commands);
+
+        // 注册自定义命令
+        $commands = $this->app->make('config')->get('console.commands', []);
+
+        $this->commands($commands);
     }
 
     /**
