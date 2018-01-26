@@ -32,6 +32,7 @@
         "symfony/http-foundation": "~3.3",
         "symfony/http-kernel": "~3.3",
         "symfony/process": "~3.3",
+        "mtdowling/cron-expression": "~1.0",
         "nikic/fast-route": "~1.2",
         "monolog/monolog": "~1.23"
     },

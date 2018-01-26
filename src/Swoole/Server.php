@@ -69,6 +69,13 @@ class Server implements IteratorAggregate
     protected $serverSockets = [];
 
     /**
+     * 自定义进程集合
+     *
+     * @var \Lawoole\Swoole\Process[]
+     */
+    protected $processes = [];
+
+    /**
      * Swoole 服务选项
      *
      * @var array
@@ -246,6 +253,31 @@ class Server implements IteratorAggregate
         $this->serverSockets[$identify] = $serverSocket;
 
         $serverSocket->bindToServer($this, $swooleServerPort);
+    }
+
+    /**
+     * 添加自定义进程
+     *
+     * @param \Lawoole\Swoole\Process $process
+     */
+    public function addProcess(Process $process)
+    {
+        if ($this->serving) {
+            throw new RuntimeException('Cannot add process while the server is serving.');
+        }
+
+        // 进程已经绑定过服务，需要进行检查
+        if ($server = $process->getServer()) {
+            if ($server !== $this) {
+                throw new RuntimeException('The server socket has been bound to anther server.');
+            }
+
+            return;
+        }
+
+        $this->processes[] = $process;
+
+        $process->bindToServer($this);
     }
 
     /**

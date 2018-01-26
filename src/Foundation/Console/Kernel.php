@@ -1,10 +1,13 @@
 <?php
 namespace Lawoole\Foundation\Console;
 
+use Closure;
 use Exception;
 use Illuminate\Console\Application as Artisan;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Console\Kernel as KernelContract;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Events\Dispatcher;
 use Lawoole\Contracts\Foundation\ApplicationInterface;
 use RuntimeException;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -21,11 +24,25 @@ class Kernel implements KernelContract
     protected $app;
 
     /**
+     * 事件分发器
+     *
+     * @var \Illuminate\Contracts\Events\Dispatcher
+     */
+    protected $events;
+
+    /**
      * 控制台应用实例
      *
      * @var \Illuminate\Console\Application
      */
     protected $artisan;
+
+    /**
+     * 判断命令是否已经注册
+     *
+     * @var bool
+     */
+    protected $commandsRegistered = false;
 
     /**
      * 初始化过程集合
@@ -44,10 +61,16 @@ class Kernel implements KernelContract
      * 创建 Console 处理核心
      *
      * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
+     * @param \Illuminate\Events\Dispatcher $events
      */
-    public function __construct(ApplicationInterface $app)
+    public function __construct(ApplicationInterface $app, Dispatcher $events)
     {
         $this->app = $app;
+        $this->events = $events;
+
+        $this->app->booted(function () {
+            $this->defineConsoleSchedule();
+        });
     }
 
     /**
@@ -56,6 +79,13 @@ class Kernel implements KernelContract
     public function bootstrap()
     {
         $this->app->bootstrapWith($this->bootstrappers);
+
+        if (!$this->commandsRegistered) {
+            // 注册自定义命令
+            $this->commands();
+
+            $this->commandsRegistered = true;
+        }
     }
 
     /**
@@ -162,7 +192,7 @@ class Kernel implements KernelContract
     protected function getArtisan()
     {
         if ($this->artisan == null) {
-            $this->artisan = new Artisan($this->app, $this->app['events'], $this->app->version());
+            $this->artisan = new Artisan($this->app, $this->events, $this->app->version());
             $this->artisan->setName($this->app->name());
         }
 
@@ -178,6 +208,58 @@ class Kernel implements KernelContract
     public function terminate($input, $status)
     {
         $this->app->terminate();
+    }
+
+    /**
+     * 定义定时任务
+     */
+    protected function defineConsoleSchedule()
+    {
+        $this->app->singleton(Schedule::class, function () {
+            return new Schedule;
+        });
+
+        $schedule = $this->app->make(Schedule::class);
+
+        $this->schedule($schedule);
+    }
+
+    /**
+     * 注册定时任务
+     *
+     * @param \Illuminate\Console\Scheduling\Schedule $schedule
+     */
+    protected function schedule(Schedule $schedule)
+    {
+        if (($schedules = $this->app['config']['console.schedules']) == null) {
+            return;
+        }
+
+        foreach ($schedules as $definition) {
+            if ($definition instanceof Closure) {
+                // 如果是个闭包，直接执行
+                call_user_func($definition, $schedule);
+
+                continue;
+            }
+
+            if (file_exists($definition)) {
+                tap($schedule, function ($schedule) use ($definition) {
+                    include $definition;
+                });
+            }
+        }
+    }
+
+    /**
+     * 注册控制台命令
+     */
+    protected function commands()
+    {
+        // 注册自定义命令
+        $commands = $this->app->make('config')->get('console.commands', []);
+
+        $this->getArtisan()->resolveCommands($commands);
     }
 
     /**

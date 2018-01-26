@@ -4,6 +4,7 @@ namespace Lawoole\Providers;
 use Illuminate\Cache\Console\CacheTableCommand;
 use Illuminate\Cache\Console\ClearCommand as CacheClearCommand;
 use Illuminate\Cache\Console\ForgetCommand as CacheForgetCommand;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Console\Scheduling\ScheduleFinishCommand;
 use Illuminate\Console\Scheduling\ScheduleRunCommand;
 use Illuminate\Database\Console\Factories\FactoryMakeCommand;
@@ -22,6 +23,7 @@ use Lawoole\Console\Commands\AppNameCommand;
 use Lawoole\Console\Commands\DownCommand;
 use Lawoole\Console\Commands\UpCommand;
 use Lawoole\Console\Commands\ViewClearCommand;
+use Illuminate\Console\Application as ConsoleApplication;
 
 class ArtisanServiceProvider extends ServiceProvider
 {
@@ -58,17 +60,10 @@ class ArtisanServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        if (defined('ARTISAN_BINARY') && ARTISAN_BINARY == 'server') {
-            // 作为 Swoole 服务启动时，不注册控制台命令，减少多余的消耗
-            return;
+        if (ConsoleApplication::artisanBinary() == 'artisan') {
+            // 只有 artisan 控制台才注册默认命令（开发使用）
+            $this->registerCommands($this->commands);
         }
-
-        $this->registerCommands($this->commands);
-
-        // 注册自定义命令
-        $commands = $this->app->make('config')->get('console.commands', []);
-
-        $this->commands($commands);
     }
 
     /**
@@ -241,7 +236,7 @@ class ArtisanServiceProvider extends ServiceProvider
     protected function registerScheduleRunCommand()
     {
         $this->app->singleton('command.schedule.run', function ($app) {
-            return new ScheduleRunCommand($app['schedule']);
+            return new ScheduleRunCommand($app[Schedule::class]);
         });
     }
 
@@ -251,7 +246,7 @@ class ArtisanServiceProvider extends ServiceProvider
     protected function registerScheduleFinishCommand()
     {
         $this->app->singleton('command.schedule.finish', function ($app) {
-            return new ScheduleFinishCommand($app['schedule']);
+            return new ScheduleFinishCommand($app[Schedule::class]);
         });
     }
 

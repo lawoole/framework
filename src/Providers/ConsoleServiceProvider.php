@@ -15,6 +15,5 @@ class ConsoleServiceProvider extends AggregateServiceProvider
         ArtisanServiceProvider::class,
         ComposerServiceProvider::class,
         MigrationServiceProvider::class,
-        ScheduleServiceProvider::class,
     ];
 }

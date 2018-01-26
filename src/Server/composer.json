@@ -25,7 +25,8 @@
         "illuminate/http": "5.5.*",
         "illuminate/support": "5.5.*",
         "symfony/console": "~3.3",
-        "symfony/debug": "~3.3"
+        "symfony/debug": "~3.3",
+        "mtdowling/cron-expression": "~1.0"
     },
     "autoload": {
         "psr-4": {
