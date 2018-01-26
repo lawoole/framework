@@ -1,7 +1,7 @@
 <?php
 namespace Lawoole\Swoole\Handlers;
 
-interface TcpServerSocketHandler extends ServerSocketHandler
+interface TcpServerSocketHandlerInterface extends ServerSocketHandlerInterface
 {
     /**
      * 新连接进入时调用

@@ -1,7 +1,7 @@
 <?php
 namespace Lawoole\Swoole\Handlers;
 
-interface ServerSocketBufferHandler
+interface ServerSocketBufferHandlerInterface
 {
     /**
      * 当缓存区达到高位线时调用

@@ -1,7 +1,7 @@
 <?php
 namespace Lawoole\Swoole\Handlers;
 
-interface UdpServerSocketHandler extends ServerSocketHandler
+interface UdpServerSocketHandlerInterface extends ServerSocketHandlerInterface
 {
     /**
      * 接收到 UDP 包时调用

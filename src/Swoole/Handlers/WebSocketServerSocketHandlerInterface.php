@@ -1,7 +1,7 @@
 <?php
 namespace Lawoole\Swoole\Handlers;
 
-interface WebSocketServerSocketHandler extends ServerSocketHandler
+interface WebSocketServerSocketHandlerInterface extends ServerSocketHandlerInterface
 {
     /**
      * 打开 WebSocket 连接时调用

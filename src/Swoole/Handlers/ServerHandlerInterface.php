@@ -1,7 +1,7 @@
 <?php
 namespace Lawoole\Swoole\Handlers;
 
-interface ServerHandler
+interface ServerHandlerInterface
 {
     /**
      * 在服务即将启动时调用

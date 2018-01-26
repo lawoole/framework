@@ -205,11 +205,11 @@ class ServerSocket implements IteratorAggregate
     }
 
     /**
-     * 启动服务 Socket
+     * 暴露服务 Socket
      */
-    public function launch()
+    public function export()
     {
-        $this->dispatchEvent('Launch', $this->server, $this);
+        $this->dispatchEvent('Export', $this->server, $this);
     }
 
     /**

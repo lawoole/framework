@@ -1,7 +1,7 @@
 <?php
 namespace Lawoole\Swoole\Handlers;
 
-interface ServerSocketHandler
+interface ServerSocketHandlerInterface
 {
     /**
      * 在服务 Socket 绑定到服务时调用
@@ -10,12 +10,12 @@ interface ServerSocketHandler
      * @param \Lawoole\Swoole\ServerSocket $serverSocket
      */
     public function onBind($server, $serverSocket);
-    
+
     /**
-     * 在服务即将启动时调用
+     * 在服务 Socket 即将暴露调用
      *
      * @param \Lawoole\Swoole\Server $server
      * @param \Lawoole\Swoole\ServerSocket $serverSocket
      */
-    public function onLaunch($server, $serverSocket);
+    public function onExport($server, $serverSocket);
 }
