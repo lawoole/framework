@@ -7,6 +7,7 @@ use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Response;
 use Illuminate\Session\TokenMismatchException;
+use Lawoole\Contracts\Foundation\ApplicationInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\Debug\Exception\FlattenException;
@@ -48,7 +49,7 @@ class Handler implements ExceptionHandlerContract
      *
      * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
      */
-    public function __construct($app)
+    public function __construct(ApplicationInterface $app)
     {
         $this->app = $app;
     }
