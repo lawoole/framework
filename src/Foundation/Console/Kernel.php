@@ -1,10 +1,8 @@
 <?php
 namespace Lawoole\Foundation\Console;
 
-use Closure;
 use Exception;
 use Illuminate\Console\Application as Artisan;
-use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Console\Kernel as KernelContract;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Events\Dispatcher;
@@ -38,13 +36,6 @@ class Kernel implements KernelContract
     protected $artisan;
 
     /**
-     * 判断命令是否已经注册
-     *
-     * @var bool
-     */
-    protected $commandsRegistered = false;
-
-    /**
      * 初始化过程集合
      *
      * @var array
@@ -67,10 +58,6 @@ class Kernel implements KernelContract
     {
         $this->app = $app;
         $this->events = $events;
-
-        $this->app->booted(function () {
-            $this->defineConsoleSchedule();
-        });
     }
 
     /**
@@ -79,13 +66,6 @@ class Kernel implements KernelContract
     public function bootstrap()
     {
         $this->app->bootstrapWith($this->bootstrappers);
-
-        if (!$this->commandsRegistered) {
-            // 注册自定义命令
-            $this->commands();
-
-            $this->commandsRegistered = true;
-        }
     }
 
     /**
@@ -208,58 +188,6 @@ class Kernel implements KernelContract
     public function terminate($input, $status)
     {
         $this->app->terminate();
-    }
-
-    /**
-     * 定义定时任务
-     */
-    protected function defineConsoleSchedule()
-    {
-        $this->app->singleton(Schedule::class, function () {
-            return new Schedule;
-        });
-
-        $schedule = $this->app->make(Schedule::class);
-
-        $this->schedule($schedule);
-    }
-
-    /**
-     * 注册定时任务
-     *
-     * @param \Illuminate\Console\Scheduling\Schedule $schedule
-     */
-    protected function schedule(Schedule $schedule)
-    {
-        if (($schedules = $this->app['config']['console.schedules']) == null) {
-            return;
-        }
-
-        foreach ($schedules as $definition) {
-            if ($definition instanceof Closure) {
-                // 如果是个闭包，直接执行
-                call_user_func($definition, $schedule);
-
-                continue;
-            }
-
-            if (file_exists($definition)) {
-                tap($schedule, function ($schedule) use ($definition) {
-                    include $definition;
-                });
-            }
-        }
-    }
-
-    /**
-     * 注册控制台命令
-     */
-    protected function commands()
-    {
-        // 注册自定义命令
-        $commands = $this->app->make('config')->get('console.commands', []);
-
-        $this->getArtisan()->resolveCommands($commands);
     }
 
     /**

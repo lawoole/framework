@@ -4,9 +4,7 @@ namespace Lawoole\Server;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
 use Lawoole\Console\OutputStyle;
-use Lawoole\Server\Schedule\ScheduleProcessHandler;
 use Lawoole\Swoole\HttpServerSocket;
-use Lawoole\Swoole\Process;
 use Lawoole\Swoole\ServerSocket;
 use Lawoole\Swoole\WebSocketServer;
 use Lawoole\Swoole\WebSocketServerSocket;
@@ -102,11 +100,6 @@ class ServerManager
             $this->app->make(Arr::get($config, 'handler', ServerHandler::class))
         );
 
-        // 定时脚本处理进程
-        if (Arr::get($config, 'schedule')) {
-            $this->enableSchedule($server);
-        }
-
         // 后台运行
         if (Arr::get($config, 'daemon')) {
             $server->setOptions(['daemonize' => true]);
@@ -117,24 +110,6 @@ class ServerManager
         foreach ($listens as $listen) {
             $this->addServerSocket($server, $listen);
         }
-    }
-
-    /**
-     * 支持定时脚本
-     *
-     * @param \Lawoole\Swoole\Server $server
-     */
-    protected function enableSchedule($server)
-    {
-        $process = new Process;
-
-        $process->setExceptionHandler($server->getExceptionHandler());
-
-        $process->setEventHandler(
-            $this->app->make(ScheduleProcessHandler::class)
-        );
-
-        $server->addProcess($process);
     }
 
     /**

@@ -27,6 +27,7 @@
         "illuminate/http": "5.5.*",
         "illuminate/log": "5.5.*",
         "illuminate/pipeline": "5.5.*",
+        "illuminate/queue": "5.5.*",
         "illuminate/support": "5.5.*",
         "symfony/debug": "~3.3",
         "symfony/http-foundation": "~3.3",

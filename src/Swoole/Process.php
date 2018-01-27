@@ -45,7 +45,7 @@ class Process
     {
         return new SwooleProcess(function () {
             $this->run();
-        }, true, 1);
+        }, false, 1);
     }
 
     /**

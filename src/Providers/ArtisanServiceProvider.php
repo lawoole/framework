@@ -1,10 +1,13 @@
 <?php
 namespace Lawoole\Providers;
 
+use Illuminate\Queue\Console\FailedTableCommand;
+use Illuminate\Queue\Console\WorkCommand as QueueWorkCommand;
+use Illuminate\Queue\Console\TableCommand;
 use Illuminate\Cache\Console\CacheTableCommand;
 use Illuminate\Cache\Console\ClearCommand as CacheClearCommand;
 use Illuminate\Cache\Console\ForgetCommand as CacheForgetCommand;
-use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Console\Application as ConsoleApplication;
 use Illuminate\Console\Scheduling\ScheduleFinishCommand;
 use Illuminate\Console\Scheduling\ScheduleRunCommand;
 use Illuminate\Database\Console\Factories\FactoryMakeCommand;
@@ -23,7 +26,13 @@ use Lawoole\Console\Commands\AppNameCommand;
 use Lawoole\Console\Commands\DownCommand;
 use Lawoole\Console\Commands\UpCommand;
 use Lawoole\Console\Commands\ViewClearCommand;
-use Illuminate\Console\Application as ConsoleApplication;
+use Illuminate\Queue\Console\ListenCommand as QueueListenCommand;
+use Illuminate\Queue\Console\RestartCommand as QueueRestartCommand;
+use Illuminate\Queue\Console\ListFailedCommand as ListFailedQueueCommand;
+use Illuminate\Queue\Console\FlushFailedCommand as FlushFailedQueueCommand;
+use Illuminate\Queue\Console\ForgetFailedCommand as ForgetFailedQueueCommand;
+
+use Illuminate\Queue\Console\RetryCommand as QueueRetryCommand;
 
 class ArtisanServiceProvider extends ServiceProvider
 {
@@ -35,19 +44,23 @@ class ArtisanServiceProvider extends ServiceProvider
     protected $commands = [
         'Up'              => 'command.up',
         'Down'            => 'command.down',
-        'AppName'         => 'command.app.name',
         'CacheClear'      => 'command.cache.clear',
         'CacheForget'     => 'command.cache.forget',
-        'CacheTable'      => 'command.cache.table',
         'FactoryMake'     => 'command.factory.make',
         'Migrate'         => 'command.migrate',
         'MigrateFresh'    => 'command.migrate.fresh',
         'MigrateInstall'  => 'command.migrate.install',
-        'MigrateMake'     => 'command.migrate.make',
         'MigrateRefresh'  => 'command.migrate.refresh',
         'MigrateReset'    => 'command.migrate.reset',
         'MigrateRollback' => 'command.migrate.rollback',
         'MigrateStatus'   => 'command.migrate.status',
+        'QueueFailed'     => 'command.queue.failed',
+        'QueueFlush'      => 'command.queue.flush',
+        'QueueForget'     => 'command.queue.forget',
+        'QueueListen'     => 'command.queue.listen',
+        'QueueRestart'    => 'command.queue.restart',
+        'QueueRetry'      => 'command.queue.retry',
+        'QueueWork'       => 'command.queue.work',
         'ScheduleRun'     => 'command.schedule.run',
         'ScheduleFinish'  => 'command.schedule.finish',
         'Seed'            => 'command.seed',
@@ -56,13 +69,33 @@ class ArtisanServiceProvider extends ServiceProvider
     ];
 
     /**
+     * 支持的命令
+     *
+     * @var array
+     */
+    protected $devCommands = [
+        'AppName'          => 'command.app.name',
+        'CacheTable'       => 'command.cache.table',
+        'MigrateMake'      => 'command.migrate.make',
+        'QueueFailedTable' => 'command.queue.failed-table',
+        'QueueTable'       => 'command.queue.table',
+    ];
+
+    /**
      * 注册服务提供者
      */
     public function register()
     {
-        if (ConsoleApplication::artisanBinary() == 'artisan') {
-            // 只有 artisan 控制台才注册默认命令（开发使用）
-            $this->registerCommands($this->commands);
+        if (ConsoleApplication::artisanBinary() == "'server'") {
+            // 作为服务时不注册额外命令
+            return;
+        }
+
+        $this->registerCommands($this->commands + $this->devCommands);
+
+        // 自定义命令
+        if ($commands = $this->app['config']['console.commands']) {
+            $this->commands($commands);
         }
     }
 
@@ -74,7 +107,7 @@ class ArtisanServiceProvider extends ServiceProvider
     protected function registerCommands(array $commands)
     {
         foreach (array_keys($commands) as $command) {
-            call_user_func_array([$this, "register{$command}Command"], []);
+            call_user_func([$this, "register{$command}Command"]);
         }
 
         $this->commands(array_values($commands));
@@ -233,10 +266,100 @@ class ArtisanServiceProvider extends ServiceProvider
     /**
      * 注册命令
      */
+    protected function registerQueueFailedCommand()
+    {
+        $this->app->singleton('command.queue.failed', function () {
+            return new ListFailedQueueCommand;
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerQueueForgetCommand()
+    {
+        $this->app->singleton('command.queue.forget', function () {
+            return new ForgetFailedQueueCommand;
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerQueueFlushCommand()
+    {
+        $this->app->singleton('command.queue.flush', function () {
+            return new FlushFailedQueueCommand;
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerQueueListenCommand()
+    {
+        $this->app->singleton('command.queue.listen', function ($app) {
+            return new QueueListenCommand($app['queue.listener']);
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerQueueRestartCommand()
+    {
+        $this->app->singleton('command.queue.restart', function () {
+            return new QueueRestartCommand;
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerQueueRetryCommand()
+    {
+        $this->app->singleton('command.queue.retry', function () {
+            return new QueueRetryCommand;
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerQueueWorkCommand()
+    {
+        $this->app->singleton('command.queue.work', function ($app) {
+            return new QueueWorkCommand($app['queue.worker']);
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerQueueFailedTableCommand()
+    {
+        $this->app->singleton('command.queue.failed-table', function ($app) {
+            return new FailedTableCommand($app['files'], $app['composer']);
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerQueueTableCommand()
+    {
+        $this->app->singleton('command.queue.table', function ($app) {
+            return new TableCommand($app['files'], $app['composer']);
+        });
+    }
+
+    /**
+     * 注册命令
+     */
     protected function registerScheduleRunCommand()
     {
         $this->app->singleton('command.schedule.run', function ($app) {
-            return new ScheduleRunCommand($app[Schedule::class]);
+            return new ScheduleRunCommand($app['schedule']);
         });
     }
 
@@ -246,7 +369,7 @@ class ArtisanServiceProvider extends ServiceProvider
     protected function registerScheduleFinishCommand()
     {
         $this->app->singleton('command.schedule.finish', function ($app) {
-            return new ScheduleFinishCommand($app[Schedule::class]);
+            return new ScheduleFinishCommand($app['schedule']);
         });
     }
 
@@ -287,6 +410,6 @@ class ArtisanServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return array_values($this->commands);
+        return array_values($this->commands + $this->devCommands);
     }
 }
