@@ -9,14 +9,12 @@ use Lawoole\Contracts\Foundation\ApplicationInterface;
 use Lawoole\Server\Responses\TaskReceivedResponse;
 use Lawoole\Swoole\Handlers\ServerHandlerInterface;
 use Lawoole\Swoole\Handlers\ServerSocketBufferHandlerInterface;
-use Lawoole\Swoole\Handlers\TcpServerSocketHandlerInterface;
 use Lawoole\Task\Message;
 use Lawoole\Task\Task;
 use Lawoole\Task\TaskResponse;
 use RuntimeException;
 
-class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandlerInterface,
-    TcpServerSocketHandlerInterface
+class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandlerInterface
 {
     /**
      * 服务容器
@@ -307,63 +305,6 @@ class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandler
         Log::info($message);
 
         $this->outputStyle->info($message);
-    }
-
-    /**
-     * 在服务 Socket 绑定到服务时调用
-     *
-     * @param \Lawoole\Swoole\Server $server
-     * @param \Lawoole\Swoole\ServerSocket $serverSocket
-     */
-    public function onBind($server, $serverSocket)
-    {
-    }
-
-    /**
-     * 在服务 Socket 即将暴露调用
-     *
-     * @param \Lawoole\Swoole\Server $server
-     * @param \Lawoole\Swoole\ServerSocket $serverSocket
-     */
-    public function onExport($server, $serverSocket)
-    {
-    }
-
-    /**
-     * 新连接进入时调用
-     *
-     * @param \Lawoole\Swoole\Server $server
-     * @param \Lawoole\Swoole\ServerSocket $serverSocket
-     * @param int $fd
-     * @param int $reactorId
-     */
-    public function onConnect($server, $serverSocket, $fd, $reactorId)
-    {
-    }
-
-    /**
-     * 从连接中取得数据时调用
-     *
-     * @param \Lawoole\Swoole\Server $server
-     * @param \Lawoole\Swoole\ServerSocket $serverSocket
-     * @param int $fd
-     * @param int $reactorId
-     * @param string $data
-     */
-    public function onReceive($server, $serverSocket, $fd, $reactorId, $data)
-    {
-    }
-
-    /**
-     * 当连接关闭时调用
-     *
-     * @param \Lawoole\Swoole\Server $server
-     * @param \Lawoole\Swoole\ServerSocket $serverSocket
-     * @param int $fd
-     * @param int $reactorId
-     */
-    public function onClose($server, $serverSocket, $fd, $reactorId)
-    {
     }
 
     /**

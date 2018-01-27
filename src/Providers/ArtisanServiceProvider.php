@@ -1,9 +1,6 @@
 <?php
 namespace Lawoole\Providers;
 
-use Illuminate\Queue\Console\FailedTableCommand;
-use Illuminate\Queue\Console\WorkCommand as QueueWorkCommand;
-use Illuminate\Queue\Console\TableCommand;
 use Illuminate\Cache\Console\CacheTableCommand;
 use Illuminate\Cache\Console\ClearCommand as CacheClearCommand;
 use Illuminate\Cache\Console\ForgetCommand as CacheForgetCommand;
@@ -21,18 +18,20 @@ use Illuminate\Database\Console\Migrations\RollbackCommand as MigrateRollbackCom
 use Illuminate\Database\Console\Migrations\StatusCommand as MigrateStatusCommand;
 use Illuminate\Database\Console\Seeds\SeedCommand;
 use Illuminate\Database\Console\Seeds\SeederMakeCommand;
+use Illuminate\Queue\Console\FailedTableCommand;
+use Illuminate\Queue\Console\FlushFailedCommand as FlushFailedQueueCommand;
+use Illuminate\Queue\Console\ForgetFailedCommand as ForgetFailedQueueCommand;
+use Illuminate\Queue\Console\ListenCommand as QueueListenCommand;
+use Illuminate\Queue\Console\ListFailedCommand as ListFailedQueueCommand;
+use Illuminate\Queue\Console\RestartCommand as QueueRestartCommand;
+use Illuminate\Queue\Console\RetryCommand as QueueRetryCommand;
+use Illuminate\Queue\Console\TableCommand;
+use Illuminate\Queue\Console\WorkCommand as QueueWorkCommand;
 use Illuminate\Support\ServiceProvider;
 use Lawoole\Console\Commands\AppNameCommand;
 use Lawoole\Console\Commands\DownCommand;
 use Lawoole\Console\Commands\UpCommand;
 use Lawoole\Console\Commands\ViewClearCommand;
-use Illuminate\Queue\Console\ListenCommand as QueueListenCommand;
-use Illuminate\Queue\Console\RestartCommand as QueueRestartCommand;
-use Illuminate\Queue\Console\ListFailedCommand as ListFailedQueueCommand;
-use Illuminate\Queue\Console\FlushFailedCommand as FlushFailedQueueCommand;
-use Illuminate\Queue\Console\ForgetFailedCommand as ForgetFailedQueueCommand;
-
-use Illuminate\Queue\Console\RetryCommand as QueueRetryCommand;
 
 class ArtisanServiceProvider extends ServiceProvider
 {
