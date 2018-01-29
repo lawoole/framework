@@ -59,6 +59,20 @@ if (!function_exists('config')) {
     }
 }
 
+if (!function_exists('config_path')) {
+    /**
+     * 获得配置文件路径
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    function config_path($path = '')
+    {
+        return app()->configPath($path);
+    }
+}
+
 if (!function_exists('database_path')) {
     /**
      * 获得数据库文件路径
