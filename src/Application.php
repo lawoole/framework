@@ -690,6 +690,7 @@ class Application extends Container implements ApplicationInterface
             \Illuminate\Contracts\Filesystem\Filesystem::class        => 'filesystem.disk',
             \Illuminate\Contracts\Filesystem\Cloud::class             => 'filesystem.cloud',
             \Illuminate\Contracts\Hashing\Hasher::class               => 'hash',
+            \Lawoole\Homer\HomerManager::class                        => 'homer',
             \Psr\Log\LoggerInterface::class                           => 'log',
             \Illuminate\Database\Migrations\Migrator::class           => 'migrator',
             \Illuminate\Database\Migrations\MigrationCreator::class   => 'migration.creator',
