@@ -132,7 +132,7 @@ class WriterFactory
             return $channel;
         }
 
-        return 'product';
+        return 'production';
     }
 
     /**

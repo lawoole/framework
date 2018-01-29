@@ -362,9 +362,9 @@ class Application extends Container implements ApplicationInterface
     public function environment()
     {
         if ($this->bound('config')) {
-            $environment = $this->make('config')->get('app.environment', 'product');
+            $environment = $this->make('config')->get('app.environment', 'production');
         } else {
-            $environment = 'product';
+            $environment = 'production';
         }
 
         if (func_num_args() > 0) {
