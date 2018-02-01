@@ -546,7 +546,7 @@ class Server implements IteratorAggregate
      *
      * @return array
      */
-    public function getClientInfo($fd, $fromId, $checkConnection = false)
+    public function getClientInfo($fd, $fromId = -1, $checkConnection = false)
     {
         return $this->swooleServer->getClientInfo($fd, $fromId, $checkConnection);
     }
