@@ -35,7 +35,7 @@ class HttpServerSocket extends ServerSocket
     public function bindToServer(Server $server, Port $swooleServerPort)
     {
         if (!$server instanceof HttpServer) {
-            throw new RuntimeException('Http server socket must be bound on a Http server.');
+            throw new RuntimeException('Http server socket must be bound on a Http server');
         }
 
         parent::bindToServer($server, $swooleServerPort);

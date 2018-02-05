@@ -116,22 +116,16 @@ class Server implements IteratorAggregate
      */
     protected function initialize(array $config)
     {
-        // 设置 Unix Sock 文件
         $this->unixSock = Arr::get($config, 'unix_sock', function () {
             return $this->generateUnixSock();
         });
 
-        // 创建 Swoole 服务对象
         $this->swooleServer = $this->createSwooleServer();
 
-            // 配置选项
-        $options = Arr::get($config, 'options');
-
-        if ($options) {
+        if ($options = Arr::get($config, 'options')) {
             $this->setOptions($options);
         }
 
-        // 注册事件回调
         $this->registerEventCallbacks($this->serverEvents);
     }
 
@@ -200,7 +194,7 @@ class Server implements IteratorAggregate
     public function setOptions(array $options = [])
     {
         if ($this->serving) {
-            throw new RuntimeException('Options cannot be set while the server is serving.');
+            throw new RuntimeException('Options cannot be set while the server is serving');
         }
 
         $this->options = array_diff_key($this->options, $options) + $options;
@@ -226,13 +220,13 @@ class Server implements IteratorAggregate
     public function listen(ServerSocket $serverSocket)
     {
         if ($this->serving) {
-            throw new RuntimeException('Cannot listen to port while the server is serving.');
+            throw new RuntimeException('Cannot listen to port while the server is serving');
         }
 
         // 服务 Socket 已经绑定过服务，需要进行检查
         if ($server = $serverSocket->getServer()) {
             if ($server !== $this) {
-                throw new RuntimeException('The server socket has been bound to anther server.');
+                throw new RuntimeException('The server socket has been bound to anther server');
             }
 
             return;
@@ -263,13 +257,13 @@ class Server implements IteratorAggregate
     public function addProcess(Process $process)
     {
         if ($this->serving) {
-            throw new RuntimeException('Cannot add process while the server is serving.');
+            throw new RuntimeException('Cannot add process while the server is serving');
         }
 
         // 进程已经绑定过服务，需要进行检查
         if ($server = $process->getServer()) {
             if ($server !== $this) {
-                throw new RuntimeException('The server socket has been bound to anther server.');
+                throw new RuntimeException('The server socket has been bound to anther server');
             }
 
             return;

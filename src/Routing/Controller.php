@@ -36,7 +36,7 @@ abstract class Controller
     protected function pushTask(Task $task)
     {
         if (!in_array(BindRequestManager::class, class_uses($task))) {
-            throw new RuntimeException('Task to be pushed must use BindRequestManager trait.');
+            throw new RuntimeException('Task to be pushed must use BindRequestManager trait');
         }
 
         $requestManager = $this->app->make(RequestManager::class);
@@ -61,6 +61,6 @@ abstract class Controller
      */
     public function __call($method, $parameters)
     {
-        throw new BadMethodCallException("Method [{$method}] does not exist.");
+        throw new BadMethodCallException("Method [{$method}] does not exist");
     }
 }

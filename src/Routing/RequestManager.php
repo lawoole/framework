@@ -394,7 +394,7 @@ class RequestManager
         }
 
         if (empty($closure)) {
-            throw new BadMethodCallException('No action defined in the route.');
+            throw new BadMethodCallException('No action defined in the route');
         }
 
         $arguments = $routeInfo['action']['arguments'] ?? [];

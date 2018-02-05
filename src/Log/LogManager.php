@@ -91,7 +91,7 @@ class LogManager
             return $this->factory($name, $this->config['writers'][$name])->getWriter();
         }
 
-        throw new InvalidArgumentException("Log writer [{$name}] not configured.");
+        throw new InvalidArgumentException("Log writer [{$name}] not configured");
     }
 
     /**

@@ -154,7 +154,7 @@ class ServerManager
         if (method_exists($this, $method = 'create'.ucfirst($protocol).'ServerSocket')) {
             $serverSocket = $this->$method($config);
         } else {
-            throw new InvalidArgumentException("The protocol [{$protocol}] is not support.");
+            throw new InvalidArgumentException("The protocol [{$protocol}] is not support");
         }
 
         return $serverSocket;

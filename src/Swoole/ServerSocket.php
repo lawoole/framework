@@ -148,7 +148,7 @@ class ServerSocket implements IteratorAggregate
     public function setOptions(array $options)
     {
         if ($this->server && $this->server->isServing()) {
-            throw new RuntimeException('Options cannot be set while the server is serving.');
+            throw new RuntimeException('Options cannot be set while the server is serving');
         }
 
         $this->options = array_diff_key($this->options, $options) + $options;

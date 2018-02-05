@@ -127,7 +127,7 @@ class Kernel implements KernelContract
     public function queue($command, array $parameters = [])
     {
         // 这个功能暂不支持
-        throw new RuntimeException('Queueing commands is not supported.');
+        throw new RuntimeException('Queueing commands is not supported');
     }
 
     /**
