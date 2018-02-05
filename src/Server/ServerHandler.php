@@ -75,8 +75,9 @@ class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandler
 
         $this->outputStyle->info("{$name} server is running.");
 
-        // 设置进程名
-        swoole_set_process_name("{$name} : Master");
+        if (php_uname('s') != 'Darwin') {
+            swoole_set_process_name("{$name} : Master");
+        }
 
         // 共享至容器
         $this->app->instance('server', $server);
@@ -106,8 +107,9 @@ class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandler
     {
         $name = $this->app->name();
 
-        // 设置进程名
-        swoole_set_process_name("{$name} : Manager");
+        if (php_uname('s') != 'Darwin') {
+            swoole_set_process_name("{$name} : Manager");
+        }
 
         // 共享至容器
         $this->app->instance('server', $server);
@@ -138,8 +140,9 @@ class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandler
     {
         $name = $this->app->name();
 
-        // 设置进程名
-        swoole_set_process_name("{$name} : Worker {$workerId}");
+        if (php_uname('s') != 'Darwin') {
+            swoole_set_process_name("{$name} : Worker {$workerId}");
+        }
 
         // 共享至容器
         $this->app->instance('server', $server);
