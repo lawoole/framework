@@ -16,6 +16,20 @@ class HttpClient extends Client
     protected $swooleClient;
 
     /**
+     * 请求路径
+     *
+     * @var string
+     */
+    protected $path;
+
+    /**
+     * 查询参数
+     *
+     * @var array
+     */
+    protected $queries;
+
+    /**
      * 可用事件回调
      *
      * @var array
@@ -72,5 +86,144 @@ class HttpClient extends Client
     public function connect()
     {
         throw new BadMethodCallException('Method is useless for this client');
+    }
+
+    /**
+     * 设置请求方法
+     *
+     * @param string $method
+     *
+     * @return $this
+     */
+    public function setMethod($method)
+    {
+        $method = strtoupper($method);
+
+        $this->swooleClient->setMethod($method);
+
+        return $this;
+    }
+
+    /**
+     * 设置请求路径
+     *
+     * @param string $path
+     *
+     * @return $this
+     */
+    public function setPath($path)
+    {
+        $this->path = $path;
+
+        return $this;
+    }
+
+    /**
+     * 设置查询参数
+     *
+     * @param array $queries
+     *
+     * @return $this
+     */
+    public function setQueries($queries)
+    {
+        $this->queries = $queries;
+
+        return $this;
+    }
+
+    /**
+     * 设置请求头
+     *
+     * @param array $headers
+     *
+     * @return $this
+     */
+    public function setHeaders(array $headers)
+    {
+        $names = array_map(function ($name) {
+            return implode('-', array_map('ucfirst', explode('-', $name)));
+        }, array_keys($headers));
+
+        $headers = array_column($names, $headers);
+
+        $this->swooleClient->setHeaders($headers);
+
+        return $this;
+    }
+
+    /**
+     * 设置内容类型
+     *
+     * @param string $contentType
+     *
+     * @return $this
+     */
+    protected function setContentType($contentType)
+    {
+        $headers = $this->swooleClient->requestHeaders;
+
+        $headers['Content-Type'] = $contentType;
+
+        $this->setHeaders($headers);
+
+        return $this;
+    }
+
+    /**
+     * 设置请求体
+     *
+     * @param string $body
+     * @param string $contentType
+     *
+     * @return $this
+     */
+    public function setBody($body, $contentType = null)
+    {
+        $this->swooleClient->setData($body);
+
+        if ($contentType) {
+            $this->setContentType($contentType);
+        }
+
+        return $this;
+    }
+
+    /**
+     * 设置表单参数
+     *
+     * @param array $formParams
+     *
+     * @return $this
+     */
+    public function setFormParams($formParams)
+    {
+        $body = $formParams ? http_build_query($formParams) : '';
+
+        $this->setBody($body, 'application/x-www-form-urlencoded');
+
+        return $this;
+    }
+
+    /**
+     * 发送请求
+     *
+     * @param string $path
+     * @param array $queries
+     *
+     * @return bool
+     */
+    public function execute($path = null, $queries = null)
+    {
+        $path = $path !== null ? $path : $this->path;
+        $queries = $queries !== null ? $queries : $this->queries;
+
+        if ($queries) {
+            $path = $path.'?'.http_build_query($queries);
+        }
+
+        return $this->swooleClient->execute($path, function () {
+            $this->dispatchEvent('Response', $this);
+        });
     }
 }
