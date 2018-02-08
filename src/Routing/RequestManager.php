@@ -178,8 +178,8 @@ class RequestManager
             $middleware = $this->dispatcher->getMiddleware();
 
             // 通过管道执行全局中间件
-            $response = $this->sendThroughPipeline($middleware, function ($requestManager) {
-                $request = $requestManager->getRequest();
+            $response = $this->sendThroughPipeline($middleware, function () {
+                $request = $this->getRequest();
 
                 // 请求方式和路径
                 $method = $request->getMethod();
@@ -317,10 +317,10 @@ class RequestManager
         if (count($middleware) > 0) {
             $pipeline = new Pipeline($this->app);
 
-            return $pipeline->send($this)->through($middleware)->then($then);
+            return $pipeline->send($this->request)->through($middleware)->then($then);
         }
 
-        return $then($this);
+        return $then($this->request);
     }
 
     /**
