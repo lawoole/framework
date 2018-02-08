@@ -1,5 +1,5 @@
 <?php
-namespace Lawoole\Foundatioin\Http\Middleware;
+namespace Lawoole\Foundation\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Str;
