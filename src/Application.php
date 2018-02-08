@@ -12,7 +12,7 @@ class Application extends Container implements ApplicationInterface
     /**
      * 框架版本号
      */
-    const VERSION = '0.1.0';
+    const VERSION = '0.1.6';
 
     /**
      * 项目基础路径
