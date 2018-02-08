@@ -1,9 +1,9 @@
 <?php
 namespace Lawoole\Routing;
 
-use Symfony\Component\HttpFoundation\Response;
+use RuntimeException;
 
-class FutureResponse extends Response
+class ExecuteTimeoutException extends RuntimeException
 {
     /**
      * 请求管理器
@@ -20,13 +20,20 @@ class FutureResponse extends Response
     protected $timeout;
 
     /**
-     * 设置请求管理器
+     * 创建超时异常
      *
      * @param \Lawoole\Routing\RequestManager $requestManager
+     * @param float $timeout
      */
-    public function setRequestManager(RequestManager $requestManager)
+    public function __construct($requestManager, $timeout)
     {
+        parent::__construct(sprintf(
+            'The request "%s" exceeded the timeout of %0.3f seconds.',
+            $requestManager->getRequest(), $timeout
+        ));
+
         $this->requestManager = $requestManager;
+        $this->timeout = $timeout;
     }
 
     /**
@@ -37,16 +44,6 @@ class FutureResponse extends Response
     public function getRequestManager()
     {
         return $this->requestManager;
-    }
-
-    /**
-     * 设置处理超时
-     *
-     * @param float $timeout
-     */
-    public function setTimeout($timeout)
-    {
-        $this->timeout = $timeout;
     }
 
     /**

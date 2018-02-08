@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use JsonSerializable;
+use Swoole\Timer;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -220,8 +221,28 @@ class RequestManager
             $response = $this->prepareResponse($response);
         }
 
-        // 如果为异步响应或者响应已发送，则不发生请求
-        if ($response instanceof FutureResponse || $this->responded) {
+        if ($this->responded) {
+            return;
+        }
+
+        // 如果为异步响应不发生请求
+        if ($response instanceof FutureResponse) {
+            if ($this->app->bound('server.swoole')) {
+                $timeout = $response->getTimeout();
+
+                // 运行在 Swoole 中，支持设置处理超时
+                if ($timeout > 0) {
+                    Timer::after($timeout * 1000, function () use ($timeout) {
+                        // 处理超时，抛出处理超时异常
+                        $response = $this->handleException(
+                            $this->request, new ExecuteTimeoutException($this, $timeout)
+                        );
+
+                        $this->sendResponse($response);
+                    });
+                }
+            }
+
             return;
         }
 
