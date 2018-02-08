@@ -11,6 +11,9 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // 注册中间件
+        $this->registerMiddleware($this->app['router']);
+
         // 载入路由规则
         $this->loadRoutes($this->app['router']);
     }
@@ -41,6 +44,28 @@ class RouteServiceProvider extends ServiceProvider
                     include $path;
                 });
             }
+        }
+    }
+
+    /**
+     * 注册中间件
+     *
+     * @param \Lawoole\Routing\Router $router
+     */
+    protected function registerMiddleware($router)
+    {
+        // 全局中间件
+        $globalMiddleware = $this->app['config']['http.middleware'];
+
+        if ($globalMiddleware) {
+            $router->middleware($globalMiddleware);
+        }
+
+        // 路由中间件
+        $routeMiddleware = $this->app['config']['http.route_middleware'];
+
+        if ($routeMiddleware) {
+            $router->routeMiddleware($routeMiddleware);
         }
     }
 }
