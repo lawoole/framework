@@ -26,7 +26,7 @@ class RequestManager
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\ApplicationInterface
+     * @var \Lawoole\Application
      */
     protected $app;
 
@@ -89,7 +89,7 @@ class RequestManager
     /**
      * 创建请求管理器
      *
-     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
+     * @param \Lawoole\Application $app
      * @param \Illuminate\Http\Request $request
      * @param \Closure $sender
      */
@@ -212,22 +212,18 @@ class RequestManager
     /**
      * 发送响应
      *
-     * @param mixed $response
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param \Illuminate\Http\Response $response
      */
-    public function sendResponse($response)
+    public function sendResponse(Response $response)
     {
-        // 如果传入请求管理器本身或者响应已发送，则不发生请求
-        if ($response === $this || $this->responded) {
-            return null;
+        // 如果为异步响应或者响应已发送，则不发生请求
+        if ($response instanceof FutureResponse || $this->responded) {
+            return;
         }
 
         $this->responded = true;
 
         try {
-            $response = $this->prepareResponse($response);
-
             // 如果设置了响应发送者，则通过响应发送者发送响应
             if ($this->sender) {
                 call_user_func($this->sender, $response, $this);
@@ -245,8 +241,6 @@ class RequestManager
             // 发送完成后，从容器中移除自身
             $this->app->forgetInstance("http.request.manager.{$this->id}");
         }
-
-        return $response;
     }
 
     /**
@@ -258,6 +252,14 @@ class RequestManager
      */
     protected function prepareResponse($response)
     {
+        if ($response === $this) {
+            $response = new FutureResponse;
+            $response->setRequestManager($this);
+            $response->prepare($this->request);
+
+            return $response;
+        }
+
         return static::toResponse($this->request, $response);
     }
 
@@ -348,7 +350,9 @@ class RequestManager
             });
         }
 
-        return $this->callActionOnArrayBasedRoute($routeInfo);
+        return $this->prepareResponse(
+            $this->callActionOnArrayBasedRoute($routeInfo)
+        );
     }
 
     /**
