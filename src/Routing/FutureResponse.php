@@ -1,7 +1,7 @@
 <?php
 namespace Lawoole\Routing;
 
-use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\Response;
 
 class FutureResponse extends Response
 {

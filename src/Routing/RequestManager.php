@@ -212,10 +212,14 @@ class RequestManager
     /**
      * 发送响应
      *
-     * @param \Illuminate\Http\Response $response
+     * @param mixed $response
      */
-    public function sendResponse(Response $response)
+    public function sendResponse($response)
     {
+        if (!$response instanceof SymfonyResponse) {
+            $response = $this->prepareResponse($response);
+        }
+
         // 如果为异步响应或者响应已发送，则不发生请求
         if ($response instanceof FutureResponse || $this->responded) {
             return;
