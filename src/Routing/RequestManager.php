@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use JsonSerializable;
+use Lawoole\Support\Facades\Server;
 use Swoole\Timer;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -227,7 +228,7 @@ class RequestManager
 
         // 如果为异步响应不发生请求
         if ($response instanceof FutureResponse) {
-            if ($this->app->bound('server.swoole')) {
+            if (Server::inSwoole()) {
                 $timeout = $response->getTimeout();
 
                 // 运行在 Swoole 中，支持设置处理超时

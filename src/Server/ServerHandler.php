@@ -5,8 +5,6 @@ use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Facades\Log;
 use Lawoole\Console\OutputStyle;
-use Lawoole\Contracts\Foundation\ApplicationInterface;
-use Lawoole\Server\Responses\TaskReceivedResponse;
 use Lawoole\Swoole\Handlers\ServerHandlerInterface;
 use Lawoole\Swoole\Handlers\ServerSocketBufferHandlerInterface;
 use Lawoole\Task\Message;
@@ -19,7 +17,7 @@ class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandler
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\ApplicationInterface
+     * @var \Lawoole\Application
      */
     protected $app;
 
@@ -33,10 +31,10 @@ class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandler
     /**
      * 创建服务事件处理器
      *
-     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
+     * @param \Lawoole\Application $app
      * @param \Lawoole\Console\OutputStyle $outputStyle
      */
-    public function __construct(ApplicationInterface $app, OutputStyle $outputStyle)
+    public function __construct($app, OutputStyle $outputStyle)
     {
         $this->app = $app;
         $this->outputStyle = $outputStyle;
@@ -45,7 +43,7 @@ class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandler
     /**
      * 获得服务容器
      *
-     * @return \Lawoole\Contracts\Foundation\ApplicationInterface
+     * @return \Lawoole\Application
      */
     public function getApp()
     {
@@ -212,20 +210,13 @@ class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandler
             $data->setTaskId($taskId);
             $data->setSrcWorkerId($srcWorkerId);
 
-            if (method_exists($data, 'handle')) {
-                $response = $this->app->call([$data, 'handle']);
+            $response = $data->run($this->app);
 
-                // 如果 handle 方法返回了任务响应对象，则推送响应
-                if ($response instanceof TaskResponse) {
-                    $server->pushTaskResponse($response);
-                }
-                // 如果任务存在完成方法，则响应任务本身
-                elseif (method_exists($data, 'finish')) {
-                    $server->pushTaskResponse($data);
-                }
+            // 如果 handle 方法返回了任务响应对象，则推送响应，否则推送任务本身
+            if ($response instanceof TaskResponse) {
+                $server->pushTaskResponse($response);
             } else {
-                // 默认：任务已接收响应
-                $server->pushTaskResponse(new TaskReceivedResponse);
+                $server->pushTaskResponse($data);
             }
         }
     }
@@ -244,18 +235,14 @@ class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandler
             $data->setTaskId($taskId);
             $data->setSrcWorkerId($server->getWorkerId());
 
-            if (method_exists($data, 'handle')) {
-                $this->app->call([$data, 'handle']);
-            }
+            $data->run($this->app);
         }
         // 任务执行中返回了任务本身，执行任务的完成方法
         elseif ($data instanceof Task) {
             $data->setTaskId($taskId);
             $data->setSrcWorkerId($server->getWorkerId());
 
-            if (method_exists($data, 'finish')) {
-                $this->app->call([$data, 'finish']);
-            }
+            $data->terminal($this->app);
         }
     }
 
@@ -272,9 +259,7 @@ class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandler
             // 设置消息信息
             $data->setSrcWorkerId($srcWorkerId);
 
-            if (method_exists($data, 'handle')) {
-                $this->app->call([$data, 'handle']);
-            }
+            $data->run($this->app);
         }
     }
 

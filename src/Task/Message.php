@@ -31,4 +31,20 @@ abstract class Message implements TransferableInterface
     {
         return $this->srcWorkerId;
     }
+
+    /**
+     * 消息处理
+     *
+     * @param \Lawoole\Application $app
+     *
+     * @return mixed
+     */
+    public function run($app)
+    {
+        if (method_exists($this, 'handle')) {
+            return $app->call([$this, 'handle']);
+        }
+
+        return null;
+    }
 }

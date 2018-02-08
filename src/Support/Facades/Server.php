@@ -14,4 +14,14 @@ class Server extends Facade
     {
         return 'server';
     }
+
+    /**
+     * 判断是否运行在 Swoole 中
+     *
+     * @return bool
+     */
+    public static function inSwoole()
+    {
+        return static::$app->bound('server.swoole');
+    }
 }

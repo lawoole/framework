@@ -31,4 +31,16 @@ abstract class Task extends Message implements TransferableInterface
     {
         return $this->taskId;
     }
+
+    /**
+     * 任务结束处理
+     *
+     * @param \Lawoole\Application $app
+     */
+    public function terminal($app)
+    {
+        if (method_exists($this, 'finish')) {
+            $app->call([$this, 'finish']);
+        }
+    }
 }
