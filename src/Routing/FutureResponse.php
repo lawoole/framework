@@ -20,13 +20,17 @@ class FutureResponse extends Response
     protected $timeout;
 
     /**
-     * 设置请求管理器
+     * 创建延迟响应
      *
      * @param \Lawoole\Routing\RequestManager $requestManager
+     * @param int $timeout
      */
-    public function setRequestManager(RequestManager $requestManager)
+    public function __construct(RequestManager $requestManager, $timeout = 0)
     {
+        parent::__construct('', 202);
+
         $this->requestManager = $requestManager;
+        $this->timeout = $timeout;
     }
 
     /**
@@ -43,10 +47,14 @@ class FutureResponse extends Response
      * 设置处理超时
      *
      * @param float $timeout
+     *
+     * @return \Lawoole\Routing\FutureResponse
      */
     public function setTimeout($timeout)
     {
         $this->timeout = $timeout;
+
+        return $this;
     }
 
     /**
