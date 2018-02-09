@@ -4,6 +4,7 @@ namespace Lawoole\Server;
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Facades\Log;
+use Lawoole\Application;
 use Lawoole\Console\OutputStyle;
 use Lawoole\Swoole\Handlers\ServerHandlerInterface;
 use Lawoole\Swoole\Handlers\ServerSocketBufferHandlerInterface;
@@ -34,7 +35,7 @@ class ServerHandler implements ServerHandlerInterface, ServerSocketBufferHandler
      * @param \Lawoole\Application $app
      * @param \Lawoole\Console\OutputStyle $outputStyle
      */
-    public function __construct($app, OutputStyle $outputStyle)
+    public function __construct(Application $app, OutputStyle $outputStyle)
     {
         $this->app = $app;
         $this->outputStyle = $outputStyle;

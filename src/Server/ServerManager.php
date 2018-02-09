@@ -18,7 +18,7 @@ class ServerManager
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\ApplicationInterface
+     * @var \Lawoole\Application
      */
     protected $app;
 
@@ -37,9 +37,16 @@ class ServerManager
     protected $server;
 
     /**
+     * 样式输出
+     *
+     * @var \Lawoole\Console\OutputStyle
+     */
+    protected $outputStyle;
+
+    /**
      * 创建 Swoole 服务管理器
      *
-     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
+     * @param \Lawoole\Application $app
      */
     public function __construct($app)
     {
@@ -71,8 +78,10 @@ class ServerManager
         $this->prepared = true;
 
         if (!$this->app->bound(OutputStyle::class)) {
+            $this->outputStyle = new OutputStyle($input, $output);
+
             // 共享一个统一的输出
-            $this->app->instance(OutputStyle::class, new OutputStyle($input, $output));
+            $this->app->instance(OutputStyle::class, $this->outputStyle);
         }
 
         $config = $this->app->make('config')->get('server', []);
@@ -92,10 +101,12 @@ class ServerManager
      */
     protected function configureServer($server, array $config)
     {
+        // 设置异常处理器
         $server->setExceptionHandler(
             $this->app->make(Arr::get($config, 'exception.handler', ServerExceptionHandler::class))
         );
 
+        // 设置事件处理器
         $server->setEventHandler(
             $this->app->make(Arr::get($config, 'handler', ServerHandler::class))
         );
