@@ -173,8 +173,8 @@ class RequestManager
         $this->handled = true;
 
         // 在请求开始处理时注入容器
-        $this->app->instance(self::class, $this);
-        $this->app->instance(Request::class, $this->request);
+        $this->app->instance('request.manager', $this);
+        $this->app->instance('request', $this->request);
 
         try {
             $middleware = $this->dispatcher->getMiddleware();
@@ -205,8 +205,8 @@ class RequestManager
         $this->sendResponse($response);
 
         // 在请求处理结束时注销容器内实例
-        $this->app->forgetInstance(self::class);
-        $this->app->forgetInstance(Request::class);
+        $this->app->forgetInstance('request.manager');
+        $this->app->forgetInstance('request');
 
         return $response;
     }

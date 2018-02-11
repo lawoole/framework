@@ -698,6 +698,7 @@ class Application extends Container implements ApplicationInterface
             \Illuminate\Contracts\Queue\Queue::class                  => 'queue.connections',
             \Symfony\Component\HttpFoundation\Request::class          => 'request',
             \Illuminate\Http\Request::class                           => 'request',
+            \Lawoole\Routing\RequestManager::class                    => 'request.manager',
             \Lawoole\Routing\Router::class                            => 'router',
             \Illuminate\Console\Scheduling\Schedule::class            => 'schedule',
             \Lawoole\Swoole\Server::class                             => 'server',
