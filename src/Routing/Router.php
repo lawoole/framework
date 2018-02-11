@@ -53,13 +53,6 @@ class Router
     protected $routes = [];
 
     /**
-     * 命名路由
-     *
-     * @var array
-     */
-    public $namedRoutes = [];
-
-    /**
      * 分组路由属性记录栈
      *
      * @var array
@@ -222,10 +215,6 @@ class Router
         }
 
         $uri = '/'.trim($uri, '/');
-
-        if (isset($action['as'])) {
-            $this->namedRoutes[$action['as']] = $uri;
-        }
 
         foreach ((array) $methods as $method) {
             $routeKey = $method.$uri;

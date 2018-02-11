@@ -704,6 +704,7 @@ class Application extends Container implements ApplicationInterface
             \Lawoole\Swoole\Server::class                             => 'server',
             \Lawoole\Server\ServerManager::class                      => 'server.manager',
             \Swoole\Server::class                                     => 'server.swoole',
+            \Lawoole\Routing\UrlGenerator::class                      => 'url',
             \Illuminate\Validation\Factory::class                     => 'validator',
             \Illuminate\Contracts\Validation\Factory::class           => 'validator',
             \Illuminate\View\Factory::class                           => 'view',

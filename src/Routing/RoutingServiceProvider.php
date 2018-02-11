@@ -12,6 +12,8 @@ class RoutingServiceProvider extends ServiceProvider
     {
         $this->registerRouter();
 
+        $this->registerUrlGenerator();
+
         $this->registerControllerDispatcher();
     }
 
@@ -22,6 +24,24 @@ class RoutingServiceProvider extends ServiceProvider
     {
         $this->app->singleton('router', function ($app) {
             return new Router($app);
+        });
+    }
+
+    /**
+     * 注册 Url 生成器
+     *
+     * @return void
+     */
+    protected function registerUrlGenerator()
+    {
+        $this->app->singleton('url', function ($app) {
+            $url = new UrlGenerator($app, $app['router']);
+
+            $app->rebinding('router', function ($app, $router) {
+                $app['url']->setRouter($router);
+            });
+
+            return $url;
         });
     }
 
