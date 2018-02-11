@@ -279,8 +279,7 @@ class RequestManager
     protected function prepareResponse($response)
     {
         if ($response === $this) {
-            $response = new FutureResponse;
-            $response->setRequestManager($this);
+            $response = new FutureResponse($this);
             $response->prepare($this->request);
 
             return $response;
