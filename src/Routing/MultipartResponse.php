@@ -43,10 +43,14 @@ class MultipartResponse extends Response
      * 设置发送步骤
      *
      * @param int $step
+     *
+     * @return $this
      */
     public function setStep($step)
     {
         $this->step = $step;
+
+        return $this;
     }
 
     /**
