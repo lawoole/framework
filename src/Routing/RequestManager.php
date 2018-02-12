@@ -247,8 +247,6 @@ class RequestManager
             return;
         }
 
-        $this->responded = true;
-
         try {
             // 如果设置了响应发送者，则通过响应发送者发送响应
             if ($this->sender) {
@@ -263,10 +261,16 @@ class RequestManager
         } catch (Throwable $e) {
             // 记录异常
             $this->handleException($this->request, $e);
-        } finally {
-            // 发送完成后，从容器中移除自身
-            $this->app->forgetInstance("http.request.manager.{$this->id}");
         }
+
+        if ($response instanceof MultipartResponse && !$response->isStep(MultipartResponse::STEP_FINISH)) {
+            return;
+        }
+
+        $this->responded = true;
+
+        // 发送完成后，从容器中移除自身
+        $this->app->forgetInstance("http.request.manager.{$this->id}");
     }
 
     /**

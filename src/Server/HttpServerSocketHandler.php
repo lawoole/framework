@@ -2,7 +2,8 @@
 namespace Lawoole\Server;
 
 use Illuminate\Http\Request;
-use Lawoole\Contracts\Foundation\ApplicationInterface;
+use Lawoole\Application;
+use Lawoole\Routing\MultipartResponse;
 use Lawoole\Routing\RequestManager;
 use Lawoole\Swoole\Handlers\HttpServerSocketHandlerInterface;
 
@@ -11,16 +12,16 @@ class HttpServerSocketHandler implements HttpServerSocketHandlerInterface
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\ApplicationInterface
+     * @var \Lawoole\Application
      */
     protected $app;
 
     /**
      * 创建 Http 服务 Socket 处理器
      *
-     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
+     * @param \Lawoole\Application $app
      */
-    public function __construct(ApplicationInterface $app)
+    public function __construct(Application $app)
     {
         $this->app = $app;
     }
@@ -135,29 +136,68 @@ class HttpServerSocketHandler implements HttpServerSocketHandlerInterface
     protected function createResponseSender($response)
     {
         return function ($httpResponse) use ($response) {
-            // Status
-            $response->status($httpResponse->getStatusCode());
+            static::sendHeaders($response, $httpResponse);
+            static::sendContent($response, $httpResponse);
 
-            // Headers
-            foreach ($httpResponse->headers->allPreserveCaseWithoutCookies() as $name => $values) {
-                // 标准化名称
-                $name = ucwords($name, '-');
-
-                foreach ($values as $value) {
-                    $response->header($name, $value);
-                }
+            if ($httpResponse instanceof MultipartResponse && !$httpResponse->isStep(MultipartResponse::STEP_FINISH)) {
+                return;
             }
 
-            // Cookies
-            foreach ($httpResponse->headers->getCookies() as $cookie) {
+            $response->end();
+        };
+    }
+
+    /**
+     * 发送响应头
+     *
+     * @param \Swoole\Http\Response $response
+     * @param \Symfony\Component\HttpFoundation\Response $httpResponse
+     */
+    protected static function sendHeaders($response, $httpResponse)
+    {
+        if ($httpResponse instanceof MultipartResponse && !$httpResponse->isStep(MultipartResponse::STEP_HEADER)) {
+            return;
+        }
+
+        $response->status($httpResponse->getStatusCode());
+
+        /* RFC2616 - 14.18 says all Responses need to have a Date */
+        if (!$httpResponse->headers->has('Date')) {
+            $httpResponse->setDate(\DateTime::createFromFormat('U', time()));
+        }
+
+        foreach ($httpResponse->headers->allPreserveCaseWithoutCookies() as $name => $values) {
+            // 标准化名称
+            $name = ucwords($name, '-');
+
+            foreach ($values as $value) {
+                $response->header($name, $value);
+            }
+        }
+
+        foreach ($httpResponse->headers->getCookies() as $cookie) {
+            if ($cookie->isRaw()) {
                 $response->cookie(
                     $cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(), $cookie->getPath(),
                     $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly()
                 );
+            } else {
+                $response->rawcookie(
+                    $cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(), $cookie->getPath(),
+                    $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly()
+                );
             }
+        }
+    }
 
-            // Body
-            $response->end($httpResponse->getContent());
-        };
+    /**
+     * 发送响应体
+     *
+     * @param \Swoole\Http\Response $response
+     * @param \Symfony\Component\HttpFoundation\Response $httpResponse
+     */
+    protected static function sendContent($response, $httpResponse)
+    {
+        $response->write($httpResponse->getContent());
     }
 }

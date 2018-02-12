@@ -4,7 +4,8 @@ namespace Lawoole\Foundation\Http;
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel as KernelContract;
-use Lawoole\Contracts\Foundation\ApplicationInterface;
+use Lawoole\Application;
+use Lawoole\Routing\MultipartResponse;
 use Lawoole\Routing\RequestManager;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
@@ -14,7 +15,7 @@ class Kernel implements KernelContract
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\ApplicationInterface
+     * @var \Lawoole\Application
      */
     protected $app;
 
@@ -34,9 +35,9 @@ class Kernel implements KernelContract
     /**
      * 创建 Http 处理核心
      *
-     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
+     * @param \Lawoole\Application $app
      */
-    public function __construct(ApplicationInterface $app)
+    public function __construct(Application $app)
     {
         $this->app = $app;
     }
@@ -94,11 +95,6 @@ class Kernel implements KernelContract
         return new RequestManager($this->app, $request, function ($response) {
             // 发送响应
             $response->send();
-
-            // 如果存在 fastcgi_finish_request 函数，调用它来完成响应发送，提高响应速度
-            if (function_exists('fastcgi_finish_request')) {
-                fastcgi_finish_request();
-            }
         });
     }
 
