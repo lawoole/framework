@@ -155,6 +155,11 @@ class HttpServerSocketHandler implements HttpServerSocketHandlerInterface
      */
     protected static function sendHeaders($response, $httpResponse)
     {
+        if ($response->header !== null) {
+            // 已经设置过响应头，就认为是已经发送过响应头
+            return;
+        }
+
         if ($httpResponse instanceof MultipartResponse && !$httpResponse->isStep(MultipartResponse::STEP_HEADER)) {
             return;
         }
