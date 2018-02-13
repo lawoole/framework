@@ -1,12 +1,13 @@
 <?php
 namespace Lawoole\Routing;
 
+use Illuminate\Contracts\Routing\UrlGenerator as UrlGeneratorContract;
 use Illuminate\Contracts\Routing\UrlRoutable;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Lawoole\Application;
 
-class UrlGenerator
+class UrlGenerator implements UrlGeneratorContract
 {
     /**
      * 服务容器
@@ -30,11 +31,18 @@ class UrlGenerator
     protected $namedRoutes;
 
     /**
-     * 路由映射
+     * 根命名空间
+     *
+     * @var string
+     */
+    protected $rootNamespace;
+
+    /**
+     * 控制器路由映射
      *
      * @var array
      */
-    protected $routes;
+    protected $actionRoutes;
 
     /**
      * 创建 Url 生成器
@@ -50,30 +58,76 @@ class UrlGenerator
     }
 
     /**
+     * 设置控制器根命名空间
+     *
+     * @param string $rootNamespace
+     *
+     * @return $this
+     */
+    public function setRootControllerNamespace($rootNamespace)
+    {
+        $this->rootNamespace = trim($rootNamespace, '\\');
+
+        return $this;
+    }
+
+    /**
+     * 获得控制器根命名空间
+     *
+     * @return string
+     */
+    public function getRootControllerNamespace()
+    {
+        return $this->rootNamespace;
+    }
+
+    /**
      * 设置路由
      *
      * @param \Lawoole\Routing\Router $router
      */
     public function setRouter(Router $router)
     {
-        $routes = $router->getRoutes();
+        $this->router = $router;
 
-        $this->routes = $this->namedRoutes = [];
+        $this->refreshNameLookups();
+        $this->refreshActionLookups();
+    }
+
+    /**
+     * 更新命名路由查找
+     */
+    public function refreshNameLookups()
+    {
+        $routes = $this->router->getRoutes();
+
+        $this->namedRoutes = [];
 
         foreach ($routes as $route) {
-            $uri = $route['uri'];
             $action = $route['action'];
 
             if (isset($action['as'])) {
-                $this->namedRoutes[$action['as']] = $uri;
-            }
-
-            if (isset($action['uses'])) {
-                $this->namedRoutes[$action['uses']] = $uri;
+                $this->namedRoutes[$action['as']] = $route['uri'];
             }
         }
+    }
 
-        $this->router = $router;
+    /**
+     * 更新控制器路由查找
+     */
+    public function refreshActionLookups()
+    {
+        $routes = $this->router->getRoutes();
+
+        $this->actionRoutes = [];
+
+        foreach ($routes as $route) {
+            $action = $route['action'];
+
+            if (isset($action['uses'])) {
+                $this->actionRoutes[$action['uses']] = $route['uri'];
+            }
+        }
     }
 
     /**
@@ -208,11 +262,29 @@ class UrlGenerator
      */
     public function action($action, $parameters = [], $secure = null)
     {
-        if (!isset($this->routes[$action])) {
+        $controllerAction = $this->formatAction($action);
+
+        if (!isset($this->actionRoutes[$controllerAction])) {
             throw new InvalidArgumentException("Action [{$action}] not defined");
         }
 
-        return $this->formatRouteUri($this->routes[$action], $parameters, $secure);
+        return $this->formatRouteUri($this->actionRoutes[$controllerAction], $parameters, $secure);
+    }
+
+    /**
+     * 格式化控制器
+     *
+     * @param string $action
+     *
+     * @return string
+     */
+    protected function formatAction($action)
+    {
+        if ($this->rootNamespace && strpos($action, '\\') !== 0) {
+            return $this->rootNamespace.'\\'.$action;
+        } else {
+            return trim($action, '\\');
+        }
     }
 
     /**

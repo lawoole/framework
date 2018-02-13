@@ -11,10 +11,10 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // 注册中间件
         $this->registerMiddleware($this->app['router']);
 
-        // 载入路由规则
+        $this->setRootControllerNamespace();
+
         $this->loadRoutes($this->app['router']);
     }
 
@@ -29,6 +29,8 @@ class RouteServiceProvider extends ServiceProvider
             return;
         }
 
+        $namespace = $this->app['config']['http.namespace'];
+
         foreach ($routes as $definition) {
             if ($definition instanceof Closure) {
                 // 如果是个闭包，直接执行
@@ -39,11 +41,28 @@ class RouteServiceProvider extends ServiceProvider
 
             $path = array_pull($definition, 'path');
 
+            if ($namespace && !isset($definition['namespace'])) {
+                $definition['namespace'] = $namespace;
+            }
+
             if (file_exists($path)) {
                 $router->group($definition, function ($router) use ($path) {
                     include $path;
                 });
             }
+        }
+
+        $this->app['url']->refreshNameLookups();
+        $this->app['url']->refreshActionLookups();
+    }
+
+    /**
+     * 设置控制器根命名空间
+     */
+    protected function setRootControllerNamespace()
+    {
+        if ($namespace = $this->app['config']['http.namespace']) {
+            $this->app['url']->setRootControllerNamespace($namespace);
         }
     }
 
