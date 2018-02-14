@@ -5,7 +5,6 @@ use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Http\Kernel as KernelContract;
 use Lawoole\Application;
-use Lawoole\Routing\MultipartResponse;
 use Lawoole\Routing\RequestManager;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;

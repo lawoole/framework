@@ -29,8 +29,6 @@ class RoutingServiceProvider extends ServiceProvider
 
     /**
      * 注册 Url 生成器
-     *
-     * @return void
      */
     protected function registerUrlGenerator()
     {
