@@ -77,17 +77,17 @@ class ControllerDispatcher
 
         $route = $this->router->getRoute($routeInfo[1]);
 
-        if (isset($action['arguments'])) {
-            $action['arguments'] = array_merge($route['arguments'], $routeInfo[2]);
+        if (isset($route['arguments'])) {
+            $arguments = array_merge((array) $route['arguments'], $routeInfo[2]);
         } else {
-            $action['arguments'] = $routeInfo[2];
+            $arguments = $routeInfo[2];
         }
 
         return [
             'handler'   => $routeInfo[1],
             'route'     => $route,
             'action'    => $route['action'],
-            'arguments' => $routeInfo[2]
+            'arguments' => $arguments
         ];
     }
 

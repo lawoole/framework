@@ -430,9 +430,7 @@ class RequestManager
             throw new BadMethodCallException('No action defined in the route');
         }
 
-        $arguments = $routeInfo['action']['arguments'] ?? [];
-
-        return $this->app->call($closure, $arguments);
+        return $this->app->call($closure, $routeInfo['arguments']);
     }
 
     /**
@@ -445,7 +443,6 @@ class RequestManager
     protected function callControllerAction($routeInfo)
     {
         $uses = $routeInfo['action']['uses'];
-        $arguments = $routeInfo['action']['arguments'] ?? [];
 
         if (is_string($uses) && strpos($uses, '@') === false) {
             $uses .= '@__invoke';
@@ -457,7 +454,7 @@ class RequestManager
             throw new NotFoundHttpException;
         }
 
-        return $this->callActionCallable([$instance, $method], $arguments);
+        return $this->callActionCallable([$instance, $method], $routeInfo['arguments']);
     }
 
     /**
