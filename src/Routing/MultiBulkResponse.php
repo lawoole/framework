@@ -3,7 +3,7 @@ namespace Lawoole\Routing;
 
 use Symfony\Component\HttpFoundation\Response;
 
-class MultipartResponse extends Response
+class MultiBulkResponse extends Response
 {
     /**
      * 发送步骤：发送响应头

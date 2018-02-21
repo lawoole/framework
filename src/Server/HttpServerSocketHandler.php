@@ -3,7 +3,7 @@ namespace Lawoole\Server;
 
 use Illuminate\Http\Request;
 use Lawoole\Application;
-use Lawoole\Routing\MultipartResponse;
+use Lawoole\Routing\MultiBulkResponse;
 use Lawoole\Routing\RequestManager;
 use Lawoole\Swoole\Handlers\HttpServerSocketHandlerInterface;
 
@@ -139,7 +139,7 @@ class HttpServerSocketHandler implements HttpServerSocketHandlerInterface
             static::sendHeaders($response, $httpResponse);
             static::sendContent($response, $httpResponse);
 
-            if ($httpResponse instanceof MultipartResponse && !$httpResponse->isStep(MultipartResponse::STEP_FINISH)) {
+            if ($httpResponse instanceof MultiBulkResponse && !$httpResponse->isStep(MultiBulkResponse::STEP_FINISH)) {
                 return;
             }
 
@@ -160,7 +160,7 @@ class HttpServerSocketHandler implements HttpServerSocketHandlerInterface
             return;
         }
 
-        if ($httpResponse instanceof MultipartResponse && !$httpResponse->isStep(MultipartResponse::STEP_HEADER)) {
+        if ($httpResponse instanceof MultiBulkResponse && !$httpResponse->isStep(MultiBulkResponse::STEP_HEADER)) {
             return;
         }
 

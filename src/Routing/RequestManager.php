@@ -263,7 +263,7 @@ class RequestManager
             $this->handleException($this->request, $e);
         }
 
-        if ($response instanceof MultipartResponse && !$response->isStep(MultipartResponse::STEP_FINISH)) {
+        if ($response instanceof MultiBulkResponse && !$response->isStep(MultiBulkResponse::STEP_FINISH)) {
             return;
         }
 
