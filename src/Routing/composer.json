@@ -15,9 +15,9 @@
     ],
     "require": {
         "php": ">=7.0",
-        "lawoole/contracts": "0.1.*",
-        "lawoole/support": "0.1.*",
-        "lawoole/task": "0.1.*",
+        "lawoole/contracts": "0.2.*",
+        "lawoole/support": "0.2.*",
+        "lawoole/task": "0.2.*",
         "illuminate/contracts": "5.5.*",
         "illuminate/container": "5.5.*",
         "illuminate/http": "5.5.*",

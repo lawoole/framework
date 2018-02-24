@@ -15,7 +15,7 @@
     ],
     "require": {
         "php": ">=7.0",
-        "lawoole/support": "0.1.*"
+        "lawoole/support": "0.2.*"
     },
     "autoload": {
         "psr-4": {
