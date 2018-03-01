@@ -660,7 +660,7 @@ class Application extends Container implements ApplicationContract
     {
         $aliases = [
             \Lawoole\Application::class                               => 'app',
-            \Lawoole\Contracts\Foundation\ApplicationInterface::class => 'app',
+            \Lawoole\Contracts\Foundation\Application::class          => 'app',
             \Illuminate\Container\Container::class                    => 'app',
             \Illuminate\Contracts\Container\Container::class          => 'app',
             \Illuminate\Contracts\Foundation\Application::class       => 'app',
