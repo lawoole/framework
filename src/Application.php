@@ -4,10 +4,11 @@ namespace Lawoole;
 use Illuminate\Container\Container;
 use Illuminate\Events\EventServiceProvider;
 use Illuminate\Support\Str;
-use Lawoole\Contracts\Foundation\ApplicationInterface;
+use Lawoole\Contracts\Foundation\Application as ApplicationContract;
 use Lawoole\Log\LogServiceProvider;
+use RuntimeException;
 
-class Application extends Container implements ApplicationInterface
+class Application extends Container implements ApplicationContract
 {
     /**
      * 框架版本号
@@ -64,6 +65,13 @@ class Application extends Container implements ApplicationInterface
     protected $serviceProviders = [];
 
     /**
+     * 应用命名空间
+     *
+     * @var string
+     */
+    protected $namespace;
+
+    /**
      * 创建服务容器
      *
      * @param string $basePath
@@ -74,8 +82,6 @@ class Application extends Container implements ApplicationInterface
 
         $this->bootstrapContainer();
         $this->registerBaseServiceProviders();
-
-        $this->registerDefaultBindings();
     }
 
     /**
@@ -111,30 +117,6 @@ class Application extends Container implements ApplicationInterface
     }
 
     /**
-     * 绑定默认实体
-     */
-    protected function registerDefaultBindings()
-    {
-        // 异常处理器
-        $this->singleton(
-            \Illuminate\Contracts\Debug\ExceptionHandler::class,
-            \Lawoole\Exceptions\Handler::class
-        );
-
-        // Http 处理核心
-        $this->singleton(
-            \Illuminate\Contracts\Http\Kernel::class,
-            \Lawoole\Foundation\Http\Kernel::class
-        );
-
-        // Console 处理核心
-        $this->singleton(
-            \Illuminate\Contracts\Console\Kernel::class,
-            \Lawoole\Foundation\Console\Kernel::class
-        );
-    }
-
-    /**
      * 注册基础服务提供者
      */
     protected function registerBaseServiceProviders()
@@ -161,7 +143,6 @@ class Application extends Container implements ApplicationInterface
      */
     public function bootstrapWith(array $bootstrappers)
     {
-        // 判断应用是否已经初始化，如果初始化过，就不能够再进行初始化
         if ($this->bootstrapped) {
             return;
         }
@@ -169,14 +150,11 @@ class Application extends Container implements ApplicationInterface
         $this->bootstrapped = true;
 
         foreach ($bootstrappers as $bootstrapper) {
-            // 触发初始化过程执行前事件
-            $this['events']->fire('bootstrapping: '.$bootstrapper, [$this]);
+            $this->make('events')->fire('bootstrapping:'.$bootstrapper, [$this]);
 
-            // 执行初始化过程
             $this->make($bootstrapper)->bootstrap($this);
 
-            // 触发初始化过程执行后事件
-            $this['events']->fire('bootstrapped: '.$bootstrapper, [$this]);
+            $this->make('events')->fire('bootstrapped:'.$bootstrapper, [$this]);
         }
     }
 
@@ -188,7 +166,7 @@ class Application extends Container implements ApplicationInterface
      */
     public function beforeBootstrapping($bootstrapper, $callback)
     {
-        $this['events']->listen('bootstrapping: '.$bootstrapper, $callback);
+        $this->make('events')->listen('bootstrapping:'.$bootstrapper, $callback);
     }
 
     /**
@@ -199,7 +177,7 @@ class Application extends Container implements ApplicationInterface
      */
     public function afterBootstrapping($bootstrapper, $callback)
     {
-        $this['events']->listen('bootstrapped: '.$bootstrapper, $callback);
+        $this->make('events')->listen('bootstrapped:'.$bootstrapper, $callback);
     }
 
     /**
@@ -216,6 +194,18 @@ class Application extends Container implements ApplicationInterface
         $this->bindPathsInContainer();
 
         return $this;
+    }
+
+    /**
+     * 获得应用 "app" 目录
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    public function path($path = '')
+    {
+        return $this->basePath.DIRECTORY_SEPARATOR.'app'.($path ? DIRECTORY_SEPARATOR.$path : $path);
     }
 
     /**
@@ -343,6 +333,7 @@ class Application extends Container implements ApplicationInterface
      */
     protected function bindPathsInContainer()
     {
+        $this->instance('path', $this->path());
         $this->instance('path.base', $this->basePath());
         $this->instance('path.bootstrap', $this->bootstrapPath());
         $this->instance('path.config', $this->configPath());
@@ -351,6 +342,7 @@ class Application extends Container implements ApplicationInterface
         $this->instance('path.public', $this->publicPath());
         $this->instance('path.resource', $this->resourcePath());
         $this->instance('path.route', $this->routePath());
+        $this->instance('path.schedule', $this->schedulePath());
         $this->instance('path.storage', $this->storagePath());
     }
 
@@ -397,7 +389,7 @@ class Application extends Container implements ApplicationInterface
      *
      * @return bool
      */
-    public function runningInTesting()
+    public function runningUnitTests()
     {
         return $this->environment() == 'test';
     }
@@ -715,5 +707,29 @@ class Application extends Container implements ApplicationInterface
         foreach ($aliases as $alias => $abstract) {
             $this->alias($abstract, $alias);
         }
+    }
+
+    /**
+     * 获得应用命名空间
+     *
+     * @return string
+     */
+    public function getNamespace()
+    {
+        if ($this->namespace !== null) {
+            return $this->namespace;
+        }
+
+        $composer = json_decode(file_get_contents(base_path('composer.json')), true);
+
+        foreach ((array) data_get($composer, 'autoload.psr-4') as $namespace => $path) {
+            foreach ((array) $path as $pathChoice) {
+                if (realpath($this->path()) == realpath(base_path().'/'.$pathChoice)) {
+                    return $this->namespace = $namespace;
+                }
+            }
+        }
+
+        throw new RuntimeException('Unable to detect application namespace.');
     }
 }
