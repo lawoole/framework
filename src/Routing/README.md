@@ -1,3 +1,0 @@
-Lawoole Routing Component
-====================
-

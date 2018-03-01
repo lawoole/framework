@@ -1,3 +1,0 @@
-Lawoole Support Component
-====================
-
