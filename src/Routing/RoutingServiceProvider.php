@@ -1,65 +1,18 @@
 <?php
 namespace Lawoole\Routing;
 
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Routing\RoutingServiceProvider as BaseServiceProvider;
+use Lawoole\Contracts\Routing\ResponseFactory as ResponseFactoryContract;
 
-class RoutingServiceProvider extends ServiceProvider
+class RoutingServiceProvider extends BaseServiceProvider
 {
     /**
-     * 注册服务
+     * 注册响应对象工厂
      */
-    public function register()
+    protected function registerResponseFactory()
     {
-        $this->registerRouter();
-
-        $this->registerUrlGenerator();
-
-        $this->registerControllerDispatcher();
-    }
-
-    /**
-     * 注册路由器
-     */
-    protected function registerRouter()
-    {
-        $this->app->singleton('router', function ($app) {
-            return new Router($app);
+        $this->app->singleton(ResponseFactoryContract::class, function ($app) {
+            return new ResponseFactory($app['view'], $app['redirect']);
         });
-    }
-
-    /**
-     * 注册 Url 生成器
-     */
-    protected function registerUrlGenerator()
-    {
-        $this->app->singleton('url', function ($app) {
-            $url = new UrlGenerator($app, $app['router']);
-
-            $app->rebinding('router', function ($app, $router) {
-                $app['url']->setRouter($router);
-            });
-
-            return $url;
-        });
-    }
-
-    /**
-     * 注册控制调度器
-     */
-    protected function registerControllerDispatcher()
-    {
-        $this->app->singleton('router.dispatcher', function ($app) {
-            return new ControllerDispatcher($app['router']);
-        });
-    }
-
-    /**
-     * 获得提供的服务名
-     *
-     * @return array
-     */
-    public function provides()
-    {
-        return ['router', 'router.dispatcher'];
     }
 }

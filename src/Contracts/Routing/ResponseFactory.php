@@ -11,19 +11,19 @@ interface ResponseFactory extends FactoryContract
      * @param \Lawoole\Routing\RequestManager $requestManager
      * @param int $timeout
      *
-     * @return \Lawoole\Routing\FutureResponse
+     * @return \Lawoole\Http\FutureResponse
      */
     public function future($requestManager = null, $timeout = 0);
 
     /**
-     * 创建多步响应
+     * 创建分块响应
      *
      * @param string $content
      * @param int $status
      * @param array $headers
      * @param int $step
      *
-     * @return \Lawoole\Routing\MultiBulkResponse
+     * @return \Lawoole\Http\ChunkResponse
      */
-    public function bulk($content = '', $status = 200, array $headers = [], $step = null);
+    public function chunk($content = '', $status = 200, array $headers = [], $step = null);
 }

@@ -1,66 +1,88 @@
 <?php
 namespace Lawoole\Server;
 
-use Illuminate\Support\Arr;
-use InvalidArgumentException;
-use Lawoole\Console\OutputStyle;
-use Lawoole\Swoole\HttpServerSocket;
-use Lawoole\Swoole\ServerSocket;
-use Lawoole\Swoole\WebSocketServer;
-use Lawoole\Swoole\WebSocketServerSocket;
-use Symfony\Component\Console\Input\ArgvInput;
+use Lawoole\Contracts\Server\Factory;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ServerManager
+class ServerManager implements Factory
 {
     /**
      * 服务容器
      *
-     * @var \Lawoole\Application
+     * @var \Lawoole\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
-     * 是否已经准备服务
+     * 服务驱动名
      *
-     * @var bool
+     * @var string
      */
-    protected $prepared = false;
+    protected $driver;
 
     /**
-     * Swoole 服务
+     * 服务配置
      *
-     * @var \Lawoole\Swoole\Server
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * 服务对象
+     *
+     * @var \Lawoole\Contracts\Server\Server
      */
     protected $server;
 
     /**
-     * 样式输出
-     *
-     * @var \Lawoole\Console\OutputStyle
-     */
-    protected $outputStyle;
-
-    /**
      * 创建 Swoole 服务管理器
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param string $driver
+     * @param array $config
      */
-    public function __construct($app)
+    public function __construct($app, $driver, array $config)
     {
         $this->app = $app;
+        $this->driver = $driver;
+        $this->config = $config;
     }
 
     /**
-     * 获得 Swoole 服务
+     * 获得服务对象
      *
-     * @return \Lawoole\Swoole\Server
+     * @return \Lawoole\Contracts\Server\Server
      */
-    public function getServer()
+    public function server()
     {
-        return $this->server;
+        if ($this->server != null) {
+            return $this->server;
+        }
+
+        return $this->server = $this->resolveServer();
+    }
+
+    /**
+     * 解析服务对象
+     *
+     * @return \Lawoole\Contracts\Server\Server
+     */
+    public function resolveServer()
+    {
+        $server = $this->createServer();
+    }
+
+    /**
+     * 创建服务对象
+     *
+     * @return \Lawoole\Contracts\Server\Server
+     */
+    protected function createServer()
+    {
+        switch ($this->driver) {
+
+        }
     }
 
     /**
@@ -278,6 +300,6 @@ class ServerManager
      */
     public function __call($method, $parameters)
     {
-        return $this->server->$method(...$parameters);
+        return $this->server()->$method(...$parameters);
     }
 }

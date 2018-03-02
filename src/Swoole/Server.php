@@ -173,7 +173,7 @@ class Server implements IteratorAggregate
      */
     protected function generateUnixSock()
     {
-        return '/tmp/lawoole_swoole_'.Str::random(8).'.sock';
+        return tempnam(sys_get_temp_dir(), 'lawoole-swoole-');
     }
 
     /**

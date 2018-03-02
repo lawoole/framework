@@ -5,7 +5,6 @@ use ArrayObject;
 use BadMethodCallException;
 use Closure;
 use Exception;
-use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
@@ -16,6 +15,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use JsonSerializable;
+use Lawoole\Contracts\Foundation\Application;
+use Lawoole\Contracts\Routing\ResponseSender;
 use Lawoole\Support\Facades\Server;
 use Swoole\Timer;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
@@ -28,12 +29,12 @@ class RequestManager
     /**
      * 服务容器
      *
-     * @var \Lawoole\Application
+     * @var \Lawoole\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
-     * 管理器编号
+     * 请求管理器编号
      *
      * @var string
      */
@@ -61,11 +62,11 @@ class RequestManager
     protected $events;
 
     /**
-     * 响应发送者
+     * 响应发送器
      *
-     * @var \Closure
+     * @var \Lawoole\Contracts\Routing\ResponseSender
      */
-    protected $sender;
+    protected $responseSender;
 
     /**
      * 所有处理请求所使用到的中间件集合
@@ -91,41 +92,20 @@ class RequestManager
     /**
      * 创建请求管理器
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      * @param \Illuminate\Http\Request $request
-     * @param \Closure $sender
+     * @param \Lawoole\Contracts\Routing\ResponseSender $responseSender
      */
-    public function __construct($app, Request $request, Closure $sender = null)
+    public function __construct(Application $app, Request $request, ResponseSender $responseSender = null)
     {
+        $this->id = Str::uuid();
+
         $this->app = $app;
         $this->request = $request;
-        $this->sender = $sender;
-
-        // 生成编号
-        $this->id = Str::random(16);
+        $this->responseSender = $responseSender;
 
         $this->dispatcher = $app['router.dispatcher'];
         $this->events = $app['events'];
-
-        // 记录到容器中
-        $app->instance("http.request.manager.{$this->id}", $this);
-    }
-
-    /**
-     * 获得管理器
-     *
-     * @param \Illuminate\Contracts\Container\Container $container
-     * @param string $id
-     *
-     * @return \Lawoole\Routing\RequestManager
-     */
-    public static function getManager(Container $container, $id)
-    {
-        if ($container->bound($key = "http.request.manager.{$id}")) {
-            return $container->make($key);
-        }
-
-        return null;
     }
 
     /**
@@ -149,66 +129,53 @@ class RequestManager
     }
 
     /**
-     * 设置响应发送者
+     * 设置响应发送器
      *
-     * @param \Closure $sender
+     * @param \Lawoole\Contracts\Routing\ResponseSender $responseSender
      */
-    public function setSender(Closure $sender)
+    public function setResponseSender(ResponseSender $responseSender)
     {
-        $this->sender = $sender;
+        $this->responseSender = $responseSender;
     }
 
     /**
      * 处理请求
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle()
     {
         if ($this->handled) {
-            // 请求只能处理一次
-            return null;
+            return;
         }
 
         $this->handled = true;
 
-        // 在请求开始处理时注入容器
         $this->app->instance('request.manager', $this);
         $this->app->instance('request', $this->request);
 
         try {
-            $middleware = $this->dispatcher->getMiddleware();
+            // TODO:
+            $middleware = [];
 
-            // 通过管道执行全局中间件
             $response = $this->sendThroughPipeline($middleware, function () {
                 $request = $this->getRequest();
 
-                // 请求方式和路径
                 $method = $request->getMethod();
                 $pathInfo = $request->getPathInfo();
 
-                // 进行路由调度并处理调度结果
                 return $this->handleFoundRoute(
                     $this->dispatcher->dispatch($method, $pathInfo)
                 );
             });
         } catch (Exception $e) {
-            // 处理异常
             $response = $this->handleException($this->request, $e);
         } catch (Throwable $e) {
-            // 转换为异常
-            $e = new FatalThrowableError($e);
-            // 处理异常
-            $response = $this->handleException($this->request, $e);
+            $response = $this->handleException($this->request, new FatalThrowableError($e));
         }
 
         $this->sendResponse($response);
 
-        // 在请求处理结束时注销容器内实例
         $this->app->forgetInstance('request.manager');
-        $this->app->forgetInstance('request');
-
-        return $response;
+        $this->app->instance('request', $this->app->make('console.request'));
     }
 
     /**

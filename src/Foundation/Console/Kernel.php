@@ -6,8 +6,9 @@ use Illuminate\Console\Application as Artisan;
 use Illuminate\Contracts\Console\Kernel as KernelContract;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Events\Dispatcher;
-use Lawoole\Contracts\Foundation\ApplicationInterface;
+use Lawoole\Application;
 use RuntimeException;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
@@ -17,7 +18,7 @@ class Kernel implements KernelContract
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\ApplicationInterface
+     * @var \Lawoole\Application
      */
     protected $app;
 
@@ -51,10 +52,10 @@ class Kernel implements KernelContract
     /**
      * 创建 Console 处理核心
      *
-     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
+     * @param \Lawoole\Application $app
      * @param \Illuminate\Events\Dispatcher $events
      */
-    public function __construct(ApplicationInterface $app, Dispatcher $events)
+    public function __construct(Application $app, Dispatcher $events)
     {
         $this->app = $app;
         $this->events = $events;
@@ -83,20 +84,16 @@ class Kernel implements KernelContract
         try {
             $this->bootstrap();
 
+            $output = $output ?: new ConsoleOutput;
+
+            $this->app->singleton('console.input', $input);
+            $this->app->singleton('console.output', $output);
+
             return $this->getArtisan()->run($input, $output);
         } catch (Exception $e) {
-            // 处理异常
-            $this->handleException($e, $output);
-
-            return 1;
+            return $this->handleException($e, $output);
         } catch (Throwable $e) {
-            // 转换为异常
-            $e = new FatalThrowableError($e);
-
-            // 处理异常
-            $this->handleException($e, $output);
-
-            return 1;
+            return $this->handleException(new FatalThrowableError($e), $output);
         }
     }
 
@@ -196,18 +193,16 @@ class Kernel implements KernelContract
      * @param \Exception $e
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      *
-     * @throws \Exception
+     * @return int
      */
     protected function handleException(Exception $e, OutputInterface $output)
     {
-        try {
-            $handler = $this->app->make(ExceptionHandler::class);
-        } catch (Exception $ex) {
-            throw $e;
-        }
+        $handler = $this->app->make(ExceptionHandler::class);
 
         $handler->report($e);
 
         $handler->renderForConsole($output, $e);
+
+        return 1;
     }
 }

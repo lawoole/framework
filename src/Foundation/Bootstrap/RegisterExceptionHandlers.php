@@ -4,6 +4,7 @@ namespace Lawoole\Foundation\Bootstrap;
 use ErrorException;
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Routing\RequestManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Debug\Exception\FatalErrorException;
@@ -13,16 +14,16 @@ class RegisterExceptionHandlers
     /**
      * 服务容器
      *
-     * @var \Lawoole\Contracts\Foundation\ApplicationInterface
+     * @var \Lawoole\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
      * 注册异常处理器
      *
-     * @param \Lawoole\Contracts\Foundation\ApplicationInterface $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      */
-    public function bootstrap($app)
+    public function bootstrap(Application $app)
     {
         $this->app = $app;
 
@@ -33,7 +34,7 @@ class RegisterExceptionHandlers
         set_error_handler([$this, 'handleError']);
         set_exception_handler([$this, 'handleException']);
 
-        if (!$app->runningInTesting()) {
+        if (!$app->runningUnitTests()) {
             ini_set('display_errors', 'Off');
         }
     }

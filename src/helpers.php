@@ -5,6 +5,7 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Support\Carbon;
 use Lawoole\Application;
+use Lawoole\Promise\Promise;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 
 if (!function_exists('app')) {
@@ -253,5 +254,19 @@ if (!function_exists('logger')) {
         }
 
         return app('log')->debug($message, $context);
+    }
+}
+
+if (!function_exists('promise')) {
+    /**
+     * 创建 Promise 调用
+     *
+     * @param callable $executor
+     *
+     * @return \Lawoole\Contracts\Promise\Promise
+     */
+    function promise(callable $executor)
+    {
+        return new Promise($executor);
     }
 }

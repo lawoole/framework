@@ -3,9 +3,10 @@ namespace Lawoole;
 
 use Illuminate\Container\Container;
 use Illuminate\Events\EventServiceProvider;
+use Illuminate\Log\LogServiceProvider;
 use Illuminate\Support\Str;
 use Lawoole\Contracts\Foundation\Application as ApplicationContract;
-use Lawoole\Log\LogServiceProvider;
+use Lawoole\Foundation\Events\LocaleUpdated;
 use RuntimeException;
 
 class Application extends Container implements ApplicationContract
@@ -101,7 +102,7 @@ class Application extends Container implements ApplicationContract
      */
     public function version()
     {
-        return static::VERSION.' (Laravel Components 5.5.*)';
+        return static::VERSION.' (Laravel Components 5.6.*)';
     }
 
     /**
@@ -428,8 +429,7 @@ class Application extends Container implements ApplicationContract
     public function register($provider, $options = [], $force = false)
     {
         if (($registered = $this->getProvider($provider)) && !$force) {
-            // 如果服务提供者以及注册，且未设置为强制注册，则直接返回老服务提供者
-            // 对象，不再进行注册
+            // 如果服务提供者以及注册，且未设置为强制注册，则直接返回老服务提供者对象
             return $registered;
         }
 
@@ -439,7 +439,6 @@ class Application extends Container implements ApplicationContract
         }
 
         if (method_exists($provider, 'register')) {
-            // 运行服务提供者的注册方法
             $provider->register();
         }
 
@@ -461,8 +460,6 @@ class Application extends Container implements ApplicationContract
      */
     public function registerDeferredProvider($provider, $service = null)
     {
-        // 框架主要针对长期处理设计，不考虑服务加载带来的损耗，不做服务提供者延迟
-        // 加载的处理
         $this->register($provider);
     }
 
@@ -607,7 +604,7 @@ class Application extends Container implements ApplicationContract
 
         $this['translator']->setLocale($locale);
 
-        $this['events']->dispatch(new Events\LocaleUpdated($locale));
+        $this['events']->dispatch(new LocaleUpdated($locale));
     }
 
     /**
@@ -670,34 +667,45 @@ class Application extends Container implements ApplicationContract
             \Illuminate\Cache\Repository::class                       => 'cache.store',
             \Illuminate\Contracts\Cache\Repository::class             => 'cache.store',
             \Illuminate\Contracts\Config\Repository::class            => 'config',
+            \Symfony\Component\Console\Input\InputInterface::class    => 'console.input',
+            \Symfony\Component\Console\Output\OutputInterface::class  => 'console.output',
             \Illuminate\Support\Composer::class                       => 'composer',
             \Illuminate\Database\ConnectionResolverInterface::class   => 'db',
             \Illuminate\Database\DatabaseManager::class               => 'db',
-            \Lawoole\Routing\ControllerDispatcher::class              => 'dispatcher',
+            \Illuminate\Database\Connection::class                    => 'db.connection',
+            \Illuminate\Database\ConnectionInterface::class           => 'db.connection',
             \Illuminate\Contracts\Encryption\Encrypter::class         => 'encrypter',
+            \Illuminate\Encryption\Encrypter::class                   => 'encrypter',
             \Illuminate\Contracts\Events\Dispatcher::class            => 'events',
+            \Illuminate\Events\Dispatcher::class                      => 'events',
             \Illuminate\Filesystem\Filesystem::class                  => 'files',
             \Illuminate\Filesystem\FilesystemManager::class           => 'filesystem',
             \Illuminate\Contracts\Filesystem\Factory::class           => 'filesystem',
             \Illuminate\Contracts\Filesystem\Filesystem::class        => 'filesystem.disk',
             \Illuminate\Contracts\Filesystem\Cloud::class             => 'filesystem.cloud',
             \Illuminate\Contracts\Hashing\Hasher::class               => 'hash',
-            \Lawoole\Homer\HomerManager::class                        => 'homer',
+            \Illuminate\Contracts\Hashing\Hasher::class               => 'hash.driver',
+            \Illuminate\Log\LogManager::class                         => 'log',
             \Psr\Log\LoggerInterface::class                           => 'log',
             \Illuminate\Database\Migrations\Migrator::class           => 'migrator',
             \Illuminate\Database\Migrations\MigrationCreator::class   => 'migration.creator',
+            \Illuminate\Queue\QueueManager::class                     => 'queue',
             \Illuminate\Contracts\Queue\Factory::class                => 'queue',
+            \Illuminate\Contracts\Queue\Monitor::class                => 'queue',
             \Illuminate\Contracts\Queue\Queue::class                  => 'queue.connections',
+            \Illuminate\Routing\Redirector::class                     => 'redirect',
             \Symfony\Component\HttpFoundation\Request::class          => 'request',
             \Illuminate\Http\Request::class                           => 'request',
             \Lawoole\Routing\RequestManager::class                    => 'request.manager',
-            \Lawoole\Routing\Router::class                            => 'router',
+            \Illuminate\Routing\Router::class                         => 'router',
+            \Illuminate\Contracts\Routing\Registrar::class            => 'router',
+            \Illuminate\Contracts\Routing\BindingRegistrar::class     => 'router',
             \Illuminate\Console\Scheduling\Schedule::class            => 'schedule',
-            \Lawoole\Swoole\Server::class                             => 'server',
-            \Lawoole\Server\ServerManager::class                      => 'server.manager',
+            \Lawoole\Contracts\Server\Server::class                   => 'server',
+            \Lawoole\Server\Server::class                             => 'server',
             \Swoole\Server::class                                     => 'server.swoole',
+            \Illuminate\Routing\UrlGenerator::class                   => 'url',
             \Illuminate\Contracts\Routing\UrlGenerator::class         => 'url',
-            \Lawoole\Routing\UrlGenerator::class                      => 'url',
             \Illuminate\Validation\Factory::class                     => 'validator',
             \Illuminate\Contracts\Validation\Factory::class           => 'validator',
             \Illuminate\View\Factory::class                           => 'view',

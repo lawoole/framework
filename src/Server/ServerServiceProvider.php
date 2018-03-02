@@ -63,33 +63,5 @@ class ServerServiceProvider extends ServiceProvider
         $this->commands(array_values($commands));
     }
 
-    /**
-     * 注册命令
-     */
-    protected function registerStartCommand()
-    {
-        $this->app->singleton('command.start', function () {
-            return new StartCommand;
-        });
-    }
 
-    /**
-     * 注册命令
-     */
-    protected function registerShutdownCommand()
-    {
-        $this->app->singleton('command.shutdown', function () {
-            return new ShutdownCommand;
-        });
-    }
-
-    /**
-     * 注册命令
-     */
-    protected function registerReloadCommand()
-    {
-        $this->app->singleton('command.reload', function () {
-            return new ReloadCommand;
-        });
-    }
 }
