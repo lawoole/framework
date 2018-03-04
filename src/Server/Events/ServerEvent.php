@@ -13,7 +13,7 @@ abstract class ServerEvent
     /**
      * 创建服务事件
      *
-     * @param \Illuminate\Database\Connection $server
+     * @param \Lawoole\Server\Server $server
      */
     public function __construct($server)
     {

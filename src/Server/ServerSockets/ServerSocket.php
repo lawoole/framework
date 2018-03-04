@@ -2,32 +2,68 @@
 namespace Lawoole\Server\ServerSockets;
 
 use EmptyIterator;
+use Exception;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Arr;
 use IteratorAggregate;
-use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Contracts\Server\ServerSocket as ServerSocketContract;
-use Lawoole\Server\Concerns\HasEventHandler;
 use Lawoole\Server\Server;
 use RuntimeException;
 use Swoole\Server\Port;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Debug\Exception\FatalThrowableError;
+use Throwable;
 
 class ServerSocket implements ServerSocketContract, IteratorAggregate
 {
-    use HasEventHandler;
-
-    /**
-     * 服务容器
-     *
-     * @var \Lawoole\Contracts\Foundation\Application
-     */
-    protected $app;
-
     /**
      * 服务对象
      *
-     * @var \Lawoole\Swoole\Server
+     * @var \Lawoole\Contracts\Server\Server
      */
     protected $server;
+
+    /**
+     * 监听地址
+     *
+     * @var string
+     */
+    protected $host;
+
+    /**
+     * 监听端口
+     *
+     * @var int
+     */
+    protected $port;
+
+    /**
+     * Socket 类型
+     *
+     * @var int
+     */
+    protected $socketType;
+
+    /**
+     * 事件处理器
+     *
+     * @var \Lawoole\Server\ServerSockets\ServerSocketHandler
+     */
+    protected $handler;
+
+    /**
+     * 控制台输出
+     *
+     * @var \Symfony\Component\Console\Output\OutputInterface
+     */
+    protected $output;
+
+    /**
+     * 异常处理器
+     *
+     * @var \Illuminate\Contracts\Debug\ExceptionHandler
+     */
+    protected $exceptions;
 
     /**
      * Swoole 端口对象
@@ -37,21 +73,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     protected $swoolePort;
 
     /**
-     * 是否已经绑定到服务
-     *
-     * @var bool
-     */
-    protected $bound = false;
-
-    /**
-     * 服务配置
-     *
-     * @var array
-     */
-    protected $config;
-
-    /**
-     * 服务 Socket 选项
+     * 配置选项
      *
      * @var array
      */
@@ -65,31 +87,73 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
      *
      * @var array
      */
-    protected $serverSocketEvents = [
+    protected $serverEvents = [
         'Connect', 'Close', 'Receive', 'Packet', 'BufferFull', 'BufferEmpty'
     ];
 
     /**
      * 创建服务 Socket 对象
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
-     * @param array $config
+     * @param string $host
+     * @param int $port
+     * @param array $options
      */
-    public function __construct(Application $app, array $config = [])
+    public function __construct($host, $port, array $options = [])
     {
-        $this->app = $app;
+        $this->host = $host;
+        $this->port = $port;
 
-        $options = Arr::pull($config, 'options', []);
-
-        $this->config = $config;
+        $this->socketType = Arr::pull($options, 'options', function () {
+            return $this->getDefaultSocketType();
+        });
 
         $this->setOptions($options);
     }
 
     /**
+     * 获得默认的 Socket 类型
+     *
+     * @return int
+     */
+    protected function getDefaultSocketType()
+    {
+        return SWOOLE_SOCK_TCP;
+    }
+
+    /**
+     * 获得监听地址
+     *
+     * @return string
+     */
+    public function getHost()
+    {
+        return $this->host;
+    }
+
+    /**
+     * 获得监听端口
+     *
+     * @return int
+     */
+    public function getPort()
+    {
+        return $this->port;
+    }
+
+    /**
+     * 获得 Socket 类型
+     *
+     * @return int
+     */
+    public function getSocketType()
+    {
+        return $this->socketType;
+    }
+
+    /**
      * 获得服务对象
      *
-     * @return \Lawoole\Swoole\Server
+     * @return \Lawoole\Contracts\Server\Server
      */
     public function getServer()
     {
@@ -97,7 +161,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 获得 Swoole 服务端口对象
+     * 获得 Swoole 端口对象
      *
      * @return \Swoole\Server\Port
      */
@@ -107,7 +171,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 设置服务 Socket 选项
+     * 设置配置选项
      *
      * @param array $options
      */
@@ -119,13 +183,14 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
 
         $this->options = array_diff_key($this->options, $options) + $options;
 
-        if ($this->swoolePort) {
+        // 如果已经绑定到服务，则同时更改 Swoole 端口对象的配置
+        if ($this->swoolePort != null) {
             $this->swoolePort->set($this->options);
         }
     }
 
     /**
-     * 获得服务 Socket 选项
+     * 获得配置选项
      *
      * @return array
      */
@@ -135,40 +200,71 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 绑定到服务对象
+     * 设置异常处理器
      *
-     * @param \Lawoole\Server\Server $server
+     * @param \Illuminate\Contracts\Debug\ExceptionHandler $exceptions
      */
-    public function bindToServer(Server $server)
+    public function setExceptionHandler(ExceptionHandler $exceptions)
     {
-        if ($this->bound) {
-            throw new RuntimeException('ServerSocket can be bound to server only once.');
-        }
-
-        $this->bound = true;
-
-        $this->server = $server;
-
-        // 监听服务
-
-
-        $this->swoolePort->set($this->options);
-
-        $this->registerEventCallbacks($this->serverSocketEvents);
-
-        $this->dispatchEvent('Bind', $server, $this);
+        $this->exceptions = $exceptions;
     }
 
     /**
-     * 添加服务监听
+     * 获得异常处理器
+     *
+     * @return \Illuminate\Contracts\Debug\ExceptionHandler
+     */
+    public function getExceptionHandler()
+    {
+        return $this->exceptions;
+    }
+
+    /**
+     * 设置控制台输出
+     *
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
+    public function setOutput(OutputInterface $output)
+    {
+        $this->output = $output;
+    }
+
+    /**
+     * 获得控制台输出
+     *
+     * @return \Symfony\Component\Console\Output\OutputInterface
+     */
+    public function getOutput()
+    {
+        return $this->output;
+    }
+
+    /**
+     * 监听服务对象
      *
      * @param \Lawoole\Server\Server $server
-     *
-     * @return \Swoole\Server\Port
+     * @param \Swoole\Server\Port $swoolePort
      */
-    protected function listenToServer(Server $server)
+    public function listen(Server $server, Port $swoolePort = null)
     {
-        $swooleServer =
+        if ($this->isBound()) {
+            throw new RuntimeException('ServerSocket can be bound to server only once.');
+        }
+
+        if ($swoolePort == null) {
+            // 如果传入空的 Swoole 端口对象，则调用服务的监听方法以产生端口对象
+            $server->listen($this);
+
+            return;
+        }
+
+        $this->server = $server;
+
+        $this->swoolePort->set($this->options);
+
+        $this->registerEventCallbacks($this->serverEvents);
+
+        $this->dispatchEvent('Bind', $server, $this);
     }
 
     /**
@@ -178,7 +274,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
      */
     public function isBound()
     {
-        return $this->bound;
+        return $this->server != null;
     }
 
     /**
@@ -190,77 +286,17 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 注册事件回调
-     */
-    protected function registerConnectCallback()
-    {
-        $this->swooleServerPort->on('Connect', function ($server, $fd, $reactorId) {
-            $this->dispatchEvent('Connect', $this->server, $this, $fd, $reactorId);
-        });
-    }
-
-    /**
-     * 注册事件回调
-     */
-    protected function registerCloseCallback()
-    {
-        $this->swooleServerPort->on('Close', function ($server, $fd, $reactorId) {
-            $this->dispatchEvent('Close', $this->server, $this, $fd, $reactorId);
-        });
-    }
-
-    /**
-     * 注册事件回调
-     */
-    protected function registerReceiveCallback()
-    {
-        $this->swooleServerPort->on('Receive', function ($server, $fd, $reactorId, $data) {
-            $this->dispatchEvent('Receive', $this->server, $this, $fd, $reactorId, $data);
-        });
-    }
-
-    /**
-     * 注册事件回调
-     */
-    protected function registerPacketCallback()
-    {
-        $this->swooleServerPort->on('Packet', function ($server, $data, $clientInfo) {
-            $this->dispatchEvent('Packet', $this->server, $this, $data, $clientInfo);
-        });
-    }
-
-    /**
-     * 注册事件回调
-     */
-    protected function registerBufferFullCallback()
-    {
-        $this->swooleServerPort->on('BufferFull', function ($server, $fd) {
-            $this->dispatchEvent('BufferFull', $this->server, $this, $fd);
-        });
-    }
-
-    /**
-     * 注册事件回调
-     */
-    protected function registerBufferEmptyCallback()
-    {
-        $this->swooleServerPort->on('BufferEmpty', function ($server, $fd) {
-            $this->dispatchEvent('BufferEmpty', $this->server, $this, $fd);
-        });
-    }
-
-    /**
      * 获得所有当前连接的迭代器
      *
      * @return \Iterator
      */
     public function getConnectionIterator()
     {
-        if ($this->swooleServerPort == null) {
-            return new EmptyIterator;
+        if ($this->isBound() && $this->server->isServing()) {
+            return $this->swoolePort->connections;
         }
 
-        return $this->swooleServerPort->connections;
+        return new EmptyIterator;
     }
 
     /**
@@ -271,5 +307,136 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     public function getIterator()
     {
         return $this->getConnectionIterator();
+    }
+
+    /**
+     * 设置处理器
+     *
+     * @param \Lawoole\Server\ServerSockets\ServerSocketHandler
+     */
+    public function setHandler(ServerSocketHandler $handler)
+    {
+        $this->handler = $handler;
+    }
+
+    /**
+     * 获得处理器
+     *
+     * @return \Lawoole\Server\ServerSockets\ServerSocketHandler
+     */
+    public function getHandler()
+    {
+        return $this->handler;
+    }
+
+    /**
+     * 注册事件回调
+     *
+     * @param array $events
+     */
+    protected function registerEventCallbacks(array $events)
+    {
+        foreach ($events as $event) {
+            call_user_func([$this, "register{$event}Callback"]);
+        }
+    }
+
+    /**
+     * 分发事件
+     *
+     * @param string $event
+     * @param array $arguments
+     */
+    public function dispatchEvent($event, ...$arguments)
+    {
+        if ($this->handler == null) {
+            return;
+        }
+
+        try {
+            if (method_exists($this->handler, $method = "on{$event}")) {
+                call_user_func_array([$this->handler, $method], $arguments);
+            }
+        } catch (Exception $e) {
+            $this->handleException($e);
+        } catch (Throwable $e) {
+            $this->handleException(new FatalThrowableError($e));
+        }
+    }
+
+    /**
+     * 注册事件回调
+     */
+    protected function registerConnectCallback()
+    {
+        $this->swoolePort->on('Connect', function ($server, $fd, $reactorId) {
+            $this->dispatchEvent('Connect', $this->server, $this, $fd, $reactorId);
+        });
+    }
+
+    /**
+     * 注册事件回调
+     */
+    protected function registerCloseCallback()
+    {
+        $this->swoolePort->on('Close', function ($server, $fd, $reactorId) {
+            $this->dispatchEvent('Close', $this->server, $this, $fd, $reactorId);
+        });
+    }
+
+    /**
+     * 注册事件回调
+     */
+    protected function registerReceiveCallback()
+    {
+        $this->swoolePort->on('Receive', function ($server, $fd, $reactorId, $data) {
+            $this->dispatchEvent('Receive', $this->server, $this, $fd, $reactorId, $data);
+        });
+    }
+
+    /**
+     * 注册事件回调
+     */
+    protected function registerPacketCallback()
+    {
+        $this->swoolePort->on('Packet', function ($server, $data, $clientInfo) {
+            $this->dispatchEvent('Packet', $this->server, $this, $data, $clientInfo);
+        });
+    }
+
+    /**
+     * 注册事件回调
+     */
+    protected function registerBufferFullCallback()
+    {
+        $this->swoolePort->on('BufferFull', function ($server, $fd) {
+            $this->dispatchEvent('BufferFull', $this->server, $this, $fd);
+        });
+    }
+
+    /**
+     * 注册事件回调
+     */
+    protected function registerBufferEmptyCallback()
+    {
+        $this->swoolePort->on('BufferEmpty', function ($server, $fd) {
+            $this->dispatchEvent('BufferEmpty', $this->server, $this, $fd);
+        });
+    }
+
+    /**
+     * 处理异常
+     *
+     * @param \Exception $e
+     */
+    protected function handleException(Exception $e)
+    {
+        if ($this->exceptions) {
+            $this->exceptions->report($e);
+
+            if ($this->output) {
+                $this->exceptions->renderForConsole($this->output, $e);
+            }
+        }
     }
 }
