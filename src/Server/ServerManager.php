@@ -1,9 +1,14 @@
 <?php
 namespace Lawoole\Server;
 
+use Illuminate\Contracts\Debug\ExceptionHandler;
+use InvalidArgumentException;
 use Lawoole\Contracts\Server\Factory;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Lawoole\Server\ServerSockets\HttpServerSocket;
+use Lawoole\Server\ServerSockets\ServerSocket;
+use Lawoole\Server\ServerSockets\UdpServerSocket;
+use Lawoole\Server\ServerSockets\UnixServerSocket;
+use Lawoole\Server\ServerSockets\WebSocketServerSocket;
 
 class ServerManager implements Factory
 {
@@ -70,107 +75,116 @@ class ServerManager implements Factory
      */
     public function resolveServer()
     {
-        $server = $this->createServer();
+        $serverSockets = $this->createServerSockets();
+
+        $defaultServerSocket = head($serverSockets);
+
+        $server = $this->createServer($defaultServerSocket);
+
+        return $this->configureServer($server, $serverSockets);
     }
 
     /**
      * 创建服务对象
      *
-     * @return \Lawoole\Contracts\Server\Server
+     * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
+     *
+     * @return \Lawoole\Server\Server
      */
-    protected function createServer()
+    protected function createServer(ServerSocket $serverSocket)
     {
-        switch ($this->driver) {
+        $processMode = $this->getProcessMode();
 
+        switch ($this->driver) {
+            case 'websocket':
+                $server = new WebSocketServer($serverSocket, $processMode);
+                break;
+            case 'http':
+                $server = new HttpServer($serverSocket, $processMode);
+                break;
+            case 'tcp':
+            default:
+                $server = new Server($serverSocket, $processMode);
+                break;
         }
+
+        return $server;
     }
 
     /**
-     * 准备 Swoole 服务
+     * 获得进程模式
      *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return int
      */
-    public function prepare(InputInterface $input, OutputInterface $output)
+    protected function getProcessMode()
     {
-        if ($this->prepared) {
-            return;
+        $mode = $this->config['mode'] ?? 'process';
+
+        switch ($mode) {
+            case 'base':
+                return SWOOLE_BASE;
+            case 'process':
+                return SWOOLE_PROCESS;
+            default:
+                return $mode;
         }
-
-        $this->prepared = true;
-
-        if (!$this->app->bound(OutputStyle::class)) {
-            $this->outputStyle = new OutputStyle($input, $output);
-
-            // 共享一个统一的输出
-            $this->app->instance(OutputStyle::class, $this->outputStyle);
-        }
-
-        $config = $this->app->make('config')->get('server', []);
-
-        $server = new WebSocketServer($config);
-
-        $this->configureServer($server, $config);
-
-        $this->server = $server;
     }
 
     /**
      * 配置服务
      *
-     * @param \Lawoole\Swoole\Server $server
-     * @param array $config
-     */
-    protected function configureServer($server, array $config)
-    {
-        // 设置异常处理器
-        $server->setExceptionHandler(
-            $this->app->make(Arr::get($config, 'exception.handler', ServerExceptionHandler::class))
-        );
-
-        // 设置事件处理器
-        $server->setEventHandler(
-            $this->app->make(Arr::get($config, 'handler', ServerHandler::class))
-        );
-
-        // 后台运行
-        if (Arr::get($config, 'daemon')) {
-            $server->setOptions(['daemonize' => true]);
-        }
-
-        // 端口监听
-        $listens = Arr::get($config, 'listens', []);
-        foreach ($listens as $listen) {
-            $this->addServerSocket($server, $listen);
-        }
-    }
-
-    /**
-     * 添加服务 Socket
+     * @param \Lawoole\Server\Server $server
+     * @param \Lawoole\Server\ServerSockets\ServerSocket[] $serverSockets
      *
-     * @param \Lawoole\Swoole\Server $server
-     * @param array $config
+     * @return \Lawoole\Server\Server
      */
-    protected function addServerSocket($server, array $config)
+    protected function configureServer($server, array $serverSockets)
     {
-        $serverSocket = $this->createServerSocket($config);
+        $server->setOptions($this->config['options'] ?? []);
 
-        if ($handler = Arr::get($config, 'handler')) {
-            // 如果通过 handler 去设置事件处理器，会覆盖默认的事件处理器
-            $serverSocket->setEventHandler($this->app->make($handler));
-        } elseif ($handlers = Arr::get($config, 'handlers')) {
-            foreach ($handlers as $handler) {
-                $serverSocket->putEventHandler($this->app->make($handler));
+        $exceptionHandler = $this->app->make(ExceptionHandler::class);
+
+        $server->setExceptionHandler($exceptionHandler);
+
+        foreach ($serverSockets as $serverSocket) {
+            $serverSocket->setExceptionHandler($exceptionHandler);
+
+            if (!$serverSocket->isBound()) {
+                $server->listen($serverSocket);
             }
         }
 
-        // 服务 Socket 选项
-        if ($options = Arr::get($config, 'options')) {
-            $serverSocket->setOptions($options);
+        return $server;
+    }
+
+    /**
+     * 创建服务 Socket
+     *
+     * @return array
+     */
+    protected function createServerSockets()
+    {
+        $listens = $this->config['listens'] ?? null;
+
+        if (empty($listens)) {
+            throw new InvalidArgumentException('A port listen must be given at least.');
         }
 
-        // 添加监听
-        $server->listen($serverSocket);
+        $serverSockets = [];
+
+        foreach ((array) $listens as $listen) {
+            $serverSocket = $this->createServerSocket($listen);
+
+            $serverSocket->setHandler($this->app->make($listen['handler']));
+
+            if (isset($listen['default']) && $listen['default']) {
+                array_unshift($serverSockets, $serverSocket);
+            } else {
+                $serverSockets[] = $serverSocket;
+            }
+        }
+
+        return $serverSockets;
     }
 
     /**
@@ -178,76 +192,26 @@ class ServerManager implements Factory
      *
      * @param array $config
      *
-     * @return \Lawoole\Swoole\ServerSocket
+     * @return \Lawoole\Server\ServerSockets\ServerSocket
      */
     protected function createServerSocket(array $config)
     {
-        $protocol = Arr::get($config, 'protocol', 'http');
+        $options = $config['options'] ?? [];
 
-        if (method_exists($this, $method = 'create'.ucfirst($protocol).'ServerSocket')) {
-            $serverSocket = $this->$method($config);
-        } else {
-            throw new InvalidArgumentException("The protocol [{$protocol}] is not support");
+        switch ($config['protocol']) {
+            case 'tcp':
+                return new ServerSocket($config['host'], $config['port'], $options);
+            case 'udp':
+                return new UdpServerSocket($config['host'], $config['port'], $options);
+            case 'http':
+                return new HttpServerSocket($config['host'], $config['port'], $options);
+            case 'websocket':
+                return new WebSocketServerSocket($config['host'], $config['port'], $options);
+            case 'unix':
+                return new UnixServerSocket($config['unix_sock'], $options);
+            default:
+                throw new InvalidArgumentException("The protocol [{$config['protocol']}] is not support");
         }
-
-        return $serverSocket;
-    }
-
-    /**
-     * 创建 Tcp 服务 Socket
-     *
-     * @param array $config
-     *
-     * @return \Lawoole\Swoole\ServerSocket
-     */
-    protected function createTcpServerSocket(array $config)
-    {
-        $serverSocket = new ServerSocket(
-            Arr::get($config, 'host', '127.0.0.1'),
-            Arr::get($config, 'port', 9501)
-        );
-
-        // 默认处理器
-        $serverSocket->putEventHandler(new TcpServerSocketHandler($this->app));
-
-        return $serverSocket;
-    }
-
-    /**
-     * 创建 Http 服务 Socket
-     *
-     * @param array $config
-     *
-     * @return \Lawoole\Swoole\HttpServerSocket
-     */
-    protected function createHttpServerSocket(array $config)
-    {
-        $serverSocket = new HttpServerSocket(
-            Arr::get($config, 'host', '127.0.0.1'),
-            Arr::get($config, 'port', 80)
-        );
-
-        // 默认处理器
-        $serverSocket->putEventHandler(new HttpServerSocketHandler($this->app));
-
-        return $serverSocket;
-    }
-
-    /**
-     * 创建 WebSocket 服务 Socket
-     *
-     * @param array $config
-     *
-     * @return \Lawoole\Swoole\WebSocketServerSocket
-     */
-    protected function createWebSocketServerSocket(array $config)
-    {
-        $serverSocket = new WebSocketServerSocket(
-            Arr::get($config, 'host', '127.0.0.1'),
-            Arr::get($config, 'port', 80)
-        );
-
-        return $serverSocket;
     }
 
     /**
@@ -255,10 +219,6 @@ class ServerManager implements Factory
      */
     public function run()
     {
-        if (!$this->prepared) {
-            $this->prepare(new ArgvInput, new ConsoleOutput);
-        }
-
         $this->saveRuntime();
 
         $this->server->serve();
@@ -272,8 +232,7 @@ class ServerManager implements Factory
     protected function saveRuntime()
     {
         $payload = [
-            'pid'       => getmypid(),
-            'unix_sock' => $this->server->getUnixSock()
+            'pid' => getmypid()
         ];
 
         file_put_contents(

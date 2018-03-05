@@ -9,14 +9,14 @@ use Lawoole\Server\Commands\StartCommand;
 class ServerServiceProvider extends ServiceProvider
 {
     /**
-     * 支持的命令
+     * Server 命令
      *
      * @var array
      */
     protected $commands = [
-        'Start'    => 'command.start',
-        'Shutdown' => 'command.shutdown',
-        'Reload'   => 'command.reload',
+        'ServerStart'  => 'command.server.start',
+        'ServerDown'   => 'command.server.down',
+        'ServerReload' => 'command.server.reload',
     ];
 
     /**
@@ -24,12 +24,12 @@ class ServerServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton('server.manager', function ($app) {
-            return new ServerManager($app);
-        });
-
         $this->app->singleton('server', function ($app) {
-            return $app->make('server.manager')->getServer();
+            $config = $app->make('config')->get('server');
+
+            $driver = $config['driver'] ?? 'tcp';
+
+            return new ServerManager($app, $driver, $config);
         });
 
         $this->app->singleton('server.swoole', function ($app) {
@@ -37,16 +37,6 @@ class ServerServiceProvider extends ServiceProvider
         });
 
         $this->registerCommands($this->commands);
-    }
-
-    /**
-     * 获得提供的服务名
-     *
-     * @return array
-     */
-    public function provides()
-    {
-        return ['server', 'server.manager', 'server.swoole'];
     }
 
     /**
@@ -63,5 +53,33 @@ class ServerServiceProvider extends ServiceProvider
         $this->commands(array_values($commands));
     }
 
+    /**
+     * 注册命令
+     */
+    protected function registerServerStartCommand()
+    {
+        $this->app->singleton('command.server.start', function () {
+            return new StartCommand;
+        });
+    }
 
+    /**
+     * 注册命令
+     */
+    protected function registerServerShutdownCommand()
+    {
+        $this->app->singleton('command.server.shutdown', function () {
+            return new ShutdownCommand;
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerServerReloadCommand()
+    {
+        $this->app->singleton('command.server.reload', function () {
+            return new ReloadCommand;
+        });
+    }
 }

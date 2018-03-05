@@ -1,7 +1,8 @@
 <?php
-namespace Lawoole\Swoole;
+namespace Lawoole\Server;
 
-use Swoole\WebSocket\Server as SwooleWebSocketServer;
+use Lawoole\Server\ServerSockets\ServerSocket;
+use Swoole\WebSocket\Server as WebSocketHttpServer;
 
 class WebSocketServer extends HttpServer
 {
@@ -20,11 +21,19 @@ class WebSocketServer extends HttpServer
     /**
      * 创建 Swoole 服务
      *
-     * @return \Swoole\WebSocket\Server
+     * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
+     * @param int $processMode
+     *
+     * @return \Swoole\Server
      */
-    protected function createSwooleServer()
+    protected function createSwooleServer(ServerSocket $serverSocket, $processMode)
     {
-        return new SwooleWebSocketServer($this->getUnixSock(), 0, SWOOLE_PROCESS, SWOOLE_SOCK_UNIX_STREAM);
+        return new WebSocketHttpServer(
+            $serverSocket->getHost(),
+            $serverSocket->getPort(),
+            $processMode,
+            $serverSocket->getSocketType()
+        );
     }
 
     /**
@@ -33,7 +42,7 @@ class WebSocketServer extends HttpServer
     protected function registerOpenCallback()
     {
         $this->swooleServer->on('Open', function ($server, $request) {
-            $this->dispatchEvent('Open', $this, $this->serverSocket, $request);
+            $this->serverSocket->dispatchEvent('Open', $this, $this->serverSocket, $request);
         });
     }
 
@@ -43,7 +52,7 @@ class WebSocketServer extends HttpServer
     protected function registerMessageCallback()
     {
         $this->swooleServer->on('Message', function ($server, $frame) {
-            $this->dispatchEvent('Message', $this, $this->serverSocket, $frame);
+            $this->serverSocket->dispatchEvent('Message', $this, $this->serverSocket, $frame);
         });
     }
 }

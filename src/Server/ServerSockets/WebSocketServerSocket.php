@@ -1,13 +1,10 @@
 <?php
-namespace Lawoole\Swoole;
-
-use RuntimeException;
-use Swoole\Server\Port;
+namespace Lawoole\Server\ServerSockets;
 
 class WebSocketServerSocket extends HttpServerSocket
 {
     /**
-     * 服务 Socket 选项
+     * 配置选项
      *
      * @var array
      */
@@ -28,26 +25,11 @@ class WebSocketServerSocket extends HttpServerSocket
     ];
 
     /**
-     * 绑定到服务对象
-     *
-     * @param \Lawoole\Swoole\Server $server
-     * @param \Swoole\Server\Port $swooleServerPort
-     */
-    public function bindToServer(Server $server, Port $swooleServerPort)
-    {
-        if (!$server instanceof WebSocketServer) {
-            throw new RuntimeException('WebSocket server socket must be bound on a WebSocket server');
-        }
-
-        parent::bindToServer($server, $swooleServerPort);
-    }
-
-    /**
      * 注册事件回调
      */
     protected function registerOpenCallback()
     {
-        $this->swooleServerPort->on('Open', function ($server, $request) {
+        $this->swoolePort->on('Open', function ($server, $request) {
             $this->dispatchEvent('Open', $this->server, $this, $request);
         });
     }
@@ -57,7 +39,7 @@ class WebSocketServerSocket extends HttpServerSocket
      */
     protected function registerMessageCallback()
     {
-        $this->swooleServerPort->on('Message', function ($server, $frame) {
+        $this->swoolePort->on('Message', function ($server, $frame) {
             $this->dispatchEvent('Message', $this->server, $this, $frame);
         });
     }

@@ -81,7 +81,8 @@ class Server implements ServerContract, IteratorAggregate
     protected $serverEvents = [
         'Start', 'Shutdown', 'ManagerStart', 'ManagerStop',
         'WorkerStart', 'WorkerStop', 'WorkerExit', 'WorkerError',
-        'Task', 'Finish', 'PipeMessage'
+        'Task', 'Finish', 'PipeMessage', 'BufferFull', 'BufferEmpty',
+        'Connect', 'Close', 'Receive', 'Packet'
     ];
 
     /**
@@ -434,6 +435,66 @@ class Server implements ServerContract, IteratorAggregate
     {
         $this->swooleServer->on('PipeMessage', function ($server, $srcWorkerId, $data) {
             $this->events->dispatch(new Events\PipeMessageReceived($this, $srcWorkerId, $data));
+        });
+    }
+
+    /**
+     * 注册事件回调
+     */
+    protected function registerBufferFullCallback()
+    {
+        $this->swooleServer->on('BufferFull', function ($server, $fd) {
+            $this->serverSocket->dispatchEvent('BufferFull', $this, $this->serverSocket, $fd);
+        });
+    }
+
+    /**
+     * 注册事件回调
+     */
+    protected function registerBufferEmptyCallback()
+    {
+        $this->swooleServer->on('BufferEmpty', function ($server, $fd) {
+            $this->serverSocket->dispatchEvent('BufferEmpty', $this, $this->serverSocket, $fd);
+        });
+    }
+
+    /**
+     * 注册事件回调
+     */
+    protected function registerConnectCallback()
+    {
+        $this->swooleServer->on('Connect', function ($server, $fd, $reactorId) {
+            $this->serverSocket->dispatchEvent('Connect', $this, $this->serverSocket, $fd, $reactorId);
+        });
+    }
+
+    /**
+     * 注册事件回调
+     */
+    protected function registerCloseCallback()
+    {
+        $this->swooleServer->on('Close', function ($server, $fd, $reactorId) {
+            $this->serverSocket->dispatchEvent('Close', $this, $this->serverSocket, $fd, $reactorId);
+        });
+    }
+
+    /**
+     * 注册事件回调
+     */
+    protected function registerReceiveCallback()
+    {
+        $this->swooleServer->on('Receive', function ($server, $fd, $reactorId, $data) {
+            $this->serverSocket->dispatchEvent('Receive', $this, $this->serverSocket, $fd, $reactorId, $data);
+        });
+    }
+
+    /**
+     * 注册事件回调
+     */
+    protected function registerPacketCallback()
+    {
+        $this->swooleServer->on('Packet', function ($server, $data, $clientInfo) {
+            $this->serverSocket->dispatchEvent('Packet', $this, $this->serverSocket, $data, $clientInfo);
         });
     }
 

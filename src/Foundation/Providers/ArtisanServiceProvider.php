@@ -33,9 +33,6 @@ use Lawoole\Foundation\Console\KeyGenerateCommand;
 use Lawoole\Foundation\Console\UpCommand;
 use Lawoole\Foundation\Console\VersionCommand;
 use Lawoole\Foundation\Console\ViewClearCommand;
-use Lawoole\Server\Commands\ReloadCommand;
-use Lawoole\Server\Commands\ShutdownCommand;
-use Lawoole\Server\Commands\StartCommand;
 
 class ArtisanServiceProvider extends ServiceProvider
 {
@@ -86,25 +83,14 @@ class ArtisanServiceProvider extends ServiceProvider
     ];
 
     /**
-     * Server 命令
-     *
-     * @var array
-     */
-    protected $serverCommands = [
-        'ServerStart'  => 'command.server.start',
-        'ServerDown'   => 'command.server.down',
-        'ServerReload' => 'command.server.reload',
-    ];
-
-    /**
      * 注册服务
      */
     public function register()
     {
-        if (ConsoleApplication::artisanBinary() == "'server'") {
-            $commands = $this->commands + $this->serverCommands;
-        } else {
-            $commands = $this->commands + $this->artisanCommands;
+        $commands = $this->commands;
+
+        if (trim(ConsoleApplication::artisanBinary(), "'") == 'artisan') {
+            $commands += $this->artisanCommands;
         }
 
         $this->registerCommands($commands);
@@ -416,36 +402,6 @@ class ArtisanServiceProvider extends ServiceProvider
     {
         $this->app->singleton('command.seeder.make', function ($app) {
             return new SeederMakeCommand($app['files'], $app['composer']);
-        });
-    }
-
-    /**
-     * 注册命令
-     */
-    protected function registerServerStartCommand()
-    {
-        $this->app->singleton('command.server.start', function () {
-            return new StartCommand;
-        });
-    }
-
-    /**
-     * 注册命令
-     */
-    protected function registerServerShutdownCommand()
-    {
-        $this->app->singleton('command.server.shutdown', function () {
-            return new ShutdownCommand;
-        });
-    }
-
-    /**
-     * 注册命令
-     */
-    protected function registerServerReloadCommand()
-    {
-        $this->app->singleton('command.server.reload', function () {
-            return new ReloadCommand;
         });
     }
 

@@ -1,6 +1,7 @@
 <?php
-namespace Lawoole\Swoole;
+namespace Lawoole\Server;
 
+use Lawoole\Server\ServerSockets\ServerSocket;
 use Swoole\Http\Server as SwooleHttpServer;
 
 class HttpServer extends Server
@@ -20,11 +21,19 @@ class HttpServer extends Server
     /**
      * 创建 Swoole 服务
      *
-     * @return \Swoole\Http\Server
+     * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
+     * @param int $processMode
+     *
+     * @return \Swoole\Server
      */
-    protected function createSwooleServer()
+    protected function createSwooleServer(ServerSocket $serverSocket, $processMode)
     {
-        return new SwooleHttpServer($this->getUnixSock(), 0, SWOOLE_PROCESS, SWOOLE_SOCK_UNIX_STREAM);
+        return new SwooleHttpServer(
+            $serverSocket->getHost(),
+            $serverSocket->getPort(),
+            $processMode,
+            $serverSocket->getSocketType()
+        );
     }
 
     /**
@@ -33,7 +42,7 @@ class HttpServer extends Server
     protected function registerRequestCallback()
     {
         $this->swooleServer->on('Request', function ($request, $response) {
-            $this->dispatchEvent('Request', $this, $this->serverSocket, $request, $response);
+            $this->serverSocket->dispatchEvent('Request', $this, $this->serverSocket, $request, $response);
         });
     }
 }
