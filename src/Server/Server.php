@@ -521,4 +521,17 @@ class Server implements ServerContract, IteratorAggregate
 
         $this->outputStyle->warn($message);
     }
+
+    /**
+     * 代理调用到 Swoole 服务
+     *
+     * @param string $method
+     * @param array $parameters
+     *
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        return $this->swooleServer->$method(...$parameters);
+    }
 }

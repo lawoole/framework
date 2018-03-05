@@ -191,8 +191,6 @@ class ServerManager implements Factory
      */
     protected function createServerSocket(array $config)
     {
-        $options = $config['options'] ?? [];
-
         switch ($config['protocol']) {
             case 'tcp':
                 return new ServerSocket($this->app, $config);
