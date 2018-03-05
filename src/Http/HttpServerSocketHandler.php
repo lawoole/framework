@@ -1,10 +1,17 @@
 <?php
 namespace Lawoole\Http;
 
+use DateTimeZone;
+use Exception;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Pipeline;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Facade;
 use Lawoole\Contracts\Foundation\Application;
-use Lawoole\Routing\RequestManager;
 use Lawoole\Server\ServerSockets\HttpServerSocketHandler as BaseHttpServerSocketHandler;
+use Symfony\Component\Debug\Exception\FatalThrowableError;
+use Throwable;
 
 class HttpServerSocketHandler extends BaseHttpServerSocketHandler
 {
@@ -16,13 +23,77 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
     protected $app;
 
     /**
+     * 控制台共用请求
+     *
+     * @var \Illuminate\Http\Request
+     */
+    protected $consoleRequest;
+
+    /**
+     * 路由器
+     *
+     * @var \Illuminate\Routing\Router
+     */
+    protected $router;
+
+    /**
+     * 全局中间件
+     *
+     * @var array
+     */
+    protected $middleware;
+
+    /**
+     * 中间件优先级定义
+     *
+     * @var array
+     */
+    protected $middlewarePriority = [
+        \Illuminate\Session\Middleware\StartSession::class,
+        \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        \Illuminate\Auth\Middleware\Authenticate::class,
+        \Illuminate\Session\Middleware\AuthenticateSession::class,
+        \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        \Illuminate\Auth\Middleware\Authorize::class,
+    ];
+
+    /**
      * 创建 Http 服务事件处理器
      *
      * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Illuminate\Routing\Router $router
      */
-    public function __construct(Application $app)
+    public function __construct(Application $app, Router $router)
     {
         $this->app = $app;
+        $this->router = $router;
+        $this->consoleRequest = $app['console.request'];
+
+        $this->loadMiddleware();
+    }
+
+    /**
+     * 载入中间件配置
+     */
+    protected function loadMiddleware()
+    {
+        $config = $this->app->make('config');
+
+        $this->router->middlewarePriority = $this->middlewarePriority;
+
+        $this->middleware = $config->get('http.middleware', []);
+
+        $middlewareGroups = $config->get('http.middleware_groups', []);
+
+        foreach ($middlewareGroups as $key => $middleware) {
+            $this->router->middlewareGroup($key, $middleware);
+        }
+
+        $routeMiddleware = $config->get('http.route_middleware', []);
+
+        foreach ($routeMiddleware as $key => $middleware) {
+            $this->router->aliasMiddleware($key, $middleware);
+        }
     }
 
     /**
@@ -35,23 +106,34 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
      */
     public function onRequest($server, $serverSocket, $request, $response)
     {
-        $this->createRequestManager($request, $response)->handle();
-    }
-
-    /**
-     * 创建请求处理器
-     *
-     * @param \Swoole\Http\Request $request
-     * @param \Swoole\Http\Response $response
-     *
-     * @return \Lawoole\Routing\RequestManager
-     */
-    protected function createRequestManager($request, $response)
-    {
         $httpRequest = $this->createHttpRequest($request);
-        $httpResponse = $this->createResponseSender($response);
 
-        return new RequestManager($this->app, $httpRequest, $httpResponse);
+        $respondent = $this->createRespondent($response);
+
+        try {
+            $this->app->instance('respondent', $respondent);
+            $this->app->instance('request', $httpRequest);
+
+            $httpRequest->attributes->add([
+                'request'    => $request,
+                'response'   => $response,
+                'respondent' => $respondent
+            ]);
+
+            $httpRequest->enableHttpMethodParameterOverride();
+
+            $httpResponse = $this->sendRequestThroughRouter($httpRequest);
+        } catch (Exception $e) {
+            $httpResponse = $this->handleException($httpRequest, $e);
+        } catch (Throwable $e) {
+            $httpResponse = $this->handleException($httpRequest, new FatalThrowableError($e));
+        }
+
+        $this->app->forgetInstance('respondent');
+
+        $this->sendResponse($respondent, $httpResponse);
+
+        $this->app->instance('request', $this->consoleRequest);
     }
 
     /**
@@ -63,18 +145,9 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
      */
     protected function createHttpRequest($request)
     {
-        $attributes = [
-            'swoole_request' => $request
-        ];
-
         return new Request(
-            $request->get ?? [],
-            $request->post ?? [],
-            $attributes,
-            $request->cookie ?? [],
-            $request->files ?? [],
-            $this->getRequestServer($request),
-            $request->rawContent()
+            $request->get ?? [], $request->post ?? [], [], $request->cookie ?? [], $request->files ?? [],
+            $this->getRequestServer($request), $request->rawContent()
         );
     }
 
@@ -107,78 +180,90 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
      *
      * @param \Swoole\Http\Response $response
      *
-     * @return \Closure
+     * @return \Lawoole\Http\Respondent
      */
-    protected function createResponseSender($response)
+    protected function createRespondent($response)
     {
-        return function ($httpResponse) use ($response) {
-            static::sendHeaders($response, $httpResponse);
-            static::sendContent($response, $httpResponse);
-
-            if ($httpResponse instanceof MultiBulkResponse && !$httpResponse->isStep(MultiBulkResponse::STEP_FINISH)) {
-                return;
-            }
-
-            $response->end();
-        };
-    }
-
-    /**
-     * 发送响应头
-     *
-     * @param \Swoole\Http\Response $response
-     * @param \Symfony\Component\HttpFoundation\Response $httpResponse
-     */
-    protected static function sendHeaders($response, $httpResponse)
-    {
-        if ($response->header !== null) {
-            // 已经设置过响应头，就认为是已经发送过响应头
-            return;
-        }
-
-        if ($httpResponse instanceof MultiBulkResponse && !$httpResponse->isStep(MultiBulkResponse::STEP_HEADER)) {
-            return;
-        }
-
-        $response->status($httpResponse->getStatusCode());
-
-        /* RFC2616 - 14.18 says all Responses need to have a Date */
-        if (!$httpResponse->headers->has('Date')) {
-            $httpResponse->setDate(\DateTime::createFromFormat('U', time()));
-        }
-
-        foreach ($httpResponse->headers->allPreserveCaseWithoutCookies() as $name => $values) {
-            // 标准化名称
-            $name = ucwords($name, '-');
-
-            foreach ($values as $value) {
-                $response->header($name, $value);
-            }
-        }
-
-        foreach ($httpResponse->headers->getCookies() as $cookie) {
-            if ($cookie->isRaw()) {
-                $response->cookie(
-                    $cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(), $cookie->getPath(),
-                    $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly()
-                );
-            } else {
-                $response->rawcookie(
-                    $cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(), $cookie->getPath(),
-                    $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly()
-                );
-            }
-        }
+        return new Respondent($response);
     }
 
     /**
      * 发送响应体
      *
-     * @param \Swoole\Http\Response $response
-     * @param \Symfony\Component\HttpFoundation\Response $httpResponse
+     * @param \Lawoole\Http\Respondent $respondent
+     * @param \Symfony\Component\HttpFoundation\Response $response
      */
-    protected static function sendContent($response, $httpResponse)
+    protected function sendResponse($respondent, $response)
     {
-        $response->write($httpResponse->getContent());
+        if ($response instanceof AsyncResponse) {
+            return;
+        }
+
+        $respondent->sendHeader($response->getStatusCode(), $response->headers);
+
+        $respondent->sendBody($response->getContent());
+    }
+
+    /**
+     * 向路由器发送请求
+     *
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function sendRequestThroughRouter($request)
+    {
+        $this->setGlobalRequest($request);
+
+        $handler = $this->dispatchToRouter();
+
+        if (count($this->middleware) > 0) {
+            $pipeline = new Pipeline($this->app);
+
+            return $pipeline->send($request)->through($this->middleware)->then($handler);
+        }
+
+        return $handler($request);
+    }
+
+    /**
+     * 获得路由调度调用
+     *
+     * @return \Closure
+     */
+    protected function dispatchToRouter()
+    {
+        return function ($request) {
+            return $this->router->dispatch($request);
+        };
+    }
+
+    /**
+     * 设置全局请求对象
+     *
+     * @param \Illuminate\Http\Request $request
+     */
+    protected function setGlobalRequest($request)
+    {
+        $this->app->instance('request', $request);
+
+        Facade::clearResolvedInstance('request');
+    }
+
+    /**
+     * 处理异常
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \Exception $e
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function handleException($request, Exception $e)
+    {
+        $handler = $this->app->make(ExceptionHandler::class);
+
+        $handler->report($e);
+
+        return $handler->render($request, $e);
     }
 }

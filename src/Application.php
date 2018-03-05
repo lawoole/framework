@@ -696,7 +696,7 @@ class Application extends Container implements ApplicationContract
             \Illuminate\Routing\Redirector::class                     => 'redirect',
             \Symfony\Component\HttpFoundation\Request::class          => 'request',
             \Illuminate\Http\Request::class                           => 'request',
-            \Lawoole\Routing\RequestManager::class                    => 'request.manager',
+            \Lawoole\Http\Respondent::class                           => 'respondent',
             \Illuminate\Routing\Router::class                         => 'router',
             \Illuminate\Contracts\Routing\Registrar::class            => 'router',
             \Illuminate\Contracts\Routing\BindingRegistrar::class     => 'router',

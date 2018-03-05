@@ -45,6 +45,7 @@ class Kernel implements KernelContract
         \Lawoole\Foundation\Bootstrap\LoadConfigurations::class,
         \Lawoole\Foundation\Bootstrap\RegisterExceptionHandlers::class,
         \Lawoole\Foundation\Bootstrap\RegisterFacades::class,
+        \Lawoole\Foundation\Bootstrap\SetRequestForConsole::class,
         \Lawoole\Foundation\Bootstrap\RegisterServiceProviders::class,
         \Lawoole\Foundation\Bootstrap\BootProviders::class,
     ];

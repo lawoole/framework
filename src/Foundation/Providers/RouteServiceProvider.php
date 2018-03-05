@@ -11,17 +11,20 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->registerMiddleware($this->app['router']);
-
         $this->setRootControllerNamespace();
 
         $this->loadRoutes($this->app['router']);
+
+        $this->app->booted(function () {
+            $this->app['router']->getRoutes()->refreshNameLookups();
+            $this->app['router']->getRoutes()->refreshActionLookups();
+        });
     }
 
     /**
      * 载入路由规则
      *
-     * @param \Lawoole\Routing\Router $router
+     * @param \Illuminate\Routing\Router $router
      */
     protected function loadRoutes($router)
     {
@@ -51,9 +54,6 @@ class RouteServiceProvider extends ServiceProvider
                 });
             }
         }
-
-        $this->app['url']->refreshNameLookups();
-        $this->app['url']->refreshActionLookups();
     }
 
     /**
@@ -63,28 +63,6 @@ class RouteServiceProvider extends ServiceProvider
     {
         if ($namespace = $this->app['config']['http.namespace']) {
             $this->app['url']->setRootControllerNamespace($namespace);
-        }
-    }
-
-    /**
-     * 注册中间件
-     *
-     * @param \Lawoole\Routing\Router $router
-     */
-    protected function registerMiddleware($router)
-    {
-        // 全局中间件
-        $globalMiddleware = $this->app['config']['http.middleware'];
-
-        if ($globalMiddleware) {
-            $router->middleware($globalMiddleware);
-        }
-
-        // 路由中间件
-        $routeMiddleware = $this->app['config']['http.route_middleware'];
-
-        if ($routeMiddleware) {
-            $router->routeMiddleware($routeMiddleware);
         }
     }
 }
