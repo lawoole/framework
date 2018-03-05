@@ -1,25 +1,24 @@
 <?php
-namespace Lawoole\Server;
+namespace Lawoole\Http;
 
 use Illuminate\Http\Request;
-use Lawoole\Application;
-use Lawoole\Routing\MultiBulkResponse;
+use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Routing\RequestManager;
-use Lawoole\Swoole\Handlers\HttpServerSocketHandlerInterface;
+use Lawoole\Server\ServerSockets\HttpServerSocketHandler as BaseHttpServerSocketHandler;
 
-class HttpServerSocketHandler implements HttpServerSocketHandlerInterface
+class HttpServerSocketHandler extends BaseHttpServerSocketHandler
 {
     /**
      * 服务容器
      *
-     * @var \Lawoole\Application
+     * @var \Lawoole\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
-     * 创建 Http 服务 Socket 处理器
+     * 创建 Http 服务事件处理器
      *
-     * @param \Lawoole\Application $app
+     * @param \Lawoole\Contracts\Foundation\Application $app
      */
     public function __construct(Application $app)
     {
@@ -27,39 +26,16 @@ class HttpServerSocketHandler implements HttpServerSocketHandlerInterface
     }
 
     /**
-     * 在服务 Socket 绑定到服务时调用
-     *
-     * @param \Lawoole\Swoole\Server $server
-     * @param \Lawoole\Swoole\ServerSocket $serverSocket
-     */
-    public function onBind($server, $serverSocket)
-    {
-    }
-
-    /**
-     * 在服务 Socket 即将暴露调用
-     *
-     * @param \Lawoole\Swoole\Server $server
-     * @param \Lawoole\Swoole\ServerSocket $serverSocket
-     */
-    public function onExport($server, $serverSocket)
-    {
-    }
-
-    /**
      * 收到 Http 处理请求时调用
      *
-     * @param \Lawoole\Swoole\Server $server
-     * @param \Lawoole\Swoole\ServerSocket $serverSocket
+     * @param \Lawoole\Server\Server $server
+     * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
      * @param \Swoole\Http\Request $request
      * @param \Swoole\Http\Response $response
      */
     public function onRequest($server, $serverSocket, $request, $response)
     {
-        $requestManager = $this->createRequestManager($request, $response);
-
-        // 处理请求
-        $requestManager->handle();
+        $this->createRequestManager($request, $response)->handle();
     }
 
     /**

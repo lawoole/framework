@@ -703,6 +703,7 @@ class Application extends Container implements ApplicationContract
             \Illuminate\Console\Scheduling\Schedule::class            => 'schedule',
             \Lawoole\Contracts\Server\Server::class                   => 'server',
             \Lawoole\Server\Server::class                             => 'server',
+            \Lawoole\Server\ServerManager::class                      => 'server.manager',
             \Swoole\Server::class                                     => 'server.swoole',
             \Illuminate\Routing\UrlGenerator::class                   => 'url',
             \Illuminate\Contracts\Routing\UrlGenerator::class         => 'url',

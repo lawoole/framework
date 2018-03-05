@@ -21,9 +21,7 @@ class KeyGenerateCommand extends Command
     protected $description = 'Generate an random key';
 
     /**
-     * Execute the console command.
-     *
-     * @return void
+     * 执行命令
      */
     public function handle()
     {

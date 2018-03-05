@@ -86,8 +86,8 @@ class Kernel implements KernelContract
 
             $output = $output ?: new ConsoleOutput;
 
-            $this->app->singleton('console.input', $input);
-            $this->app->singleton('console.output', $output);
+            $this->app->instance('console.input', $input);
+            $this->app->instance('console.output', $output);
 
             return $this->getArtisan()->run($input, $output);
         } catch (Exception $e) {

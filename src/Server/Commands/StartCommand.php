@@ -10,7 +10,7 @@ class StartCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'start';
+    protected $signature = 'start {--d|daemon= : Run the server in background. }';
 
     /**
      * 命令描述
@@ -24,11 +24,12 @@ class StartCommand extends Command
      */
     public function handle()
     {
-        $serverManager = $this->laravel->make('server.manager');
+        $server = $this->laravel->make('server');
 
-        $serverManager->prepare($this->input, $this->output);
+        if ($this->option('daemon')) {
+            $server->setOptions(['daemon' => true]);
+        }
 
-        // 启动服务
-        $serverManager->run();
+        $server->serve();
     }
 }

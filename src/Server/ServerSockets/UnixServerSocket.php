@@ -1,6 +1,8 @@
 <?php
 namespace Lawoole\Server\ServerSockets;
 
+use Lawoole\Contracts\Foundation\Application;
+
 class UnixServerSocket extends ServerSocket
 {
     /**
@@ -13,12 +15,17 @@ class UnixServerSocket extends ServerSocket
     /**
      * 创建服务 Socket 对象
      *
-     * @param string $unixSock
-     * @param array $options
+     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param array $config
      */
-    public function __construct($unixSock, array $options = [])
+    public function __construct(Application $app, array $config = [])
     {
-        parent::__construct($unixSock, 0, $options);
+        $unixSock = $config['unix_sock'];
+
+        $config['host'] = $unixSock;
+        $config['port'] = 0;
+
+        parent::__construct($app, $config);
     }
 
     /**

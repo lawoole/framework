@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Arr;
 use IteratorAggregate;
+use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Contracts\Server\ServerSocket as ServerSocketContract;
 use Lawoole\Server\Server;
 use RuntimeException;
@@ -16,6 +17,13 @@ use Throwable;
 
 class ServerSocket implements ServerSocketContract, IteratorAggregate
 {
+    /**
+     * 服务容器
+     *
+     * @var \Lawoole\Contracts\Foundation\Application
+     */
+    protected $app;
+
     /**
      * 服务对象
      *
@@ -59,13 +67,6 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     protected $output;
 
     /**
-     * 异常处理器
-     *
-     * @var \Illuminate\Contracts\Debug\ExceptionHandler
-     */
-    protected $exceptions;
-
-    /**
      * Swoole 端口对象
      *
      * @var \Swoole\Server\Port
@@ -94,14 +95,18 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     /**
      * 创建服务 Socket 对象
      *
-     * @param string $host
-     * @param int $port
-     * @param array $options
+     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param array $config
      */
-    public function __construct($host, $port, array $options = [])
+    public function __construct(Application $app, array $config)
     {
-        $this->host = $host;
-        $this->port = $port;
+        $this->app = $app;
+        $this->output = $app['console.output'];
+
+        $this->host = $config['host'];
+        $this->port = $config['port'];
+
+        $options = $config['options'] ?? [];
 
         $this->socketType = Arr::pull($options, 'options', function () {
             return $this->getDefaultSocketType();
@@ -259,6 +264,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
         }
 
         $this->server = $server;
+        $this->swoolePort = $swoolePort;
 
         $this->swoolePort->set($this->options);
 
@@ -431,12 +437,10 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
      */
     protected function handleException(Exception $e)
     {
-        if ($this->exceptions) {
-            $this->exceptions->report($e);
+        $handler = $this->app->make(ExceptionHandler::class);
 
-            if ($this->output) {
-                $this->exceptions->renderForConsole($this->output, $e);
-            }
-        }
+        $handler->report($e);
+
+        $handler->renderForConsole($this->output, $e);
     }
 }

@@ -96,7 +96,7 @@ class ArtisanServiceProvider extends ServiceProvider
         $this->registerCommands($commands);
 
         // 自定义命令
-        if ($customCommands = $this->app['config']['console.commands']) {
+        if ($customCommands = $this->app['config']['commands']) {
             $this->commands($customCommands);
         }
     }

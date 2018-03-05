@@ -9,6 +9,7 @@ use Lawoole\Server\ServerSockets\ServerSocket;
 use Lawoole\Server\ServerSockets\UdpServerSocket;
 use Lawoole\Server\ServerSockets\UnixServerSocket;
 use Lawoole\Server\ServerSockets\WebSocketServerSocket;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class ServerManager implements Factory
 {
@@ -97,14 +98,14 @@ class ServerManager implements Factory
 
         switch ($this->driver) {
             case 'websocket':
-                $server = new WebSocketServer($serverSocket, $processMode);
+                $server = new WebSocketServer($this->app, $serverSocket, $processMode);
                 break;
             case 'http':
-                $server = new HttpServer($serverSocket, $processMode);
+                $server = new HttpServer($this->app, $serverSocket, $processMode);
                 break;
             case 'tcp':
             default:
-                $server = new Server($serverSocket, $processMode);
+                $server = new Server($this->app, $serverSocket, $processMode);
                 break;
         }
 
@@ -142,13 +143,7 @@ class ServerManager implements Factory
     {
         $server->setOptions($this->config['options'] ?? []);
 
-        $exceptionHandler = $this->app->make(ExceptionHandler::class);
-
-        $server->setExceptionHandler($exceptionHandler);
-
         foreach ($serverSockets as $serverSocket) {
-            $serverSocket->setExceptionHandler($exceptionHandler);
-
             if (!$serverSocket->isBound()) {
                 $server->listen($serverSocket);
             }
@@ -200,15 +195,15 @@ class ServerManager implements Factory
 
         switch ($config['protocol']) {
             case 'tcp':
-                return new ServerSocket($config['host'], $config['port'], $options);
+                return new ServerSocket($this->app, $config);
             case 'udp':
-                return new UdpServerSocket($config['host'], $config['port'], $options);
+                return new UdpServerSocket($this->app, $config);
             case 'http':
-                return new HttpServerSocket($config['host'], $config['port'], $options);
+                return new HttpServerSocket($this->app, $config);
             case 'websocket':
-                return new WebSocketServerSocket($config['host'], $config['port'], $options);
+                return new WebSocketServerSocket($this->app, $config);
             case 'unix':
-                return new UnixServerSocket($config['unix_sock'], $options);
+                return new UnixServerSocket($this->app, $config);
             default:
                 throw new InvalidArgumentException("The protocol [{$config['protocol']}] is not support");
         }

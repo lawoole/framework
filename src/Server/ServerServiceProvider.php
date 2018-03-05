@@ -14,9 +14,9 @@ class ServerServiceProvider extends ServiceProvider
      * @var array
      */
     protected $commands = [
-        'ServerStart'  => 'command.server.start',
-        'ServerDown'   => 'command.server.down',
-        'ServerReload' => 'command.server.reload',
+        'ServerStart'    => 'command.server.start',
+        'ServerShutdown' => 'command.server.shutdown',
+        'ServerReload'   => 'command.server.reload',
     ];
 
     /**
@@ -24,12 +24,16 @@ class ServerServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton('server', function ($app) {
+        $this->app->singleton('server.manager', function ($app) {
             $config = $app->make('config')->get('server');
 
             $driver = $config['driver'] ?? 'tcp';
 
             return new ServerManager($app, $driver, $config);
+        });
+
+        $this->app->singleton('server', function ($app) {
+            return $app->make('server.manager')->server();
         });
 
         $this->app->singleton('server.swoole', function ($app) {
