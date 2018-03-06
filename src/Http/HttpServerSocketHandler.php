@@ -1,7 +1,6 @@
 <?php
 namespace Lawoole\Http;
 
-use DateTimeZone;
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Http\Request;

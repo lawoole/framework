@@ -2,7 +2,6 @@
 namespace Lawoole\Foundation\Providers;
 
 use Illuminate\Database\MigrationServiceProvider;
-use Illuminate\Http\Request;
 use Illuminate\Support\AggregateServiceProvider;
 
 class ConsoleServiceProvider extends AggregateServiceProvider

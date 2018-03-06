@@ -61,6 +61,7 @@ class ScheduleServiceProvider extends ServiceProvider
 
         $this->configureEvent($event, $definition);
     }
+
     /**
      * 定义定时回调
      *
@@ -75,6 +76,7 @@ class ScheduleServiceProvider extends ServiceProvider
 
         $this->configureEvent($event, $definition);
     }
+
     /**
      * 定义定时脚本
      *
@@ -89,6 +91,7 @@ class ScheduleServiceProvider extends ServiceProvider
 
         $this->configureEvent($event, $definition);
     }
+
     /**
      * 定义定时任务
      *
@@ -103,6 +106,7 @@ class ScheduleServiceProvider extends ServiceProvider
 
         $this->configureEvent($event, $definition);
     }
+
     /**
      * 配置定时任务
      *

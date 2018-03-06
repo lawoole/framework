@@ -1,7 +1,6 @@
 <?php
 namespace Lawoole\Server;
 
-use Illuminate\Contracts\Debug\ExceptionHandler;
 use InvalidArgumentException;
 use Lawoole\Contracts\Server\Factory;
 use Lawoole\Server\ServerSockets\HttpServerSocket;
@@ -9,7 +8,6 @@ use Lawoole\Server\ServerSockets\ServerSocket;
 use Lawoole\Server\ServerSockets\UdpServerSocket;
 use Lawoole\Server\ServerSockets\UnixServerSocket;
 use Lawoole\Server\ServerSockets\WebSocketServerSocket;
-use Symfony\Component\Console\Output\OutputInterface;
 
 class ServerManager implements Factory
 {
