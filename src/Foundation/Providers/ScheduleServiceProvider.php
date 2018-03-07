@@ -32,7 +32,7 @@ class ScheduleServiceProvider extends ServiceProvider
      */
     protected function loadSchedule($schedule)
     {
-        if (($schedules = $this->app['config']['schedules']) == null) {
+        if (($schedules = $this->app['config']['console.schedules']) == null) {
             return;
         }
 

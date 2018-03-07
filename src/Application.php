@@ -282,18 +282,6 @@ class Application extends Container implements ApplicationContract
     }
 
     /**
-     * 获得定时任务存储路径
-     *
-     * @param string $path
-     *
-     * @return string
-     */
-    public function schedulePath($path = '')
-    {
-        return $this->basePath.DIRECTORY_SEPARATOR.'schedules'.($path ? DIRECTORY_SEPARATOR.$path : $path);
-    }
-
-    /**
      * 获得数据存储路径
      *
      * @param string $path
