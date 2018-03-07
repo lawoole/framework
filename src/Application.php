@@ -331,7 +331,6 @@ class Application extends Container implements ApplicationContract
         $this->instance('path.public', $this->publicPath());
         $this->instance('path.resource', $this->resourcePath());
         $this->instance('path.route', $this->routePath());
-        $this->instance('path.schedule', $this->schedulePath());
         $this->instance('path.storage', $this->storagePath());
     }
 
