@@ -4,6 +4,13 @@ namespace Lawoole\Contracts\Server;
 interface Server
 {
     /**
+     * 获得 Swoole 服务对象
+     *
+     * @return \Swoole\Server
+     */
+    public function getSwooleServer();
+
+    /**
      * 添加监听定义
      *
      * @param \Lawoole\Contracts\Server\ServerSocket $serverSocket

@@ -11,6 +11,13 @@ interface ServerSocket
     public function getServer();
 
     /**
+     * 获得 Swoole 端口对象
+     *
+     * @return \Swoole\Server\Port
+     */
+    public function getSwoolePort();
+
+    /**
      * 判断是否已经绑定到服务
      *
      * @return bool
