@@ -71,6 +71,20 @@ class Kernel implements KernelContract
     }
 
     /**
+     * 共享输入输出流
+     *
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
+    protected function shareInputAndOutput($input, $output = null)
+    {
+        $output = $output ?: new ConsoleOutput;
+
+        $this->app->instance('console.input', $input);
+        $this->app->instance('console.output', $output);
+    }
+
+    /**
      * 处理 Console 请求
      *
      * @param \Symfony\Component\Console\Input\InputInterface $input
@@ -83,12 +97,9 @@ class Kernel implements KernelContract
     public function handle($input, $output = null)
     {
         try {
+            $this->shareInputAndOutput($input, $output);
+
             $this->bootstrap();
-
-            $output = $output ?: new ConsoleOutput;
-
-            $this->app->instance('console.input', $input);
-            $this->app->instance('console.output', $output);
 
             return $this->getArtisan()->run($input, $output);
         } catch (Exception $e) {
