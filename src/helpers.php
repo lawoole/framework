@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Container\Container;
+use Illuminate\Contracts\Broadcasting\Factory as BroadcastFactory;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Support\Carbon;
@@ -268,5 +269,49 @@ if (!function_exists('promise')) {
     function promise(callable $executor)
     {
         return new Promise($executor);
+    }
+}
+
+if (!function_exists('event')) {
+    /**
+     * 提交事件分发
+     *
+     * @param string|object $event
+     * @param mixed $payload
+     * @param bool $halt
+     *
+     * @return array|null
+     */
+    function event($event, $payload = [], $halt = false)
+    {
+        return app('events')->dispatch($event, $payload, $halt);
+    }
+}
+
+if (!function_exists('broadcast')) {
+    /**
+     * 广播事件
+     *
+     * @param mixed|null $event
+     *
+     * @return \Illuminate\Broadcasting\PendingBroadcast
+     */
+    function broadcast($event = null)
+    {
+        return app(BroadcastFactory::class)->event($event);
+    }
+}
+
+if (!function_exists('dispatch')) {
+    /**
+     * 分发任务
+     *
+     * @param mixed $job
+     *
+     * @return \Illuminate\Foundation\Bus\PendingDispatch
+     */
+    function dispatch($job)
+    {
+        return new PendingDispatch($job);
     }
 }

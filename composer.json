@@ -39,6 +39,8 @@
         "phpunit/phpunit": "~7.0",
         "lawoole/swoole": "dev-master",
         "illuminate/auth": "5.6.*",
+        "illuminate/broadcasting": "5.6.*",
+        "illuminate/bus": "5.6.*",
         "illuminate/encryption": "5.6.*",
         "illuminate/validation": "5.6.*",
         "illuminate/view": "5.6.*"
