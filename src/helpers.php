@@ -6,6 +6,7 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Support\Carbon;
 use Lawoole\Application;
+use Lawoole\Foundation\Bus\PendingDispatch;
 use Lawoole\Promise\Promise;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 
@@ -308,7 +309,7 @@ if (!function_exists('dispatch')) {
      *
      * @param mixed $job
      *
-     * @return \Illuminate\Foundation\Bus\PendingDispatch
+     * @return \Lawoole\Foundation\Bus\PendingDispatch
      */
     function dispatch($job)
     {
