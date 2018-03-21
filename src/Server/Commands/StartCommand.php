@@ -30,6 +30,47 @@ class StartCommand extends Command
             $server->setOptions(['daemon' => true]);
         }
 
+        $this->saveRuntime();
+
         $server->serve();
+
+        $this->removeRuntime();
+    }
+
+    /**
+     * 记录服务器运行时信息
+     */
+    protected function saveRuntime()
+    {
+        $payload = [
+            'name' => $this->laravel->name(),
+            'pid'  => getmypid(),
+            'time' => time()
+        ];
+
+        file_put_contents(
+            $this->laravel->storagePath('framework/server.runtime'),
+            json_encode($payload, JSON_PRETTY_PRINT)
+        );
+    }
+
+    /**
+     * 移除运行时记录
+     */
+    protected function removeRuntime()
+    {
+        $runtime = $this->getRuntimeFilePath();
+
+        @unlink($runtime);
+    }
+
+    /**
+     * 获得运行时记录文件位置
+     *
+     * @return string
+     */
+    protected function getRuntimeFilePath()
+    {
+        return $this->laravel->storagePath('framework/server.runtime');
     }
 }
