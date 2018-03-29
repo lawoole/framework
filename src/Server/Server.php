@@ -232,9 +232,9 @@ class Server implements ServerContract, IteratorAggregate
      */
     public function serve()
     {
-        $this->serving = true;
-
         $this->events->dispatch(new Events\ServerLaunching($this));
+
+        $this->serving = true;
 
         $this->swooleServer->start();
 
