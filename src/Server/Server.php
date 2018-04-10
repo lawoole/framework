@@ -360,7 +360,8 @@ class Server implements ServerContract, IteratorAggregate
     {
         $this->swooleServer->on('WorkerStart', function ($server, $workerId) {
             if (php_uname('s') != 'Darwin') {
-                swoole_set_process_name("{$this->app->name()} : Worker {$workerId}");
+                swoole_set_process_name("{$this->app->name()} : Worker {$workerId}"
+                    .($server->taskworker ? ' Task' : ''));
             }
 
             $this->events->dispatch(new Events\WorkerStarted($this, $workerId));
