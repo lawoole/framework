@@ -205,26 +205,6 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 设置异常处理器
-     *
-     * @param \Illuminate\Contracts\Debug\ExceptionHandler $exceptions
-     */
-    public function setExceptionHandler(ExceptionHandler $exceptions)
-    {
-        $this->exceptions = $exceptions;
-    }
-
-    /**
-     * 获得异常处理器
-     *
-     * @return \Illuminate\Contracts\Debug\ExceptionHandler
-     */
-    public function getExceptionHandler()
-    {
-        return $this->exceptions;
-    }
-
-    /**
      * 设置控制台输出
      *
      * @param \Symfony\Component\Console\Output\OutputInterface $output
