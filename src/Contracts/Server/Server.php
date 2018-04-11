@@ -18,6 +18,13 @@ interface Server
     public function listen(ServerSocket $serverSocket);
 
     /**
+     * 添加子进程
+     *
+     * @param \Lawoole\Contracts\Server\Process $process
+     */
+    public function fork(Process $process);
+
+    /**
      * 判断服务是否正在运行
      *
      * @return bool

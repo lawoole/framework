@@ -7,6 +7,7 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use IteratorAggregate;
 use Lawoole\Console\OutputStyle;
 use Lawoole\Contracts\Foundation\Application;
+use Lawoole\Contracts\Server\Process;
 use Lawoole\Contracts\Server\Server as ServerContract;
 use Lawoole\Contracts\Server\ServerSocket as ServerSocketContract;
 use Lawoole\Server\ServerSockets\ServerSocket;
@@ -215,6 +216,18 @@ class Server implements ServerContract, IteratorAggregate
         $this->serverSockets[$address] = $serverSocket;
 
         $serverSocket->listen($this, $swoolePort);
+    }
+
+    /**
+     * 添加子进程
+     *
+     * @param \Lawoole\Contracts\Server\Process $process
+     */
+    public function fork(Process $process)
+    {
+        $this->swooleServer->addProcess($process->getSwooleProcess());
+
+        $process->bind($this);
     }
 
     /**

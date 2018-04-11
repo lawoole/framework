@@ -2,21 +2,20 @@
 namespace Lawoole\Server\ServerSockets;
 
 use EmptyIterator;
-use Exception;
-use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Arr;
 use IteratorAggregate;
 use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Contracts\Server\ServerSocket as ServerSocketContract;
+use Lawoole\Server\Concerns\DispatchEvents;
 use Lawoole\Server\Server;
-use RuntimeException;
+use LogicException;
 use Swoole\Server\Port;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Debug\Exception\FatalThrowableError;
-use Throwable;
 
 class ServerSocket implements ServerSocketContract, IteratorAggregate
 {
+    use DispatchEvents;
+
     /**
      * 服务容器
      *
@@ -183,7 +182,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     public function setOptions(array $options)
     {
         if ($this->server && $this->server->isServing()) {
-            throw new RuntimeException('Options cannot be set while the server is serving');
+            throw new LogicException('Options cannot be set while the server is serving');
         }
 
         $this->options = array_diff_key($this->options, $options) + $options;
@@ -233,7 +232,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     public function listen(Server $server, Port $swoolePort = null)
     {
         if ($this->isBound()) {
-            throw new RuntimeException('ServerSocket can be bound to server only once.');
+            throw new LogicException('ServerSocket can be bound to server only once.');
         }
 
         if ($swoolePort == null) {
@@ -328,29 +327,6 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 分发事件
-     *
-     * @param string $event
-     * @param array $arguments
-     */
-    public function dispatchEvent($event, ...$arguments)
-    {
-        if ($this->handler == null) {
-            return;
-        }
-
-        try {
-            if (method_exists($this->handler, $method = "on{$event}")) {
-                call_user_func_array([$this->handler, $method], $arguments);
-            }
-        } catch (Exception $e) {
-            $this->handleException($e);
-        } catch (Throwable $e) {
-            $this->handleException(new FatalThrowableError($e));
-        }
-    }
-
-    /**
      * 注册事件回调
      */
     protected function registerConnectCallback()
@@ -408,19 +384,5 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
         $this->swoolePort->on('BufferEmpty', function ($server, $fd) {
             $this->dispatchEvent('BufferEmpty', $this->server, $this, $fd);
         });
-    }
-
-    /**
-     * 处理异常
-     *
-     * @param \Exception $e
-     */
-    protected function handleException(Exception $e)
-    {
-        $handler = $this->app->make(ExceptionHandler::class);
-
-        $handler->report($e);
-
-        $handler->renderForConsole($this->output, $e);
     }
 }
