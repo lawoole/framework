@@ -189,7 +189,20 @@ class ServerManager implements Factory
      */
     protected function createServerSocket(array $config)
     {
-        switch ($config['protocol']) {
+        $protocol = $config['protocol'];
+
+        // 别名处理
+        if ($this->app->bound('server.protocol.'.$protocol)) {
+            $protocol = $this->app->make('server.protocol.'.$protocol);
+
+            if (is_object($protocol) && $protocol instanceof ServerSocket) {
+                return $protocol;
+            }
+
+            $protocol = (string) $protocol;
+        }
+
+        switch ($protocol) {
             case 'tcp':
                 return new ServerSocket($this->app, $config);
             case 'udp':
