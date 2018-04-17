@@ -98,10 +98,16 @@ class WhisperClient extends Client
      */
     protected function send($data)
     {
-        $result = $this->client->send($data);
+        try {
+            $result = $this->client->send($data);
 
-        if ($result === false) {
-            throw new HomerException('Send data failed, cause: '.socket_strerror($this->client->errCode));
+            if ($result === false) {
+                throw new HomerException('Send data failed, cause: '.socket_strerror($this->client->errCode));
+            }
+        } catch (HomerException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            throw new HomerException($e->getMessage(), $e);
         }
 
         return $result;
@@ -114,12 +120,18 @@ class WhisperClient extends Client
      */
     protected function receive()
     {
-        $data = $this->client->recv();
+        try {
+            $data = $this->client->recv();
 
-        if ($data === false) {
-            throw new HomerException('Receive data failed, cause: '.socket_strerror($this->client->errCode));
-        } elseif ($data === '') {
-            throw new HomerException('Receive data failed, cause the connection has been closed.');
+            if ($data === false) {
+                throw new HomerException('Receive data failed, cause: '.socket_strerror($this->client->errCode));
+            } elseif ($data === '') {
+                throw new HomerException('Receive data failed, cause the connection has been closed.');
+            }
+        } catch (HomerException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            throw new HomerException($e->getMessage(), $e);
         }
 
         return $data;

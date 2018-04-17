@@ -117,10 +117,19 @@ class ExceptionSerialization
             $reflection = new ReflectionClass($this->class);
 
             foreach ($reflection->getProperties() as $property) {
+                if ($property->isStatic()) {
+                    continue;
+                }
+
                 $property->setAccessible(true);
 
                 $propertyName = $property->getName();
                 $propertyValue = $property->getValue($e);
+
+                if ($propertyName == 'trace') {
+                    // 抛弃堆栈信息的序列化，节约信息量
+                    continue;
+                }
 
                 $this->properties[$propertyName] = $this->packPropertyValue($propertyValue);
             }

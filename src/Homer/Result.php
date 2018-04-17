@@ -70,7 +70,7 @@ class Result
      *
      * @param \Throwable $exception
      */
-    public function setException(Throwable $exception)
+    public function setException(Throwable $exception = null)
     {
         $this->exception = $exception;
     }
