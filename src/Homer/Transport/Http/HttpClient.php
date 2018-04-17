@@ -4,7 +4,6 @@ namespace Lawoole\Homer\Transport\Http;
 use GuzzleHttp\Client as GuzzleHttpClient;
 use Lawoole\Homer\HomerException;
 use Lawoole\Homer\Transport\Client;
-use Throwable;
 
 class HttpClient extends Client
 {
@@ -43,7 +42,7 @@ class HttpClient extends Client
     protected function doConnect()
     {
         $this->client = new GuzzleHttpClient([
-            'base_url'        => "http://{$this->host}:{$this->port}/",
+            'base_uri'        => "http://{$this->host}:{$this->port}/",
             'timeout'         => $this->getTimeout(),
             'connect_timeout' => $this->getConnectTimeout(),
         ]);
@@ -64,26 +63,22 @@ class HttpClient extends Client
      *
      * @return mixed
      */
-    public function request($message)
+    protected function doRequest($message)
     {
-        try {
-            $body = serialize($message);
+        $body = serialize($message);
 
-            $response = $this->client->request('POST', '', [
-                'expect' => false,
-                'body'   => $body
-            ]);
+        $response = $this->client->request('POST', '', [
+            'expect' => false,
+            'body'   => $body
+        ]);
 
-            if ($response->getStatusCode() != 200) {
-                throw new HomerException($response->getBody()->getContents() ?: 'Http request failed, status'
-                    .$response->getStatusCode());
-            }
-
-            return unserialize($message);
-        } catch (HomerException $e) {
-            throw $e;
-        } catch (Throwable $e) {
-            throw new HomerException('Message request send failed, cause: '.$e->getMessage(), $e);
+        if ($response->getStatusCode() != 200) {
+            throw new HomerException($response->getBody()->getContents() ?: 'Http request failed, status'
+                .$response->getStatusCode());
         }
+
+        $body = $response->getBody()->getContents();
+
+        return unserialize($body);
     }
 }

@@ -2,6 +2,7 @@
 namespace Lawoole\Homer\Transport\Http;
 
 use Lawoole\Contracts\Foundation\Application;
+use Lawoole\Homer\Dispatcher;
 use Lawoole\Server\ServerSockets\HttpServerSocketHandler as BaseHttpServerSocketHandler;
 use Throwable;
 
@@ -15,32 +16,22 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
     protected $app;
 
     /**
-     * 服务端对象
+     * 消息调度器
      *
-     * @var \Lawoole\Homer\Transport\Http\HttpServer
+     * @var \Lawoole\Homer\Dispatcher
      */
-    protected $server;
+    protected $dispatcher;
 
     /**
      * 创建 Http 协议处理器
      *
      * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Lawoole\Homer\Dispatcher $dispatcher
      */
-    public function __construct(Application $app)
+    public function __construct(Application $app, Dispatcher $dispatcher)
     {
         $this->app = $app;
-        $this->server = new HttpServer($app['homer.dispatcher']);
-    }
-
-    /**
-     * 在服务 Socket 即将暴露调用
-     *
-     * @param \Lawoole\Server\Server $server
-     * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
-     */
-    public function onExport($server, $serverSocket)
-    {
-        $this->server->export();
+        $this->dispatcher = $dispatcher;
     }
 
     /**
@@ -56,7 +47,7 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
         try {
             $message = unserialize($request->rawcontent());
 
-            $result = $this->server->handleMessage($message);
+            $result = $this->dispatcher->handleMessage($message);
 
             $body = serialize($result);
 

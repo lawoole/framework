@@ -2,6 +2,7 @@
 namespace Lawoole\Homer;
 
 use Illuminate\Support\ServiceProvider;
+use Lawoole\Homer\Transport\Whisper\WhisperServerSocket;
 
 class HomerServiceProvider extends ServiceProvider
 {
@@ -10,11 +11,33 @@ class HomerServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->registerHomer();
+        $this->registerContext();
 
         $this->registerDispatcher();
 
-        $this->registerServerSocketAliases();
+        $this->registerHomer();
+
+        $this->registerServerSockets();
+    }
+
+    /**
+     * 注册调用上下文
+     */
+    protected function registerContext()
+    {
+        $this->app->singleton('homer.context', function () {
+            return new Context;
+        });
+    }
+
+    /**
+     * 注册调用分发器
+     */
+    protected function registerDispatcher()
+    {
+        $this->app->singleton('homer.dispatcher', function ($app) {
+            return new Dispatcher($app['homer.context']);
+        });
     }
 
     /**
@@ -28,21 +51,11 @@ class HomerServiceProvider extends ServiceProvider
     }
 
     /**
-     * 注册调用分发器
+     * 注册服务 Socket
      */
-    protected function registerDispatcher()
+    protected function registerServerSockets()
     {
-        $this->app->singleton('homer.dispatcher', function () {
-            return new Dispatcher;
-        });
-    }
-
-    /**
-     * 注册服务 Socket 类型别名
-     */
-    protected function registerServerSocketAliases()
-    {
-        $this->app->instance('server.protocol.whisper', 'tcp');
+        $this->app->instance('server.sockets.whisper', WhisperServerSocket::class);
     }
 
     /**

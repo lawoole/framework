@@ -49,8 +49,6 @@ class RemoteInvoker extends Invoker
      */
     protected function doInvoke(Invocation $invocation)
     {
-        $this->reconnectIfLostConnection();
-
         $invocation->setAttachments($this->context->getAttachments());
 
         $result = $this->client->request($invocation);
@@ -64,17 +62,5 @@ class RemoteInvoker extends Invoker
         }
 
         return $result;
-    }
-
-    /**
-     * 检查连接
-     */
-    protected function reconnectIfLostConnection()
-    {
-        if ($this->client->isConnected()) {
-            return;
-        }
-
-        $this->client->reconnect();
     }
 }

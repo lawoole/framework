@@ -127,6 +127,46 @@ abstract class Client
     }
 
     /**
+     * 发送消息请求
+     *
+     * @param mixed $message
+     *
+     * @return mixed
+     */
+    public function request($message)
+    {
+        $this->reconnectIfLostConnection();
+
+        try {
+            return $this->doRequest($message);
+        } catch (HomerException $e) {
+            $this->disconnect();
+
+            throw $e;
+        } catch (Throwable $e) {
+            $this->disconnect();
+
+            Log::channel('homer')->warning('Send rpc request failed', [
+                'exception' => $e
+            ]);
+
+            throw new HomerException('Send rpc request failed, cause: '.$e->getMessage(), $e);
+        }
+    }
+
+    /**
+     * 检查连接
+     */
+    protected function reconnectIfLostConnection()
+    {
+        if ($this->isConnected()) {
+            return;
+        }
+
+        $this->reconnect();
+    }
+
+    /**
      * 是否已经连接到服务器
      *
      * @return bool
@@ -150,5 +190,5 @@ abstract class Client
      *
      * @return mixed
      */
-    abstract public function request($message);
+    abstract protected function doRequest($message);
 }

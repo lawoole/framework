@@ -191,15 +191,15 @@ class ServerManager implements Factory
     {
         $protocol = $config['protocol'];
 
-        // 别名处理
-        if ($this->app->bound('server.protocol.'.$protocol)) {
-            $protocol = $this->app->make('server.protocol.'.$protocol);
+        // 自定义 ServerSocket
+        if ($this->app->bound('server.sockets.'.$protocol)) {
+            $serverSocket = $this->app->make('server.sockets.'.$protocol);
 
-            if (is_object($protocol) && $protocol instanceof ServerSocket) {
-                return $protocol;
+            if (is_object($serverSocket) && $serverSocket instanceof ServerSocket) {
+                return $serverSocket;
             }
 
-            $protocol = (string) $protocol;
+            return $this->app->make($serverSocket, ['config' => $config]);
         }
 
         switch ($protocol) {
