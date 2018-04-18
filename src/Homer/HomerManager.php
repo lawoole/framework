@@ -187,7 +187,7 @@ class HomerManager
         $urls = parse_url($url);
 
         switch ($urls['scheme']) {
-            case 'homer':
+            case 'http':
                 return new HttpClient($urls['host'], $urls['port'], $options);
             case 'whisper':
                 return new WhisperClient($urls['host'], $urls['port'], $options);
