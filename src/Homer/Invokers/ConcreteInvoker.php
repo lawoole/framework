@@ -2,7 +2,7 @@
 namespace Lawoole\Homer\Invokers;
 
 use Closure;
-use Illuminate\Contracts\Container\Container;
+use Lawoole\Homer\Context;
 use Lawoole\Homer\HomerException;
 use Lawoole\Homer\Invocation;
 use Lawoole\Homer\Result;
@@ -10,11 +10,11 @@ use Lawoole\Homer\Result;
 class ConcreteInvoker extends Invoker
 {
     /**
-     * 容器
+     * 调用上下文
      *
-     * @var \Illuminate\Contracts\Container\Container
+     * @var \Lawoole\Homer\Context
      */
-    protected $container;
+    protected $context;
 
     /**
      * 调用实体
@@ -33,16 +33,16 @@ class ConcreteInvoker extends Invoker
     /**
      * 创建实体调用器
      *
-     * @param \Illuminate\Contracts\Container\Container $container
+     * @param \Lawoole\Homer\Context $context
      * @param string $interface
      * @param string|object|\Closure $concrete
      * @param array $options
      */
-    public function __construct(Container $container, $interface, $concrete, array $options = [])
+    public function __construct(Context $context, $interface, $concrete, array $options = [])
     {
         parent::__construct($interface, $options);
 
-        $this->container = $container;
+        $this->context = $context;
         $this->concrete = $concrete;
     }
 
@@ -65,17 +65,23 @@ class ConcreteInvoker extends Invoker
      */
     protected function doInvoke(Invocation $invocation)
     {
-        $concrete = $this->getConcrete();
+        $this->context->setInvocation($invocation);
 
-        if (is_object($concrete)) {
-            $result = call_user_func_array([$concrete, $invocation->getMethod()], $invocation->getArguments());
-        } elseif ($concrete instanceof Closure) {
-            $result = call_user_func($concrete, $invocation);
-        } else {
-            throw new HomerException('Invoking failed while the concrete cannot be invoked.');
+        try {
+            $concrete = $this->getConcrete();
+
+            if (is_object($concrete)) {
+                $result = call_user_func_array([$concrete, $invocation->getMethod()], $invocation->getArguments());
+            } elseif ($concrete instanceof Closure) {
+                $result = call_user_func($concrete, $invocation);
+            } else {
+                throw new HomerException('Invoking failed while the concrete cannot be invoked.');
+            }
+
+            return $this->createInvokeResult($result);
+        } finally {
+            $this->context->forgetInvocation();
         }
-
-        return $this->createInvokeResult($result);
     }
 
     /**
@@ -92,7 +98,7 @@ class ConcreteInvoker extends Invoker
         if (is_object($this->concrete) || $this->concrete instanceof Closure) {
             $instance = $this->concrete;
         } else {
-            $instance = $this->container->make($this->concrete);
+            $instance = $this->context->getContainer()->make($this->concrete);
         }
 
         // 如果开启动态调用，则允许使用未实现接口的对象，甚至是闭包接收调用

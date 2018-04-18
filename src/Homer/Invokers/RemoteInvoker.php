@@ -11,7 +11,7 @@ use Lawoole\Homer\Transport\Client;
 class RemoteInvoker extends Invoker
 {
     /**
-     * 调用环境变量
+     * 调用上下文
      *
      * @var \Lawoole\Homer\Context
      */
