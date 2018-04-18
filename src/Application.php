@@ -14,7 +14,7 @@ class Application extends Container implements ApplicationContract
     /**
      * 框架版本号
      */
-    const VERSION = '0.4.1';
+    const VERSION = '0.4.2';
 
     /**
      * 项目基础路径
