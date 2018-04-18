@@ -2,8 +2,8 @@
 namespace Lawoole\Homer\Transport\Whisper;
 
 use Lawoole\Homer\HomerException;
-use Swoole\Client as SwooleClient;
 use Lawoole\Homer\Transport\Client;
+use Swoole\Client as SwooleClient;
 use Swoole\Serialize;
 use Throwable;
 
@@ -34,7 +34,7 @@ class WhisperClient extends Client
             'package_length_type'   => 'N',
             'package_max_length'    => 5120000,
             'package_length_offset' => 0,
-            'package_body_offset'   => 4
+            'package_body_offset'   => 4,
         ]);
     }
 
