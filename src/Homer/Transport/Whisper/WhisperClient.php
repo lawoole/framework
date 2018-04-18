@@ -4,7 +4,6 @@ namespace Lawoole\Homer\Transport\Whisper;
 use Lawoole\Homer\HomerException;
 use Lawoole\Homer\Transport\Client;
 use Swoole\Client as SwooleClient;
-use Swoole\Serialize;
 use Throwable;
 
 class WhisperClient extends Client
@@ -53,7 +52,17 @@ class WhisperClient extends Client
      */
     protected function doConnect()
     {
-        $this->client->connect($this->host, $this->port, $this->getConnectTimeout() / 1000.0);
+        $result = $this->client->connect($this->host, $this->port, $this->getConnectTimeout() / 1000.0);
+
+        if ($result == false) {
+            $errorCode = $this->client->errCode;
+
+            if ($errorCode == 99) {
+                throw new HomerException('Cannot open a socket to connect server.');
+            }
+
+            throw new HomerException('Connect to server failed, cause: '.socket_strerror($errorCode).'.');
+        }
     }
 
     /**
@@ -74,14 +83,14 @@ class WhisperClient extends Client
     protected function doRequest($message)
     {
         try {
-            $body = Serialize::pack($message);
+            $body = serialize($message);
 
             $this->send(pack('N', strlen($body)));
             $this->send($body);
 
             $data = $this->receive();
 
-            return $message = Serialize::unpack(substr($data, 4));
+            return $message = unserialize(substr($data, 4));
         } catch (Throwable $e) {
             $this->disconnect();
 
@@ -102,7 +111,9 @@ class WhisperClient extends Client
             $result = $this->client->send($data);
 
             if ($result === false) {
-                throw new HomerException('Send data failed, cause: '.socket_strerror($this->client->errCode));
+                $errorCode = $this->client->errCode;
+
+                throw new HomerException('Send data failed, cause: '.socket_strerror($errorCode).'.');
             }
         } catch (HomerException $e) {
             throw $e;
@@ -124,7 +135,13 @@ class WhisperClient extends Client
             $data = $this->client->recv();
 
             if ($data === false) {
-                throw new HomerException('Receive data failed, cause: '.socket_strerror($this->client->errCode));
+                $errorCode = $this->client->errCode;
+
+                if ($errorCode == 11) {
+                    throw new HomerException('Receive timeout in '.$this->getTimeout().' ms.');
+                }
+
+                throw new HomerException('Receive data failed, cause: '.socket_strerror($errorCode).'.');
             } elseif ($data === '') {
                 throw new HomerException('Receive data failed, cause the connection has been closed.');
             }

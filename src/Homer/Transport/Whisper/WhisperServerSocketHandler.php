@@ -4,7 +4,6 @@ namespace Lawoole\Homer\Transport\Whisper;
 use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Homer\Dispatcher;
 use Lawoole\Server\ServerSockets\ServerSocketHandler as BaseServerSocketHandler;
-use Swoole\Serialize;
 use Throwable;
 
 class WhisperServerSocketHandler extends BaseServerSocketHandler
@@ -49,11 +48,11 @@ class WhisperServerSocketHandler extends BaseServerSocketHandler
         $swooleServer = $server->getSwooleServer();
 
         try {
-            $message = Serialize::unpack(substr($data, 4));
+            $message = unserialize(substr($data, 4));
 
             $result = $this->dispatcher->handleMessage($message);
 
-            $body = Serialize::pack($result);
+            $body = serialize($result);
 
             $swooleServer->send($fd, pack('N', strlen($body)));
             $swooleServer->send($fd, $body);
