@@ -4,6 +4,7 @@ namespace Lawoole\Homer\Transport\Whisper;
 use Lawoole\Homer\HomerException;
 use Lawoole\Homer\Transport\Client;
 use Swoole\Client as SwooleClient;
+use Swoole\Serialize;
 use Throwable;
 
 class WhisperClient extends Client
@@ -83,14 +84,14 @@ class WhisperClient extends Client
     protected function doRequest($message)
     {
         try {
-            $body = serialize($message);
+            $body = Serialize::pack($message);
 
             $this->send(pack('N', strlen($body)));
             $this->send($body);
 
             $data = $this->receive();
 
-            return $message = unserialize(substr($data, 4));
+            return $message = Serialize::unpack(substr($data, 4));
         } catch (Throwable $e) {
             $this->disconnect();
 
