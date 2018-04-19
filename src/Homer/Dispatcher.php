@@ -15,23 +15,6 @@ class Dispatcher
     protected $invokers = [];
 
     /**
-     * 调用上下文
-     *
-     * @var \Lawoole\Homer\Context
-     */
-    protected $context;
-
-    /**
-     * 创建调用上下文
-     *
-     * @param \Lawoole\Homer\Context $context
-     */
-    public function __construct(Context $context)
-    {
-        $this->context = $context;
-    }
-
-    /**
      * 暴露调用器
      *
      * @param \Lawoole\Homer\Invokers\Invoker $invoker
@@ -86,13 +69,7 @@ class Dispatcher
     {
         $invoker = $this->dispatchInvocation($invocation);
 
-        $this->context->setInvocation($invocation);
-
-        $result = $invoker->invoke($invocation);
-
-        $this->context->forgetInvocation();
-
-        return $result;
+        return $invoker->invoke($invocation);
     }
 
     /**

@@ -25,8 +25,8 @@ class HomerServiceProvider extends ServiceProvider
      */
     protected function registerContext()
     {
-        $this->app->singleton('homer.context', function () {
-            return new Context;
+        $this->app->singleton('homer.context', function ($app) {
+            return new Context($app);
         });
     }
 
@@ -35,8 +35,8 @@ class HomerServiceProvider extends ServiceProvider
      */
     protected function registerDispatcher()
     {
-        $this->app->singleton('homer.dispatcher', function ($app) {
-            return new Dispatcher($app['homer.context']);
+        $this->app->singleton('homer.dispatcher', function () {
+            return new Dispatcher;
         });
     }
 
