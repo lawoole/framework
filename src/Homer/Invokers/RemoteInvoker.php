@@ -3,7 +3,6 @@ namespace Lawoole\Homer\Invokers;
 
 use Illuminate\Support\Facades\Log;
 use Lawoole\Homer\Context;
-use Lawoole\Homer\HomerException;
 use Lawoole\Homer\Invocation;
 use Lawoole\Homer\Result;
 use Lawoole\Homer\Transport\Client;

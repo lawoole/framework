@@ -4,7 +4,6 @@ namespace Lawoole\Homer\Transport\Whisper;
 use Lawoole\Homer\Transport\Client;
 use Lawoole\Homer\Transport\TransportException;
 use Swoole\Client as SwooleClient;
-use Swoole\Serialize;
 use Throwable;
 
 class WhisperClient extends Client
