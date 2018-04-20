@@ -1,7 +1,9 @@
 <?php
-namespace Lawoole\Homer\Transport\Serializers;
+namespace Lawoole\Homer\Serialization\Serializers;
 
-class NativeSerializer extends Serializer
+use Swoole\Serialize;
+
+class SwooleSerializer extends Serializer
 {
     /**
      * 序列化数据
@@ -12,7 +14,7 @@ class NativeSerializer extends Serializer
      */
     public function serialize($message)
     {
-        return serialize($message);
+        return Serialize::pack($message);
     }
 
     /**
@@ -24,6 +26,6 @@ class NativeSerializer extends Serializer
      */
     public function unserialize($data)
     {
-        return unserialize($data);
+        return Serialize::unpack($data);
     }
 }

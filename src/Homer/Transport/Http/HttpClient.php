@@ -2,8 +2,8 @@
 namespace Lawoole\Homer\Transport\Http;
 
 use GuzzleHttp\Client as GuzzleHttpClient;
-use Lawoole\Homer\HomerException;
 use Lawoole\Homer\Transport\Client;
+use Lawoole\Homer\Transport\TransportException;
 
 class HttpClient extends Client
 {
@@ -15,15 +15,13 @@ class HttpClient extends Client
     protected $client;
 
     /**
-     * 创建 Http 协议客户端
+     * 获得默认序列化方式
      *
-     * @param string $host
-     * @param int $port
-     * @param array $options
+     * @return string
      */
-    public function __construct($host, $port, array $options = [])
+    protected function getDefaultSerializer()
     {
-        parent::__construct($host, $port, $options);
+        return 'php';
     }
 
     /**
@@ -42,9 +40,9 @@ class HttpClient extends Client
     protected function doConnect()
     {
         $this->client = new GuzzleHttpClient([
-            'base_uri'        => "http://{$this->host}:{$this->port}/",
+            'base_uri'        => "http://{$this->getRemoteAddress()}/",
             'timeout'         => $this->getTimeout(),
-            'connect_timeout' => $this->getConnectTimeout(),
+            'connect_timeout' => $this->getTimeout(),
         ]);
     }
 
@@ -65,7 +63,7 @@ class HttpClient extends Client
      */
     protected function doRequest($message)
     {
-        $body = serialize($message);
+        $body = $this->serializer->serialize($message);
 
         $response = $this->client->request('POST', '', [
             'expect' => false,
@@ -73,12 +71,12 @@ class HttpClient extends Client
         ]);
 
         if ($response->getStatusCode() != 200) {
-            throw new HomerException($response->getBody()->getContents() ?: 'Http request failed, status'
+            throw new TransportException($response->getBody()->getContents() ?: 'Http request failed, status: '
                 .$response->getStatusCode());
         }
 
         $body = $response->getBody()->getContents();
 
-        return unserialize($body);
+        return $this->serializer->unserialize($body);
     }
 }

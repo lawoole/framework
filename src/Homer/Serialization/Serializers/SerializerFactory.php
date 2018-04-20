@@ -1,5 +1,5 @@
 <?php
-namespace Lawoole\Homer\Transport\Serializers;
+namespace Lawoole\Homer\Serialization\Serializers;
 
 use InvalidArgumentException;
 
@@ -22,7 +22,7 @@ class SerializerFactory
      *
      * @param string $type
      *
-     * @return \Lawoole\Homer\Transport\Serializers\Serializer
+     * @return \Lawoole\Homer\Serialization\Serializers\Serializer
      */
     public function getSerializer($type = null)
     {
@@ -42,7 +42,7 @@ class SerializerFactory
      *
      * @param string $type
      *
-     * @return \Lawoole\Homer\Transport\Serializers\Serializer
+     * @return \Lawoole\Homer\Serialization\Serializers\Serializer
      */
     protected function createSerializer($type)
     {

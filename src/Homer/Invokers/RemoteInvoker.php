@@ -54,11 +54,12 @@ class RemoteInvoker extends Invoker
         $result = $this->client->request($invocation);
 
         if (!$result instanceof Result) {
-            Log::warning('Server response an error message', [
+            Log::channel('homer')->warning('Server response an error message', [
                 'result' => (string) $result
             ]);
 
-            throw new HomerException('The invoke result must instance of Result, '.class_basename($result).' given.');
+            throw new InvokingException('The invoke result must instance of Result, '
+                .class_basename($result).' given.');
         }
 
         return $result;

@@ -303,6 +303,19 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
+     * 关闭连接
+     *
+     * @param int $fd
+     * @param bool $force
+     *
+     * @return bool
+     */
+    public function closeConnection($fd, $force = false)
+    {
+        return $this->swooleServer->close($fd, $force);
+    }
+
+    /**
      * 注册事件回调
      *
      * @param array $events

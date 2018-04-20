@@ -3,17 +3,35 @@ namespace Lawoole\Homer\Transport;
 
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
+use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Homer\Transport\Http\HttpClient;
 use Lawoole\Homer\Transport\Whisper\WhisperClient;
 
 class ClientFactory
 {
     /**
+     * 服务容器
+     *
+     * @var \Lawoole\Contracts\Foundation\Application
+     */
+    protected $app;
+
+    /**
      * 已创建的客户端
      *
      * @var \Lawoole\Homer\Transport\Client[]
      */
     protected $clients = [];
+
+    /**
+     * 创建客户端工厂
+     *
+     * @param \Lawoole\Contracts\Foundation\Application $app
+     */
+    public function __construct(Application $app)
+    {
+        $this->app = $app;
+    }
 
     /**
      * 获得客户端
@@ -46,11 +64,14 @@ class ClientFactory
 
         $urls = parse_url($url);
 
+        $config['host'] = $urls['host'];
+        $config['port'] = $urls['port'];
+
         switch ($urls['scheme']) {
             case 'http':
-                return new HttpClient($urls['host'], $urls['port'], $config);
+                return new HttpClient($this->app, $config);
             case 'whisper':
-                return new WhisperClient($urls['host'], $urls['port'], $config);
+                return new WhisperClient($this->app, $config);
             default:
                 throw new InvalidArgumentException('Protocol '.$urls['scheme'].' is not supported for Homer.');
         }

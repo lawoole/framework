@@ -1,5 +1,5 @@
 <?php
-namespace Lawoole\Homer\Transport\Serializers;
+namespace Lawoole\Homer\Serialization\Serializers;
 
 abstract class Serializer
 {

@@ -3,12 +3,14 @@ namespace Lawoole\Homer\Transport\Whisper;
 
 use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Homer\Dispatcher;
+use Lawoole\Homer\Transport\SerializeServerSocketMessages;
 use Lawoole\Server\ServerSockets\ServerSocketHandler as BaseServerSocketHandler;
-use Swoole\Serialize;
 use Throwable;
 
 class WhisperServerSocketHandler extends BaseServerSocketHandler
 {
+    use SerializeServerSocketMessages;
+
     /**
      * 服务容器
      *
@@ -33,6 +35,18 @@ class WhisperServerSocketHandler extends BaseServerSocketHandler
     {
         $this->app = $app;
         $this->dispatcher = $dispatcher;
+
+        $this->serializerFactory = $app['homer.factory.serializer'];
+    }
+
+    /**
+     * 获得默认序列化方式
+     *
+     * @return string
+     */
+    protected function getDefaultSerializer()
+    {
+        return 'swoole';
     }
 
     /**
@@ -46,19 +60,37 @@ class WhisperServerSocketHandler extends BaseServerSocketHandler
      */
     public function onReceive($server, $serverSocket, $fd, $reactorId, $data)
     {
-        $swooleServer = $server->getSwooleServer();
-
         try {
-            $message = Serialize::unpack(substr($data, 4));
+            $serializer = $this->getSerializer($serverSocket);
+
+            $message = $serializer->unserialize(substr($data, 4));
 
             $result = $this->dispatcher->handleMessage($message);
 
-            $body = Serialize::pack($result);
+            $body = $serializer->serialize($result);
 
-            $swooleServer->send($fd, pack('N', strlen($body)));
-            $swooleServer->send($fd, $body);
+            $this->respond($server, $fd, 200, $body);
         } catch (Throwable $e) {
-            $swooleServer->close($fd, true);
+            $this->respond($server, $fd, 500, $e->getMessage());
+
+            $server->closeConnection($fd);
         }
+    }
+
+    /**
+     * 发送响应
+     *
+     * @param \Lawoole\Server\Server $server
+     * @param int $fd
+     * @param int $status
+     * @param string $body
+     */
+    protected function respond($server, $fd, $status, $body)
+    {
+        $swooleServer = $server->getSwooleServer();
+
+        $swooleServer->send($fd, pack('n', $status));
+        $swooleServer->send($fd, pack('N', strlen($body)));
+        $swooleServer->send($fd, $body);
     }
 }

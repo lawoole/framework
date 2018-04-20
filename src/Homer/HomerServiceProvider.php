@@ -2,6 +2,8 @@
 namespace Lawoole\Homer;
 
 use Illuminate\Support\ServiceProvider;
+use Lawoole\Homer\Serialization\Serializers\SerializerFactory;
+use Lawoole\Homer\Transport\ClientFactory;
 use Lawoole\Homer\Transport\Whisper\WhisperServerSocket;
 
 class HomerServiceProvider extends ServiceProvider
@@ -16,6 +18,10 @@ class HomerServiceProvider extends ServiceProvider
         $this->registerDispatcher();
 
         $this->registerHomer();
+
+        $this->registerClientFactory();
+
+        $this->registerSerializerFactory();
 
         $this->registerServerSockets();
     }
@@ -48,6 +54,24 @@ class HomerServiceProvider extends ServiceProvider
         $this->app->singleton('homer', function ($app) {
             return new HomerManager($app, $app['config']['homer']);
         });
+    }
+
+    /**
+     * 注册客户端工厂
+     */
+    protected function registerClientFactory()
+    {
+        $this->app->singleton('homer.factory.client', function ($app) {
+            return new ClientFactory($app);
+        });
+    }
+
+    /**
+     * 注册序列化工具工厂
+     */
+    protected function registerSerializerFactory()
+    {
+        $this->app->singleton('homer.factory.serializer', SerializerFactory::class);
     }
 
     /**

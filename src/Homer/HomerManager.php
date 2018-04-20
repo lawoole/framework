@@ -7,7 +7,6 @@ use InvalidArgumentException;
 use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Homer\Components\ReferenceComponent;
 use Lawoole\Homer\Components\ServiceComponent;
-use Lawoole\Homer\Transport\ClientFactory;
 
 class HomerManager
 {
@@ -47,13 +46,6 @@ class HomerManager
     protected $dispatcher;
 
     /**
-     * 客户端工厂
-     *
-     * @var \Lawoole\Homer\Transport\ClientFactory
-     */
-    protected $clientFactory;
-
-    /**
      * 创建 Homer 管理对象
      *
      * @param \Lawoole\Contracts\Foundation\Application $app
@@ -62,11 +54,10 @@ class HomerManager
     public function __construct(Application $app, array $config = [])
     {
         $this->app = $app;
-        $this->context = $app['homer.context'];
-        $this->dispatcher = $app['homer.dispatcher'];
         $this->config = $config;
 
-        $this->clientFactory = new ClientFactory;
+        $this->context = $app['homer.context'];
+        $this->dispatcher = $app['homer.dispatcher'];
     }
 
     /**
@@ -96,11 +87,11 @@ class HomerManager
             return;
         }
 
+        $clientFactory = $this->app['homer.factory.client'];
+
         foreach ($references as $config) {
             if (!isset($config['client'])) {
-                $config['client'] = [
-                    'url' => $config['url']
-                ];
+                $config['client'] = ['url' => $config['url']];
             } elseif (is_string($config['client'])) {
                 $client = Arr::get($this->config, 'clients.'.$config['client']);
 
@@ -113,7 +104,7 @@ class HomerManager
 
             (new ReferenceComponent($this->app, $config))
                 ->setContext($this->context)
-                ->setClientFactory($this->clientFactory)
+                ->setClientFactory($clientFactory)
                 ->refer();
         }
     }

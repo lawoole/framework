@@ -2,8 +2,8 @@
 namespace Lawoole\Homer\Invokers;
 
 use Closure;
+use InvalidArgumentException;
 use Lawoole\Homer\Context;
-use Lawoole\Homer\HomerException;
 use Lawoole\Homer\Invocation;
 use Lawoole\Homer\Result;
 
@@ -75,7 +75,7 @@ class ConcreteInvoker extends Invoker
             } elseif ($concrete instanceof Closure) {
                 $result = call_user_func($concrete, $invocation);
             } else {
-                throw new HomerException('Invoking failed while the concrete cannot be invoked.');
+                throw new InvalidArgumentException('Invoking failed while the concrete cannot be invoked.');
             }
 
             return $this->createInvokeResult($result);
@@ -119,11 +119,11 @@ class ConcreteInvoker extends Invoker
         $interface = $this->getInterface();
 
         if (!is_object($instance)) {
-            throw new HomerException("The concrete instance for {$interface} must be an object.");
+            throw new InvalidArgumentException("The concrete instance for {$interface} must be an object.");
         }
 
         if (!$instance instanceof $interface) {
-            throw new HomerException("The concrete must an instance of {$interface}.");
+            throw new InvalidArgumentException("The concrete must an instance of {$interface}.");
         }
     }
 
