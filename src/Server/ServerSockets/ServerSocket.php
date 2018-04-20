@@ -146,7 +146,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
             return $this->config;
         }
 
-        return $this->config[$name] ?: $default;
+        return $this->config[$name] ?? $default;
     }
 
     /**
