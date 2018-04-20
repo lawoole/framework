@@ -1,5 +1,5 @@
 <?php
-namespace Lawoole\Homer;
+namespace Lawoole\Support;
 
 use InvalidArgumentException;
 
