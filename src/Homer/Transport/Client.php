@@ -108,7 +108,7 @@ abstract class Client
     }
 
     /**
-     * 连接失败重试次数
+     * 获得连接失败重试次数
      *
      * @return int
      */
