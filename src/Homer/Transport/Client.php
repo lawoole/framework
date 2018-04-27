@@ -108,6 +108,16 @@ abstract class Client
     }
 
     /**
+     * 连接失败重试次数
+     *
+     * @return int
+     */
+    public function getRetryTimes()
+    {
+        return $this->options['retry_times'] ?? 1;
+    }
+
+    /**
      * 连接服务器
      */
     public function connect()
