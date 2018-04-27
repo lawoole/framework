@@ -55,7 +55,7 @@ abstract class Invoker
         try {
             return $this->doInvoke($invocation);
         } catch (Throwable $e) {
-            return new Result(null, $e);
+            return $this->createExceptionResult($e);
         }
     }
 
@@ -67,4 +67,16 @@ abstract class Invoker
      * @return \Lawoole\Homer\Result
      */
     abstract protected function doInvoke(Invocation $invocation);
+
+    /**
+     * 创建调用异常结果
+     *
+     * @param \Throwable $e
+     *
+     * @return \Lawoole\Homer\Result
+     */
+    protected function createExceptionResult(Throwable $e)
+    {
+        return new Result(null, $e);
+    }
 }

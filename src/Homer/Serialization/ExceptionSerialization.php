@@ -187,7 +187,7 @@ class ExceptionSerialization
         } elseif ($value instanceof Validator) {
             $value = new ValidatorSerialization($value);
         } elseif ($value instanceof Throwable) {
-            new self($value);
+            $value = new self($value);
         } elseif ($value instanceof Closure) {
             $value = null;
         }

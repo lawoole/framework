@@ -21,6 +21,16 @@ class TransportException extends HomerException
     const TIMEOUT = 2;
 
     /**
+     * 异常类型：数据序列化失败
+     */
+    const SERIALIZATION = 3;
+
+    /**
+     * 异常类型：远端处理异常
+     */
+    const REMOTE = 4;
+
+    /**
      * 判断异常是否为连接异常
      *
      * @return bool
@@ -38,5 +48,25 @@ class TransportException extends HomerException
     public function isTimeout()
     {
         return $this->getCode() == static::TIMEOUT;
+    }
+
+    /**
+     * 判断异常是否为数据序列化失败
+     *
+     * @return bool
+     */
+    public function isSerialization()
+    {
+        return $this->getCode() == static::SERIALIZATION;
+    }
+
+    /**
+     * 判断异常是否为远端处理异常
+     *
+     * @return bool
+     */
+    public function isRemote()
+    {
+        return $this->getCode() == static::REMOTE;
     }
 }

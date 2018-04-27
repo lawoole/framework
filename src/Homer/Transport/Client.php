@@ -114,7 +114,7 @@ abstract class Client
      */
     public function getRetryTimes()
     {
-        return $this->options['retry_times'] ?? 1;
+        return $this->options['retry_times'] ?? 0;
     }
 
     /**
@@ -139,6 +139,10 @@ abstract class Client
             Log::channel('homer')->info('Connect to server '.$this->getRemoteAddress().' from '.class_basename($this));
         } catch (TransportException $e) {
             $this->disconnect();
+
+            Log::channel('homer')->warning($e->getMessage(), [
+                'exception' => $e
+            ]);
 
             throw $e;
         } catch (Throwable $e) {
@@ -188,8 +192,26 @@ abstract class Client
     {
         $this->reconnectIfLostConnection();
 
+        $retryTimes = $this->getRetryTimes();
+
         try {
-            return $this->doRequest($message);
+            $body = $this->serializer->serialize($message);
+
+            do {
+                try {
+                    $data = $this->doRequest($body);
+
+                    break;
+                } catch (TransportException $e) {
+                    if ($e->isConnection() && $retryTimes-- > 0) {
+                        continue;
+                    }
+
+                    throw $e;
+                }
+            } while ($retryTimes > 0);
+
+            return $this->serializer->unserialize($data);
         } catch (HomerException $e) {
             $this->disconnect();
 
@@ -244,9 +266,9 @@ abstract class Client
     /**
      * 发送消息请求
      *
-     * @param mixed $message
+     * @param string $data
      *
-     * @return mixed
+     * @return string
      */
-    abstract protected function doRequest($message);
+    abstract protected function doRequest($data);
 }

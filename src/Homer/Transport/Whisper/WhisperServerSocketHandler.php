@@ -1,6 +1,7 @@
 <?php
 namespace Lawoole\Homer\Transport\Whisper;
 
+use Illuminate\Support\Facades\Log;
 use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Homer\Dispatcher;
 use Lawoole\Homer\Transport\SerializeServerSocketMessages;
@@ -71,6 +72,10 @@ class WhisperServerSocketHandler extends BaseServerSocketHandler
 
             $this->respond($server, $fd, 200, $body);
         } catch (Throwable $e) {
+            Log::channel('homer')->warning('Handle invoking failed, cause: '.$e->getMessage(), [
+                'exception' => $e
+            ]);
+
             $this->respond($server, $fd, 500, $e->getMessage());
 
             $server->closeConnection($fd);

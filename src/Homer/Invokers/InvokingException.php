@@ -16,16 +16,6 @@ class InvokingException extends HomerException
     const BUSINESS = 1;
 
     /**
-     * 异常类型：网络超时
-     */
-    const TIMEOUT = 2;
-
-    /**
-     * 异常类型：数据序列化失败
-     */
-    const SERIALIZATION = 3;
-
-    /**
      * 判断异常是否为业务异常
      *
      * @return bool
@@ -33,25 +23,5 @@ class InvokingException extends HomerException
     public function isBusiness()
     {
         return $this->getCode() == static::BUSINESS;
-    }
-
-    /**
-     * 判断异常是否为网络超时
-     *
-     * @return bool
-     */
-    public function isTimeout()
-    {
-        return $this->getCode() == static::TIMEOUT;
-    }
-
-    /**
-     * 判断异常是否为数据序列化失败
-     *
-     * @return bool
-     */
-    public function isSerialization()
-    {
-        return $this->getCode() == static::SERIALIZATION;
     }
 }
