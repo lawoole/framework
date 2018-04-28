@@ -684,6 +684,8 @@ class Application extends Container implements ApplicationContract
             \Illuminate\Contracts\Queue\Monitor::class                => 'queue',
             \Illuminate\Contracts\Queue\Queue::class                  => 'queue.connections',
             \Illuminate\Routing\Redirector::class                     => 'redirect',
+            \Illuminate\Contracts\Redis\Factory::class                => 'redis',
+            \Illuminate\Redis\RedisManager::class                     => 'redis',
             \Symfony\Component\HttpFoundation\Request::class          => 'request',
             \Illuminate\Http\Request::class                           => 'request',
             \Lawoole\Http\Respondent::class                           => 'respondent',
