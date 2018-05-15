@@ -4,8 +4,8 @@ namespace Lawoole\Support\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static \Lawoole\Homer\Rpc\Context getContext()
- * @method static \Lawoole\Homer\Rpc\Invocation getInvocation()
+ * @method static \Lawoole\Homer\Context getContext()
+ * @method static \Lawoole\Homer\Invocation getInvocation()
  * @method static array getAttachments()
  * @method static mixed getAttachment($key, $default = null)
  */
