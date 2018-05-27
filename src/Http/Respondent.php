@@ -64,12 +64,12 @@ class Respondent
 
             foreach ($headerBag->getCookies() as $cookie) {
                 if ($cookie->isRaw()) {
-                    $this->response->cookie(
+                    $this->response->rawcookie(
                         $cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(), $cookie->getPath(),
                         $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly()
                     );
                 } else {
-                    $this->response->rawcookie(
+                    $this->response->cookie(
                         $cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(), $cookie->getPath(),
                         $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly()
                     );
