@@ -1,13 +1,17 @@
 <?php
 namespace Lawoole\Homer\Transport\Http;
 
+use Illuminate\Support\Facades\Log;
 use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Homer\Dispatcher;
+use Lawoole\Homer\Transport\SerializeServerSocketMessages;
 use Lawoole\Server\ServerSockets\HttpServerSocketHandler as BaseHttpServerSocketHandler;
 use Throwable;
 
 class HttpServerSocketHandler extends BaseHttpServerSocketHandler
 {
+    use SerializeServerSocketMessages;
+
     /**
      * 服务容器
      *
@@ -32,6 +36,18 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
     {
         $this->app = $app;
         $this->dispatcher = $dispatcher;
+
+        $this->serializerFactory = $app['homer.factory.serializer'];
+    }
+
+    /**
+     * 获得默认序列化方式
+     *
+     * @return string
+     */
+    protected function getDefaultSerializer()
+    {
+        return 'php';
     }
 
     /**
@@ -45,14 +61,20 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
     public function onRequest($server, $serverSocket, $request, $response)
     {
         try {
-            $message = unserialize($request->rawcontent());
+            $serializer = $this->getSerializer($serverSocket);
+
+            $message = $serializer->unserialize($request->rawcontent());
 
             $result = $this->dispatcher->handleMessage($message);
 
-            $body = serialize($result);
+            $body = $serializer->serialize($result);
 
             $this->respond($response, 200, $body);
         } catch (Throwable $e) {
+            Log::channel('homer')->warning('Handle invoking failed, cause: '.$e->getMessage(), [
+                'exception' => $e
+            ]);
+
             $this->respond($response, 500, $e->getMessage());
         }
     }

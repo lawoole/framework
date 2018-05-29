@@ -1,10 +1,10 @@
 <?php
 namespace Lawoole\Homer\Transport\Whisper;
 
-use Lawoole\Homer\HomerException;
-use Swoole\Client as SwooleClient;
+use Illuminate\Support\Str;
 use Lawoole\Homer\Transport\Client;
-use Swoole\Serialize;
+use Lawoole\Homer\Transport\TransportException;
+use Swoole\Client as SwooleClient;
 use Throwable;
 
 class WhisperClient extends Client
@@ -17,25 +17,13 @@ class WhisperClient extends Client
     protected $client;
 
     /**
-     * 创建 Whisper 协议客户端
+     * 获得默认序列化方式
      *
-     * @param string $host
-     * @param int $port
-     * @param array $options
+     * @return string
      */
-    public function __construct($host, $port, array $options = [])
+    protected function getDefaultSerializer()
     {
-        parent::__construct($host, $port, $options);
-
-        $this->client = new SwooleClient(SWOOLE_TCP, SWOOLE_SOCK_SYNC);
-
-        $this->client->set([
-            'open_length_check'     => true,
-            'package_length_type'   => 'N',
-            'package_max_length'    => 5120000,
-            'package_length_offset' => 0,
-            'package_body_offset'   => 4
-        ]);
+        return 'swoole';
     }
 
     /**
@@ -45,7 +33,7 @@ class WhisperClient extends Client
      */
     public function isConnected()
     {
-        return $this->client->isConnected();
+        return $this->client !== null && $this->client->isConnected();
     }
 
     /**
@@ -53,7 +41,34 @@ class WhisperClient extends Client
      */
     protected function doConnect()
     {
-        $this->client->connect($this->host, $this->port, $this->getConnectTimeout() / 1000.0);
+        try {
+            $this->client = new SwooleClient(SWOOLE_TCP, SWOOLE_SOCK_SYNC);
+
+            $this->client->set([
+                'open_length_check'     => true,
+                'package_length_type'   => 'N',
+                'package_max_length'    => 5120000,
+                'package_length_offset' => 2,
+                'package_body_offset'   => 6,
+            ]);
+
+            $result = $this->client->connect($this->getHost(), $this->getPort(), $this->getTimeout() / 1000.0);
+
+            if ($result == false) {
+                throw new TransportException('Connect to server ['.$this->getRemoteAddress().'] failed, cause: '
+                    .socket_strerror($this->client->errCode).'.');
+            }
+        } catch (TransportException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            if ($this->causedByConnectionProblem($e)) {
+                $this->disconnect();
+
+                throw new TransportException($e->getMessage(), TransportException::CONNECTION, $e);
+            }
+
+            throw new TransportException($e->getMessage(), 0, $e);
+        }
     }
 
     /**
@@ -61,27 +76,36 @@ class WhisperClient extends Client
      */
     protected function doDisconnect()
     {
-        $this->client->close(true);
+        if ($this->client) {
+            $this->client->close(true);
+        }
+
+        $this->client = null;
     }
 
     /**
      * 发送消息请求
      *
-     * @param mixed $message
+     * @param string $data
      *
-     * @return mixed
+     * @return string
      */
-    protected function doRequest($message)
+    protected function doRequest($data)
     {
         try {
-            $body = Serialize::pack($message);
-
-            $this->send(pack('N', strlen($body)));
-            $this->send($body);
+            $this->send(pack('N', strlen($data)).$data);
 
             $data = $this->receive();
 
-            return $message = Serialize::unpack(substr($data, 4));
+            $status = unpack('nstatus', substr($data, 0, 2))['status'];
+            $data = substr($data, 6);
+
+            if ($status != 200) {
+                throw new TransportException($data ?: 'Http request failed, status: '.$status,
+                    TransportException::REMOTE);
+            }
+
+            return $data;
         } catch (Throwable $e) {
             $this->disconnect();
 
@@ -102,15 +126,55 @@ class WhisperClient extends Client
             $result = $this->client->send($data);
 
             if ($result === false) {
-                throw new HomerException('Send data failed, cause: '.socket_strerror($this->client->errCode));
+                $errorCode = $this->client->errCode;
+
+                throw new TransportException('Send data failed, cause: '.socket_strerror($errorCode).'.', $errorCode);
             }
-        } catch (HomerException $e) {
-            throw $e;
         } catch (Throwable $e) {
-            throw new HomerException($e->getMessage(), $e);
+            if ($this->causedByConnectionProblem($e)) {
+                $this->disconnect();
+
+                throw new TransportException($e->getMessage(), TransportException::CONNECTION, $e);
+            }
+
+            throw new TransportException($e->getMessage(), 0, $e);
         }
 
         return $result;
+    }
+
+    /**
+     * 判断异常是否由连接问题引发
+     *
+     * @param \Throwable $e
+     *
+     * @return mixed
+     */
+    protected function causedByConnectionProblem(Throwable $e)
+    {
+        $message = $e->getMessage();
+
+        return Str::contains($message, [
+            'Broken pipe[32]',
+            'Connection reset by peer[104]',
+            'Connection refused[111]',
+        ]);
+    }
+
+    /**
+     * 判断异常是否由超时引发
+     *
+     * @param \Throwable $e
+     *
+     * @return mixed
+     */
+    protected function causedByTimeout(Throwable $e)
+    {
+        $message = $e->getMessage();
+
+        return Str::contains($message, [
+            'Resource temporarily unavailable [11]',
+        ]);
     }
 
     /**
@@ -124,14 +188,30 @@ class WhisperClient extends Client
             $data = $this->client->recv();
 
             if ($data === false) {
-                throw new HomerException('Receive data failed, cause: '.socket_strerror($this->client->errCode));
+                $errorCode = $this->client->errCode;
+
+                if ($errorCode == 11) {
+                    throw new TransportException('Receive timeout in '.$this->getTimeout().' ms.',
+                        TransportException::TIMEOUT);
+                }
+
+                throw new TransportException('Receive data failed, cause: '.socket_strerror($errorCode).'.',
+                    $errorCode);
             } elseif ($data === '') {
-                throw new HomerException('Receive data failed, cause the connection has been closed.');
+                throw new TransportException('Receive data failed, cause the connection has been closed.',
+                    TransportException::CONNECTION);
             }
-        } catch (HomerException $e) {
+        } catch (TransportException $e) {
             throw $e;
         } catch (Throwable $e) {
-            throw new HomerException($e->getMessage(), $e);
+            if ($this->causedByTimeout($e)) {
+                $this->disconnect();
+
+                throw new TransportException('Receive timeout in '.$this->getTimeout().' ms.',
+                    TransportException::TIMEOUT, $e);
+            }
+
+            throw new TransportException($e->getMessage(), 0, $e);
         }
 
         return $data;

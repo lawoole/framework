@@ -42,6 +42,12 @@ class RouteServiceProvider extends ServiceProvider
                 continue;
             }
 
+            if (is_string($definition)) {
+                $definition = [
+                    'path' => $definition
+                ];
+            }
+
             $path = array_pull($definition, 'path');
 
             if ($namespace && !isset($definition['namespace'])) {

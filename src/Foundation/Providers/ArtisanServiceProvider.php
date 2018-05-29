@@ -30,6 +30,7 @@ use Illuminate\Queue\Console\WorkCommand as QueueWorkCommand;
 use Illuminate\Support\ServiceProvider;
 use Lawoole\Foundation\Console\DownCommand;
 use Lawoole\Foundation\Console\KeyGenerateCommand;
+use Lawoole\Foundation\Console\RouteListCommand;
 use Lawoole\Foundation\Console\UpCommand;
 use Lawoole\Foundation\Console\VersionCommand;
 use Lawoole\Foundation\Console\ViewClearCommand;
@@ -77,6 +78,7 @@ class ArtisanServiceProvider extends ServiceProvider
         'QueueFailed'      => 'command.queue.failed',
         'QueueFailedTable' => 'command.queue.failed-table',
         'QueueTable'       => 'command.queue.table',
+        'RouteList'        => 'command.route.list',
         'Seed'             => 'command.seed',
         'SeederMake'       => 'command.seeder.make',
         'ViewClear'        => 'command.view.clear',
@@ -362,6 +364,16 @@ class ArtisanServiceProvider extends ServiceProvider
     {
         $this->app->singleton('command.queue.work', function ($app) {
             return new QueueWorkCommand($app['queue.worker']);
+        });
+    }
+
+    /**
+     * 注册命令
+     */
+    protected function registerRouteListCommand()
+    {
+        $this->app->singleton('command.route.list', function ($app) {
+            return new RouteListCommand($app['router']);
         });
     }
 
