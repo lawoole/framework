@@ -3,11 +3,12 @@ namespace Lawoole\Foundation\Bootstrap;
 
 use Illuminate\Support\Facades\Facade;
 use Lawoole\Contracts\Foundation\Application;
+use Lawoole\Foundation\AliasLoader;
 
 class RegisterFacades
 {
     /**
-     * 初始化外观模块
+     * Set the application instance for facade.
      *
      * @param \Lawoole\Contracts\Foundation\Application $app
      */
@@ -16,5 +17,19 @@ class RegisterFacades
         Facade::clearResolvedInstances();
 
         Facade::setFacadeApplication($app);
+
+        $this->registerClassAliases($app);
+    }
+
+    /**
+     * Register all class aliases.
+     *
+     * @param \Lawoole\Contracts\Foundation\Application $app
+     */
+    protected function registerClassAliases(Application $app)
+    {
+        $aliases = $app->make('config')->get('app.aliases', []);
+
+        AliasLoader::getInstance($aliases)->register();
     }
 }
