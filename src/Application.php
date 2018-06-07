@@ -638,6 +638,26 @@ class Application extends Container implements ApplicationContract
     }
 
     /**
+     * 判断配置是否已缓存
+     *
+     * @return bool
+     */
+    public function configurationIsCached()
+    {
+        return false;
+    }
+
+    /**
+     * 判断路由是否已缓存
+     *
+     * @return bool
+     */
+    public function routesAreCached()
+    {
+        return false;
+    }
+
+    /**
      * 注册核心别名
      */
     public function registerCoreAliases()
