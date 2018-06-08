@@ -5,11 +5,8 @@ use BadMethodCallException;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
 use Lawoole\Contracts\Foundation\Application;
-use Lawoole\Homer\Invokers\ConcreteInvoker;
-use Lawoole\Homer\Invokers\RemoteInvoker;
-use Lawoole\Homer\Transport\Client;
-use Lawoole\Homer\Transport\Http\HttpClient;
-use Lawoole\Homer\Transport\Whisper\WhisperClient;
+use Lawoole\Homer\Components\ReferenceComponent;
+use Lawoole\Homer\Components\ServiceComponent;
 
 class HomerManager
 {
@@ -49,13 +46,6 @@ class HomerManager
     protected $dispatcher;
 
     /**
-     * 客户端对象
-     *
-     * @var \Lawoole\Homer\Transport\Client[]
-     */
-    protected $clients = [];
-
-    /**
      * 创建 Homer 管理对象
      *
      * @param \Lawoole\Contracts\Foundation\Application $app
@@ -64,9 +54,10 @@ class HomerManager
     public function __construct(Application $app, array $config = [])
     {
         $this->app = $app;
+        $this->config = $config;
+
         $this->context = $app['homer.context'];
         $this->dispatcher = $app['homer.dispatcher'];
-        $this->config = $config;
     }
 
     /**
@@ -96,103 +87,25 @@ class HomerManager
             return;
         }
 
-        foreach ($references as $reference) {
-            $this->resolveReference($reference);
-        }
-    }
+        $clientFactory = $this->app['homer.factory.client'];
 
-    /**
-     * 解析并注册引用
-     *
-     * @param array $config
-     */
-    protected function resolveReference(array $config)
-    {
-        $interface = $config['interface'];
+        foreach ($references as $config) {
+            if (!isset($config['client'])) {
+                $config['client'] = ['url' => $config['url']];
+            } elseif (is_string($config['client'])) {
+                $client = Arr::get($this->config, 'clients.'.$config['client']);
 
-        if (isset($config['client'])) {
-            $client = $this->getClient($this->config['clients.'.$config['client']]);
-        } else {
-            $client = $this->getClient(['url' => $config['url']]);
-        }
+                if ($client == null) {
+                    throw new InvalidArgumentException('Client '.$config['client'].' doesn\'t configured.');
+                }
 
-        $invoker = $this->createRemoteInvoker($client, $config['interface'], $config['options'] ?? []);
+                $config['client'] = $client;
+            }
 
-        $proxy = new Proxy($invoker);
-
-        $identify = $config['id'] ?? $interface;
-
-        $this->app->instance($identify, $proxy);
-    }
-
-    /**
-     * 创建远程调用器
-     *
-     * @param \Lawoole\Homer\Transport\Client $client
-     * @param $interface
-     * @param array $options
-     *
-     * @return \Lawoole\Homer\Invokers\RemoteInvoker
-     */
-    protected function createRemoteInvoker(Client $client, $interface, array $options = [])
-    {
-        return new RemoteInvoker($this->context, $client, $interface, $options);
-    }
-
-    /**
-     * 获得客户端
-     *
-     * @param array $config
-     *
-     * @return \Lawoole\Homer\Transport\Client
-     */
-    protected function getClient(array $config = [])
-    {
-        $url = Arr::pull($config, 'url');
-
-        $clientKey = $this->getClientKey($url, $config);
-
-        if (isset($this->clients[$clientKey])) {
-            return $this->clients[$clientKey];
-        }
-
-        return $this->clients[$clientKey] = $this->resolveClient($url, $config);
-    }
-
-    /**
-     * 获得客户端标识
-     *
-     * @param string $url
-     * @param array $options
-     *
-     * @return string
-     */
-    protected function getClientKey($url, array $options = [])
-    {
-        ksort($options);
-
-        return $url.'?'.http_build_query($options);
-    }
-
-    /**
-     * 创建客户端
-     *
-     * @param string $url
-     * @param array $options
-     *
-     * @return \Lawoole\Homer\Transport\Client
-     */
-    protected function resolveClient($url, array $options = [])
-    {
-        $urls = parse_url($url);
-
-        switch ($urls['scheme']) {
-            case 'homer':
-                return new HttpClient($urls['host'], $urls['port'], $options);
-            case 'whisper':
-                return new WhisperClient($urls['host'], $urls['port'], $options);
-            default:
-                throw new InvalidArgumentException('Protocol '.$urls['scheme'].' is not supported for Homer.');
+            (new ReferenceComponent($this->app, $config))
+                ->setContext($this->context)
+                ->setClientFactory($clientFactory)
+                ->refer();
         }
     }
 
@@ -207,38 +120,12 @@ class HomerManager
             return;
         }
 
-        foreach ($services as $service) {
-            $this->resolveService($service);
+        foreach ($services as $config) {
+            (new ServiceComponent($this->app, $config))
+                ->setContext($this->context)
+                ->setDispatcher($this->dispatcher)
+                ->export();
         }
-    }
-
-    /**
-     * 解析并注册服务
-     *
-     * @param array $config
-     */
-    protected function resolveService(array $config)
-    {
-        $interface = Arr::pull($config, 'interface');
-        $concrete = Arr::pull($config, 'refer') ?? $interface;
-
-        $invoker = new ConcreteInvoker($this->app, $interface, $concrete, $config);
-
-        $this->dispatcher->exportInvoker($invoker);
-    }
-
-    /**
-     * 创建实际调用器
-     *
-     * @param string $interface
-     * @param string|object|\Closure $concrete
-     * @param array $options
-     *
-     * @return \Lawoole\Homer\Invokers\ConcreteInvoker
-     */
-    protected function createConcreteInvoker($interface, $concrete, array $options = [])
-    {
-        return new ConcreteInvoker($this->app, $interface, $concrete, $options);
     }
 
     /**

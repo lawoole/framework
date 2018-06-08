@@ -24,6 +24,13 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     protected $app;
 
     /**
+     * 配置
+     *
+     * @var array
+     */
+    protected $config;
+
+    /**
      * 服务对象
      *
      * @var \Lawoole\Contracts\Server\Server
@@ -102,12 +109,13 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
         $this->app = $app;
         $this->output = $app['console.output'];
 
+        $this->config = $config;
         $this->host = $config['host'];
         $this->port = $config['port'];
 
         $options = $config['options'] ?? [];
 
-        $this->socketType = Arr::pull($options, 'options', function () {
+        $this->socketType = Arr::pull($options, 'socket_type', function () {
             return $this->getDefaultSocketType();
         });
 
@@ -122,6 +130,23 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     protected function getDefaultSocketType()
     {
         return SWOOLE_SOCK_TCP;
+    }
+
+    /**
+     * 获得配置
+     *
+     * @param string $name
+     * @param mixed $default
+     *
+     * @return mixed
+     */
+    public function getConfig($name = null, $default = null)
+    {
+        if ($name == null) {
+            return $this->config;
+        }
+
+        return $this->config[$name] ?? $default;
     }
 
     /**

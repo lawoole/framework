@@ -2,8 +2,10 @@
 namespace Lawoole\Homer\Transport\Http;
 
 use GuzzleHttp\Client as GuzzleHttpClient;
-use Lawoole\Homer\HomerException;
+use Illuminate\Support\Str;
 use Lawoole\Homer\Transport\Client;
+use Lawoole\Homer\Transport\TransportException;
+use Throwable;
 
 class HttpClient extends Client
 {
@@ -15,15 +17,13 @@ class HttpClient extends Client
     protected $client;
 
     /**
-     * 创建 Http 协议客户端
+     * 获得默认序列化方式
      *
-     * @param string $host
-     * @param int $port
-     * @param array $options
+     * @return string
      */
-    public function __construct($host, $port, array $options = [])
+    protected function getDefaultSerializer()
     {
-        parent::__construct($host, $port, $options);
+        return 'php';
     }
 
     /**
@@ -42,9 +42,8 @@ class HttpClient extends Client
     protected function doConnect()
     {
         $this->client = new GuzzleHttpClient([
-            'base_uri'        => "http://{$this->host}:{$this->port}/",
-            'timeout'         => $this->getTimeout(),
-            'connect_timeout' => $this->getConnectTimeout(),
+            'base_uri' => "http://{$this->getRemoteAddress()}/",
+            'timeout'  => $this->getTimeout() / 1000.0,
         ]);
     }
 
@@ -59,26 +58,51 @@ class HttpClient extends Client
     /**
      * 发送消息请求
      *
-     * @param mixed $message
+     * @param string $data
+     *
+     * @return string
+     */
+    protected function doRequest($data)
+    {
+        try {
+            $response = $this->client->request('POST', '', [
+                'expect' => false,
+                'body'   => $data
+            ]);
+
+            if ($response->getStatusCode() != 200) {
+                throw new TransportException($response->getBody()->getContents() ?: 'Http request failed, status: '
+                    .$response->getStatusCode(), TransportException::REMOTE);
+            }
+        } catch (TransportException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            if ($this->causedByConnectionProblem($e)) {
+                $this->disconnect();
+
+                throw new TransportException($e->getMessage(), TransportException::CONNECTION, $e);
+            }
+
+            throw new TransportException($e->getMessage(), 0, $e);
+        }
+
+        return $response->getBody()->getContents();
+    }
+
+    /**
+     * 判断异常是否由连接问题引发
+     *
+     * @param \Throwable $e
      *
      * @return mixed
      */
-    protected function doRequest($message)
+    protected function causedByConnectionProblem(Throwable $e)
     {
-        $body = serialize($message);
+        $message = $e->getMessage();
 
-        $response = $this->client->request('POST', '', [
-            'expect' => false,
-            'body'   => $body
+        return Str::contains($message, [
+            'error 6: Couldn\'t resolve host',
+            'error 7: couldn\'t connect to host',
         ]);
-
-        if ($response->getStatusCode() != 200) {
-            throw new HomerException($response->getBody()->getContents() ?: 'Http request failed, status'
-                .$response->getStatusCode());
-        }
-
-        $body = $response->getBody()->getContents();
-
-        return unserialize($body);
     }
 }

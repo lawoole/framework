@@ -2,44 +2,79 @@
 namespace Lawoole\Homer\Transport;
 
 use Illuminate\Support\Facades\Log;
+use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Homer\HomerException;
 use Throwable;
 
 abstract class Client
 {
     /**
-     * 服务器主机地址
+     * 服务容器
      *
-     * @var string
+     * @var \Lawoole\Contracts\Foundation\Application
      */
-    protected $host;
+    protected $app;
 
     /**
-     * 服务器端口
-     *
-     * @var int
-     */
-    protected $port;
-
-    /**
-     * 选项
+     * 配置
      *
      * @var array
      */
-    protected $options;
+    protected $config;
+
+    /**
+     * 序列化工具
+     *
+     * @var \Lawoole\Homer\Serialization\Serializers\Serializer
+     */
+    protected $serializer;
 
     /**
      * 创建客户端
      *
-     * @param string $host
-     * @param int $port
-     * @param array $options
+     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param array $config
      */
-    public function __construct($host, $port, array $options = [])
+    public function __construct(Application $app, array $config = [])
     {
-        $this->host = $host;
-        $this->port = $port;
-        $this->options = $options;
+        $this->app = $app;
+        $this->config = $config;
+
+        $this->serializer = $this->createSerializer();
+    }
+
+    /**
+     * 创建序列化工具
+     *
+     * @return \Lawoole\Homer\Serialization\Serializers\Serializer
+     */
+    protected function createSerializer()
+    {
+        $factory = $this->app['homer.factory.serializer'];
+
+        return $factory->getSerializer(
+            $config['serializer'] ?? $this->getDefaultSerializer()
+        );
+    }
+
+    /**
+     * 获得远端主机名
+     *
+     * @return string
+     */
+    public function getHost()
+    {
+        return $this->config['host'];
+    }
+
+    /**
+     * 获得远端端口
+     *
+     * @return int
+     */
+    public function getPort()
+    {
+        return $this->config['port'];
     }
 
     /**
@@ -49,27 +84,37 @@ abstract class Client
      */
     public function getRemoteAddress()
     {
-        return $this->host.':'.$this->port;
+        return "{$this->config['host']}:{$this->config['port']}";
     }
 
     /**
-     * 获得请求超时
+     * 获得序列化工具
+     *
+     * @return \Lawoole\Homer\Serialization\Serializers\Serializer
+     */
+    public function getSerializer()
+    {
+        return $this->serializer;
+    }
+
+    /**
+     * 获得超时
      *
      * @return int
      */
     public function getTimeout()
     {
-        return $this->options['timeout'] ?? 3000;
+        return $this->options['timeout'] ?? 5000;
     }
 
     /**
-     * 获得连接超时
+     * 获得连接失败重试次数
      *
      * @return int
      */
-    public function getConnectTimeout()
+    public function getRetryTimes()
     {
-        return $this->options['connect_timeout'] ?? 3000;
+        return $this->options['retry_times'] ?? 0;
     }
 
     /**
@@ -85,20 +130,30 @@ abstract class Client
             $this->doConnect();
 
             if (!$this->isConnected()) {
-                throw new HomerException('Failed to connect to server '.$this->getRemoteAddress()
-                    .', cause: Connect wait timeout in '.$this->getConnectTimeout().' ms.');
+                $this->disconnect();
+
+                throw new TransportException('Failed to connect to server '.$this->getRemoteAddress()
+                    .', cause: Connect timeout '.$this->getTimeout().' ms.', 11);
             }
 
-            Log::info('Connect to server '.$this->getRemoteAddress().' from '.class_basename($this));
-        } catch (HomerException $e) {
+            Log::channel('homer')->info('Connect to server '.$this->getRemoteAddress().' from '.class_basename($this));
+        } catch (TransportException $e) {
+            $this->disconnect();
+
+            Log::channel('homer')->warning($e->getMessage(), [
+                'exception' => $e
+            ]);
+
             throw $e;
         } catch (Throwable $e) {
+            $this->disconnect();
+
             Log::channel('homer')->warning('Failed to connect to server '.$this->getRemoteAddress(), [
                 'exception' => $e
             ]);
 
-            throw new HomerException('Failed to connect to server '.$this->host.':'.$this->port.', cause: '
-                .$e->getMessage());
+            throw new TransportException('Failed to connect to server '.$this->getRemoteAddress().', cause: '
+                .$e->getMessage(), 0, $e);
         }
     }
 
@@ -110,7 +165,7 @@ abstract class Client
         try {
             $this->doDisconnect();
         } catch (Throwable $e) {
-            Log::warning($e->getMessage(), [
+            Log::channel('homer')->warning($e->getMessage(), [
                 'exception' => $e
             ]);
         }
@@ -137,8 +192,26 @@ abstract class Client
     {
         $this->reconnectIfLostConnection();
 
+        $retryTimes = $this->getRetryTimes();
+
         try {
-            return $this->doRequest($message);
+            $body = $this->serializer->serialize($message);
+
+            do {
+                try {
+                    $data = $this->doRequest($body);
+
+                    break;
+                } catch (TransportException $e) {
+                    if ($e->isConnection() && $retryTimes-- > 0) {
+                        continue;
+                    }
+
+                    throw $e;
+                }
+            } while ($retryTimes > 0);
+
+            return $this->serializer->unserialize($data);
         } catch (HomerException $e) {
             $this->disconnect();
 
@@ -150,7 +223,7 @@ abstract class Client
                 'exception' => $e
             ]);
 
-            throw new HomerException('Send rpc request failed, cause: '.$e->getMessage(), $e);
+            throw new TransportException('Send rpc request failed, cause: '.$e->getMessage(), 0, $e);
         }
     }
 
@@ -165,6 +238,13 @@ abstract class Client
 
         $this->reconnect();
     }
+
+    /**
+     * 获得默认序列化方式
+     *
+     * @return string
+     */
+    abstract protected function getDefaultSerializer();
 
     /**
      * 是否已经连接到服务器
@@ -186,9 +266,9 @@ abstract class Client
     /**
      * 发送消息请求
      *
-     * @param mixed $message
+     * @param string $data
      *
-     * @return mixed
+     * @return string
      */
-    abstract protected function doRequest($message);
+    abstract protected function doRequest($data);
 }

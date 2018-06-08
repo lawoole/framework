@@ -10,6 +10,7 @@ use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Router;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Validation\ValidationException;
 use Psr\Log\LoggerInterface;
@@ -113,7 +114,7 @@ class Handler implements ExceptionHandlerContract
     public function render($request, Exception $e)
     {
         if (method_exists($e, 'render') && $response = $e->render($request)) {
-            return $response;
+            return Router::toResponse($request, $response);
         } elseif ($e instanceof Responsable) {
             return $e->toResponse($request);
         }

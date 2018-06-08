@@ -66,7 +66,7 @@ class Proxy
             $reflection = new ReflectionClass($this->interface);
 
             if (!$reflection->isInterface()) {
-                throw new HomerException("{$this->interface} must be an interface.");
+                throw new I("{$this->interface} must be an interface.");
             }
 
             $this->methods = $this->getMethods($reflection);
