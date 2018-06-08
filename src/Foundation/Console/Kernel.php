@@ -1,43 +1,14 @@
 <?php
 namespace Lawoole\Foundation\Console;
 
-use Exception;
-use Illuminate\Console\Application as Artisan;
 use Illuminate\Contracts\Console\Kernel as KernelContract;
-use Illuminate\Contracts\Debug\ExceptionHandler;
-use Illuminate\Events\Dispatcher;
-use Lawoole\Application;
-use RuntimeException;
+use Illuminate\Foundation\Console\Kernel as BaseKernel;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Debug\Exception\FatalThrowableError;
-use Throwable;
 
-class Kernel implements KernelContract
+class Kernel extends BaseKernel implements KernelContract
 {
     /**
-     * 服务容器
-     *
-     * @var \Lawoole\Application
-     */
-    protected $app;
-
-    /**
-     * 事件分发器
-     *
-     * @var \Illuminate\Contracts\Events\Dispatcher
-     */
-    protected $events;
-
-    /**
-     * 控制台应用实例
-     *
-     * @var \Illuminate\Console\Application
-     */
-    protected $artisan;
-
-    /**
-     * 初始化过程集合
+     * The bootstrap classes for the application.
      *
      * @var array
      */
@@ -51,170 +22,24 @@ class Kernel implements KernelContract
     ];
 
     /**
-     * 创建 Console 处理核心
-     *
-     * @param \Lawoole\Application $app
-     * @param \Illuminate\Events\Dispatcher $events
+     * {@inheritdoc}
      */
-    public function __construct(Application $app, Dispatcher $events)
+    protected function defineConsoleSchedule()
     {
-        $this->app = $app;
-        $this->events = $events;
+        $this->schedule($this->app['schedule']);
     }
 
     /**
-     * 初始化处理核心
-     */
-    public function bootstrap()
-    {
-        $this->app->bootstrapWith($this->bootstrappers);
-    }
-
-    /**
-     * 共享输入输出流
-     *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     */
-    protected function shareInputAndOutput($input, $output = null)
-    {
-        $output = $output ?: new ConsoleOutput;
-
-        $this->app->instance('console.input', $input);
-        $this->app->instance('console.output', $output);
-    }
-
-    /**
-     * 处理 Console 请求
-     *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     *
-     * @return int
-     *
-     * @throws \Exception
+     * {@inheritdoc}
      */
     public function handle($input, $output = null)
     {
-        try {
-            $this->shareInputAndOutput($input, $output);
+        $output = $output ?: new ConsoleOutput;
 
-            $this->bootstrap();
+        // Share the input and the output, so that we can get them anywhere easily.
+        $this->app->instance('console.input', $input);
+        $this->app->instance('console.output', $output);
 
-            return $this->getArtisan()->run($input, $output);
-        } catch (Exception $e) {
-            return $this->handleException($e, $output);
-        } catch (Throwable $e) {
-            return $this->handleException(new FatalThrowableError($e), $output);
-        }
-    }
-
-    /**
-     * 调用控制台命令
-     *
-     * @param string $command
-     * @param array $parameters
-     * @param \Symfony\Component\Console\Output\OutputInterface $outputBuffer
-     *
-     * @return int
-     */
-    public function call($command, array $parameters = [], $outputBuffer = null)
-    {
-        $this->bootstrap();
-
-        return $this->getArtisan()->call($command, $parameters, $outputBuffer);
-    }
-
-    /**
-     * 将命令加入执行队列
-     *
-     * @param string $command
-     * @param array $parameters
-     *
-     * @return mixed
-     */
-    public function queue($command, array $parameters = [])
-    {
-        // 这个功能暂不支持
-        throw new RuntimeException('Queueing commands is not supported');
-    }
-
-    /**
-     * 获得所有已注册的命令
-     *
-     * @return array
-     */
-    public function all()
-    {
-        $this->bootstrap();
-
-        return $this->getArtisan()->all();
-    }
-
-    /**
-     * 获得最后执行命令的输出
-     *
-     * @return string
-     */
-    public function output()
-    {
-        $this->bootstrap();
-
-        return $this->getArtisan()->output();
-    }
-
-    /**
-     * 设置控制台应用实例
-     *
-     * @param \Illuminate\Console\Application $artisan
-     */
-    public function setArtisan($artisan)
-    {
-        $this->artisan = $artisan;
-    }
-
-    /**
-     * 获得控制台应用实例
-     *
-     * @return \Illuminate\Console\Application
-     */
-    protected function getArtisan()
-    {
-        if ($this->artisan == null) {
-            $this->artisan = new Artisan($this->app, $this->events, $this->app->version());
-            $this->artisan->setName($this->app->name());
-        }
-
-        return $this->artisan;
-    }
-
-    /**
-     * 终止请求处理
-     *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @param int $status
-     */
-    public function terminate($input, $status)
-    {
-        $this->app->terminate();
-    }
-
-    /**
-     * 处理异常
-     *
-     * @param \Exception $e
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     *
-     * @return int
-     */
-    protected function handleException(Exception $e, OutputInterface $output)
-    {
-        $handler = $this->app->make(ExceptionHandler::class);
-
-        $handler->report($e);
-
-        $handler->renderForConsole($output, $e);
-
-        return 1;
+        parent::handle($input, $output);
     }
 }
