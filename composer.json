@@ -1,6 +1,6 @@
 {
     "name": "lawoole/framework",
-    "description": "A fast framework with Laravel components based on Swoole.",
+    "description": "A fast framework based  Laravel on components and Swoole.",
     "keywords": ["framework", "swoole", "laravel", "lawoole"],
     "license": "MIT",
     "homepage": "https://github.com/lawoole/framework",
