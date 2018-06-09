@@ -7,15 +7,11 @@ use Illuminate\Support\Fluent;
 class MySqlGrammar extends LaravelMySqlGrammar
 {
     /**
-     * 创建 datetime 列定义
-     *
-     * @param \Illuminate\Support\Fluent $column
-     *
-     * @return string
+     * {@inheritdoc}
      */
     protected function typeDateTime(Fluent $column)
     {
-        $definition = $column->precision ? "datetime($column->precision)" : 'datetime';
+        $definition = parent::typeDateTime($column);
 
         if ($column->useCurrent) {
             $definition = "$definition default CURRENT_TIMESTAMP";
@@ -29,15 +25,11 @@ class MySqlGrammar extends LaravelMySqlGrammar
     }
 
     /**
-     * 创建 timestamp 列定义
-     *
-     * @param \Illuminate\Support\Fluent $column
-     *
-     * @return string
+     * {@inheritdoc}
      */
     protected function typeTimestamp(Fluent $column)
     {
-        $definition = $column->precision ? "timestamp($column->precision)" : 'timestamp';
+        $definition = parent::typeTimestamp($column);
 
         if ($column->useCurrent) {
             $definition = "$definition default CURRENT_TIMESTAMP";

@@ -7,15 +7,11 @@ use Illuminate\Support\Fluent;
 class SqlServerGrammar extends LaravelSqlServerGrammar
 {
     /**
-     * 创建不带时区的 datetime 列定义
-     *
-     * @param \Illuminate\Support\Fluent $column
-     *
-     * @return string
+     * {@inheritdoc}
      */
     protected function typeDateTime(Fluent $column)
     {
-        $definition = $column->precision ? "datetime2($column->precision)" : 'datetime';
+        $definition = parent::typeDateTime($column);
 
         if ($column->useCurrent) {
             $definition = "$definition default CURRENT_TIMESTAMP";
@@ -25,15 +21,11 @@ class SqlServerGrammar extends LaravelSqlServerGrammar
     }
 
     /**
-     * 创建带时区的 datetime 列定义
-     *
-     * @param \Illuminate\Support\Fluent $column
-     *
-     * @return string
+     * {@inheritdoc}
      */
     protected function typeDateTimeTz(Fluent $column)
     {
-        $definition = $column->precision ? "datetimeoffset($column->precision)" : 'datetimeoffset';
+        $definition = parent::typeDateTimeTz($column);
 
         if ($column->useCurrent) {
             $definition = "$definition default CURRENT_TIMESTAMP";
@@ -43,15 +35,11 @@ class SqlServerGrammar extends LaravelSqlServerGrammar
     }
 
     /**
-     * 创建不带时区的 timestamp 列定义
-     *
-     * @param \Illuminate\Support\Fluent $column
-     *
-     * @return string
+     * {@inheritdoc}
      */
     protected function typeTimestamp(Fluent $column)
     {
-        $definition = $column->precision ? "datetime2($column->precision)" : 'datetime';
+        $definition = parent::typeTimestamp($column);
 
         if ($column->useCurrent) {
             $definition = "$definition default CURRENT_TIMESTAMP";
@@ -61,17 +49,11 @@ class SqlServerGrammar extends LaravelSqlServerGrammar
     }
 
     /**
-     * 创建带时区的 timestamp 列定义
-     *
-     * @link https://msdn.microsoft.com/en-us/library/bb630289(v=sql.120).aspx
-     *
-     * @param \Illuminate\Support\Fluent $column
-     *
-     * @return string
+     * {@inheritdoc}
      */
     protected function typeTimestampTz(Fluent $column)
     {
-        $definition = $column->precision ? "datetimeoffset($column->precision)" : 'datetimeoffset';
+        $definition = parent::typeTimestampTz($column);
 
         if ($column->useCurrent) {
             $definition = "$definition default CURRENT_TIMESTAMP";

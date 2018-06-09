@@ -41,6 +41,14 @@ class Application extends BaseApplication implements ApplicationContract
     /**
      * {@inheritdoc}
      */
+    public function environmentPath()
+    {
+        return $this->environmentPath ?: $this->configPath('environment');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function registerConfiguredProviders()
     {
         $providers = $this['config']['app.providers'];
@@ -58,7 +66,6 @@ class Application extends BaseApplication implements ApplicationContract
      */
     public function configurationIsCached()
     {
-        // Configurations will never be cached.
         return false;
     }
 
@@ -67,7 +74,6 @@ class Application extends BaseApplication implements ApplicationContract
      */
     public function routesAreCached()
     {
-        // Routes will never be cached.
         return false;
     }
 
@@ -95,5 +101,4 @@ class Application extends BaseApplication implements ApplicationContract
             }
         }
     }
-
 }

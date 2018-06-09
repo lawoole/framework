@@ -3,59 +3,50 @@ namespace Lawoole\Foundation\Bootstrap;
 
 use Closure;
 use Illuminate\Config\Repository;
-use Lawoole\Contracts\Foundation\Application;
+use Illuminate\Contracts\Config\Repository as RepositoryContract;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Foundation\Bootstrap\LoadConfiguration as BaseLoadConfigurations;
 use Symfony\Component\Finder\Finder;
 
-class LoadConfigurations
+class LoadConfigurations extends BaseLoadConfigurations
 {
     /**
-     * 加载配置文件
-     *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * {@inheritdoc}
      */
     public function bootstrap(Application $app)
     {
-        // 实例化配置对象
-        $app->instance('config', $repository = new Repository);
+        // We will spin through all of the configuration files in the configuration
+        // directory and load each one into the repository. This will make all of the
+        // options available to the developer for use in various parts of this app.
+        $app->instance('config', $config = new Repository);
 
-        // 载入配置
-        $this->loadConfigurations($app, $repository);
+        $this->loadConfigurationFiles($app, $config);
 
-        // 载入环境配置文件
-        $this->loadEnvironmentConfigurations($app, $repository);
+        $this->loadEnvironmentConfigurations($app, $config);
 
-        // 根据配置设置时区
-        date_default_timezone_set($repository->get('app.timezone', 'PRC'));
+        // Next, we will set the application's environment based on the configuration
+        // values that were loaded. We will pass a callback which will be used to get
+        // the environment in a web context where an "--env" switch is not present.
+        $app->detectEnvironment(function () use ($config) {
+            return $config->get('app.env', 'production');
+        });
+
+        date_default_timezone_set($config->get('app.timezone', 'UTC'));
 
         mb_internal_encoding('UTF-8');
     }
 
     /**
-     * 载入配置文件
+     * Load the environment configuration items.
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
-     * @param \Illuminate\Config\Repository $repository
+     * @param \Illuminate\Contracts\Foundation\Application $app
+     * @param \Illuminate\Contracts\Config\Repository $repository
      */
-    public function loadConfigurations($app, Repository $repository)
+    public function loadEnvironmentConfigurations($app, RepositoryContract $repository)
     {
-        $files = $this->getConfigurationFiles($app->configPath());
+        $configPath = realpath($app->environmentPath());
 
-        foreach ($files as $scope => $path) {
-            $repository->set($scope, require $path);
-        }
-    }
-
-    /**
-     * 载入环境配置文件
-     *
-     * @param \Lawoole\Application $app
-     * @param \Illuminate\Config\Repository $repository
-     */
-    public function loadEnvironmentConfigurations($app, Repository $repository)
-    {
-        $files = $this->getConfigurationFiles(
-            $repository->get('config.environment', $app->configPath('environment'))
-        );
+        $files = $this->getConfigurationFilesInPath($configPath);
 
         foreach ($files as $scope => $path) {
             $items = require $path;
@@ -63,25 +54,38 @@ class LoadConfigurations
             foreach ($items as $key => $value) {
                 $key = "{$scope}.{$key}";
 
-                // 支持闭包形式定义环境配置，更好的实现配置的灵活性
+                // We can use a Closure as the value, and it will be called with
+                // the default configuration item. It useful for replace configurations
+                // defined as array or other complex form.
                 if ($value instanceof Closure) {
                     $value = $value($repository->get($key), $app);
                 }
 
-                // 可以根据环境配置中键名的改变，替换指定深度的配置
+                // We can specify a deep-level configuration item using the dot in key,
+                // and just to change the item.
                 $repository->set($key, $value);
             }
         }
     }
 
     /**
-     * 获得指定目录中配置文件的集合
+     * {@inheritdoc}
+     */
+    protected function getConfigurationFiles(Application $app)
+    {
+        $configPath = realpath($app->configPath());
+
+        return $this->getConfigurationFilesInPath($configPath);
+    }
+
+    /**
+     * Get all of the configuration files in the given directory.
      *
-     * @param string $configPath
+     * @param $configPath
      *
      * @return array
      */
-    protected function getConfigurationFiles($configPath)
+    protected function getConfigurationFilesInPath($configPath)
     {
         $files = [];
 

@@ -7,15 +7,11 @@ use Illuminate\Support\Fluent;
 class PostgresGrammar extends LaravelPostgresGrammar
 {
     /**
-     * 创建不带时区的 datetime 列定义
-     *
-     * @param \Illuminate\Support\Fluent $column
-     *
-     * @return string
+     * {@inheritdoc}
      */
     protected function typeDateTime(Fluent $column)
     {
-        $definition = "timestamp($column->precision) without time zone";
+        $definition = parent::typeDateTime($column);
 
         if ($column->useCurrent) {
             $definition = "$definition default CURRENT_TIMESTAMP";
@@ -25,15 +21,11 @@ class PostgresGrammar extends LaravelPostgresGrammar
     }
 
     /**
-     * 创建带时区的 datetime 列定义
-     *
-     * @param \Illuminate\Support\Fluent $column
-     *
-     * @return string
+     * {@inheritdoc}
      */
     protected function typeDateTimeTz(Fluent $column)
     {
-        $definition = "timestamp($column->precision) with time zone";
+        $definition = parent::typeDateTimeTz($column);
 
         if ($column->useCurrent) {
             $definition = "$definition default CURRENT_TIMESTAMP";
@@ -43,15 +35,11 @@ class PostgresGrammar extends LaravelPostgresGrammar
     }
 
     /**
-     * 创建不带时区的 timestamp 列定义
-     *
-     * @param \Illuminate\Support\Fluent $column
-     *
-     * @return string
+     * {@inheritdoc}
      */
     protected function typeTimestamp(Fluent $column)
     {
-        $definition = "timestamp($column->precision) without time zone";
+        $definition = parent::typeTimestamp($column);
 
         if ($column->useCurrent) {
             $definition = "$definition default CURRENT_TIMESTAMP";
@@ -61,15 +49,11 @@ class PostgresGrammar extends LaravelPostgresGrammar
     }
 
     /**
-     * 创建带时区的 timestamp 列定义
-     *
-     * @param \Illuminate\Support\Fluent $column
-     *
-     * @return string
+     * {@inheritdoc}
      */
     protected function typeTimestampTz(Fluent $column)
     {
-        $definition = "timestamp($column->precision) with time zone";
+        $definition = parent::typeTimestampTz($column);
 
         if ($column->useCurrent) {
             $definition = "$definition default CURRENT_TIMESTAMP";

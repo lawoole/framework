@@ -7,14 +7,16 @@ use Illuminate\Support\Fluent;
 class SQLiteGrammar extends LaravelSQLiteGrammar
 {
     /**
-     * 创建 datetime 列定义
-     *
-     * @param \Illuminate\Support\Fluent $column
-     *
-     * @return string
+     * {@inheritdoc}
      */
     protected function typeDateTime(Fluent $column)
     {
-        return $column->useCurrent ? 'datetime default CURRENT_TIMESTAMP' : 'datetime';
+        $definition = parent::typeDateTime($column);
+
+        if ($column->useCurrent) {
+            $definition = "$definition default CURRENT_TIMESTAMP";
+        }
+
+        return $definition;
     }
 }

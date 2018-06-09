@@ -2,20 +2,19 @@
 namespace Lawoole\Support\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Lawoole\Console\OutputStyle;
 
 /**
- * @mixin \Lawoole\Console\OutputStyle
+ * @mixin \Illuminate\Console\Command
  */
-class Output extends Facade
+class Command extends Facade
 {
     /**
-     * 获得容器注册名
+     * Get the registered name of the component.
      *
      * @return string
      */
     protected static function getFacadeAccessor()
     {
-        return OutputStyle::class;
+        return 'console.command';
     }
 }
