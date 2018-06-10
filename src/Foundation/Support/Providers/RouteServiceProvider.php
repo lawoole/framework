@@ -1,6 +1,7 @@
 <?php
 namespace Lawoole\Foundation\Support\Providers;
 
+use Closure;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as BaseServiceProvider;
 
@@ -17,34 +18,79 @@ class RouteServiceProvider extends BaseServiceProvider
             return;
         }
 
-        $namespace = $this->app['config']['http.namespace'];
+        $router = $this->app['router'];
 
-        foreach ($routes as $definition) {
-            if ($definition instanceof Closure) {
-                // 如果是个闭包，直接执行
-                call_user_func($definition, $router);
+        $namespace = $this->getNamespace();
+
+        foreach ($routes as $route) {
+            if ($route instanceof Closure) {
+                // We can defined routes with a Closure.
+                call_user_func($route, $router);
 
                 continue;
             }
 
-            if (is_string($definition)) {
-                $definition = [
-                    'path' => $definition
-                ];
+            $attributes = $this->normalizeRouteAttributes($route);
+
+            $filePath = array_pull($attributes, 'path');
+
+            if ($namespace) {
+                $attributes['namespace'] = $this->getGroupRouteNamespace($namespace, $attributes);
             }
 
-            $path = array_pull($definition, 'path');
-
-            if ($namespace && !isset($definition['namespace'])) {
-                $definition['namespace'] = $namespace;
-            }
-
-            if (file_exists($path)) {
-                $router->group($definition, function ($router) use ($path) {
-                    include $path;
+            if (file_exists($filePath)) {
+                $router->group($attributes, function ($router) use ($filePath) {
+                    include $filePath;
                 });
             }
         }
+    }
+
+    /**
+     * Normalize the route attributes.
+     *
+     * @param array|string $route
+     *
+     * @return array
+     */
+    protected function normalizeRouteAttributes($route)
+    {
+        if (is_string($route)) {
+            return ['path' => $route];
+        }
+
+        return $route;
+    }
+
+    /**
+     * Get the route group's namespace.
+     *
+     * @param string $namespace
+     * @param array $attributes
+     *
+     * @return string
+     */
+    protected function getGroupRouteNamespace($namespace, $attributes)
+    {
+        if (!isset($attributes['namespace'])) {
+            return $namespace;
+        } elseif (strpos($attributes['namespace'], '\\') !== 0) {
+            return $namespace.'\\'.$attributes['namespace'];
+        }
+
+        return $attributes['namespace'];
+    }
+
+    /**
+     * Get the root controllers' root namespace.
+     *
+     * @return string
+     */
+    protected function getNamespace()
+    {
+        // We can set the root controller namespace in the configuration by 'http.namespace'.
+        // So that, we can configure the route without overwrite this ServiceProvider.
+        return $this->namespace !== null ? $this->namespace : $this->app['config']['http.namespace'];
     }
 
     /**
@@ -52,13 +98,7 @@ class RouteServiceProvider extends BaseServiceProvider
      */
     protected function setRootControllerNamespace()
     {
-        if ($this->namespace !== null) {
-            return $this->app[UrlGenerator::class]->setRootControllerNamespace($this->namespace);
-        }
-
-        // We can set the root controller namespace in the configuration by 'http.namespace'.
-        // So that, we can configure the route without overwrite this ServiceProvider.
-        if ($namespace = $this->app['config']['http.namespace']) {
+        if ($namespace = $this->getNamespace()) {
             return $this->app[UrlGenerator::class]->setRootControllerNamespace($namespace);
         }
     }

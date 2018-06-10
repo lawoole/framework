@@ -8,7 +8,7 @@ use InvalidArgumentException;
 class ScheduleServiceProvider extends ServiceProvider
 {
     /**
-     * 注册服务
+     * {@inheritdoc}
      */
     public function register()
     {
@@ -18,7 +18,7 @@ class ScheduleServiceProvider extends ServiceProvider
     }
 
     /**
-     * 启动服务
+     * {@inheritdoc}
      */
     public function boot()
     {
@@ -26,7 +26,7 @@ class ScheduleServiceProvider extends ServiceProvider
     }
 
     /**
-     * 载入定时任务定义
+     * Load the schedule tasks.
      *
      * @param \Illuminate\Console\Scheduling\Schedule $schedule
      */
@@ -48,7 +48,7 @@ class ScheduleServiceProvider extends ServiceProvider
     }
 
     /**
-     * 定义定时命令
+     * Define schedule command.
      *
      * @param \Illuminate\Console\Scheduling\Schedule $schedule
      * @param array $definition
@@ -63,7 +63,7 @@ class ScheduleServiceProvider extends ServiceProvider
     }
 
     /**
-     * 定义定时回调
+     * Define schedule callback.
      *
      * @param \Illuminate\Console\Scheduling\Schedule $schedule
      * @param array $definition
@@ -78,7 +78,7 @@ class ScheduleServiceProvider extends ServiceProvider
     }
 
     /**
-     * 定义定时脚本
+     * Define schedule script.
      *
      * @param \Illuminate\Console\Scheduling\Schedule $schedule
      * @param array $definition
@@ -93,7 +93,7 @@ class ScheduleServiceProvider extends ServiceProvider
     }
 
     /**
-     * 定义定时任务
+     * Define schedule job.
      *
      * @param \Illuminate\Console\Scheduling\Schedule $schedule
      * @param array $definition
@@ -108,7 +108,7 @@ class ScheduleServiceProvider extends ServiceProvider
     }
 
     /**
-     * 配置定时任务
+     * Configure the schedule event.
      *
      * @param \Illuminate\Console\Scheduling\Event $event
      * @param array $definition
@@ -117,6 +117,14 @@ class ScheduleServiceProvider extends ServiceProvider
     {
         if (isset($definition['cron'])) {
             $event->cron($definition['cron']);
+        }
+
+        if (isset($definition['singleton']) && $definition['singleton']) {
+            $event->onOneServer();
+        }
+
+        if (isset($definition['mutex']) && $definition['mutex']) {
+            $event->withoutOverlapping();
         }
     }
 }
