@@ -6,14 +6,14 @@ use Illuminate\Console\Command;
 class VersionCommand extends Command
 {
     /**
-     * 命令名
+     * The console command name.
      *
      * @var string
      */
     protected $name = 'version';
 
     /**
-     * 命令描述
+     * The console command description.
      *
      * @var string
      */
@@ -24,8 +24,6 @@ class VersionCommand extends Command
      */
     public function handle()
     {
-        $version = $this->laravel->version();
-
-        $this->info($version);
+        $this->info("{$this->laravel->name()} {$this->laravel->version()}");
     }
 }

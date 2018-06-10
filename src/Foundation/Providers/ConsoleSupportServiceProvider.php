@@ -2,12 +2,13 @@
 namespace Lawoole\Foundation\Providers;
 
 use Illuminate\Database\MigrationServiceProvider;
-use Illuminate\Support\AggregateServiceProvider;
+use Illuminate\Foundation\Providers\ComposerServiceProvider;
+use Illuminate\Foundation\Providers\ConsoleSupportServiceProvider as BaseServiceProvider;
 
-class ConsoleServiceProvider extends AggregateServiceProvider
+class ConsoleSupportServiceProvider extends BaseServiceProvider
 {
     /**
-     * 服务提供者集合
+     * The provider class names.
      *
      * @var array
      */

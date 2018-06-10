@@ -2,7 +2,6 @@
 namespace Lawoole\Foundation\Bootstrap;
 
 use Closure;
-use Illuminate\Config\Repository;
 use Illuminate\Contracts\Config\Repository as RepositoryContract;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\Bootstrap\LoadConfiguration as BaseLoadConfigurations;
@@ -13,27 +12,11 @@ class LoadConfigurations extends BaseLoadConfigurations
     /**
      * {@inheritdoc}
      */
-    public function bootstrap(Application $app)
+    protected function loadConfigurationFiles(Application $app, RepositoryContract $repository)
     {
-        // We will spin through all of the configuration files in the configuration
-        // directory and load each one into the repository. This will make all of the
-        // options available to the developer for use in various parts of this app.
-        $app->instance('config', $config = new Repository);
+        parent::loadConfigurationFiles($app, $repository);
 
-        $this->loadConfigurationFiles($app, $config);
-
-        $this->loadEnvironmentConfigurations($app, $config);
-
-        // Next, we will set the application's environment based on the configuration
-        // values that were loaded. We will pass a callback which will be used to get
-        // the environment in a web context where an "--env" switch is not present.
-        $app->detectEnvironment(function () use ($config) {
-            return $config->get('app.env', 'production');
-        });
-
-        date_default_timezone_set($config->get('app.timezone', 'UTC'));
-
-        mb_internal_encoding('UTF-8');
+        $this->loadEnvironmentConfigurations($app, $repository);
     }
 
     /**

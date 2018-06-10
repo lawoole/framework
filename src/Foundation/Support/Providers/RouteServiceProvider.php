@@ -1,33 +1,18 @@
 <?php
-namespace Lawoole\Foundation\Providers;
+namespace Lawoole\Foundation\Support\Providers;
 
-use Closure;
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Contracts\Routing\UrlGenerator;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider as BaseServiceProvider;
 
-class RouteServiceProvider extends ServiceProvider
+class RouteServiceProvider extends BaseServiceProvider
 {
     /**
-     * 启动服务
+     * {@inheritdoc}
      */
-    public function boot()
+    protected function loadRoutes()
     {
-        $this->setRootControllerNamespace();
+        parent::loadRoutes();
 
-        $this->loadRoutes($this->app['router']);
-
-        $this->app->booted(function () {
-            $this->app['router']->getRoutes()->refreshNameLookups();
-            $this->app['router']->getRoutes()->refreshActionLookups();
-        });
-    }
-
-    /**
-     * 载入路由规则
-     *
-     * @param \Illuminate\Routing\Router $router
-     */
-    protected function loadRoutes($router)
-    {
         if (($routes = $this->app['config']['http.routes']) == null) {
             return;
         }
@@ -63,12 +48,18 @@ class RouteServiceProvider extends ServiceProvider
     }
 
     /**
-     * 设置控制器根命名空间
+     * {@inheritdoc}
      */
     protected function setRootControllerNamespace()
     {
+        if ($this->namespace !== null) {
+            return $this->app[UrlGenerator::class]->setRootControllerNamespace($this->namespace);
+        }
+
+        // We can set the root controller namespace in the configuration by 'http.namespace'.
+        // So that, we can configure the route without overwrite this ServiceProvider.
         if ($namespace = $this->app['config']['http.namespace']) {
-            $this->app['url']->setRootControllerNamespace($namespace);
+            return $this->app[UrlGenerator::class]->setRootControllerNamespace($namespace);
         }
     }
 }
