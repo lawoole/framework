@@ -16,7 +16,6 @@
     ],
     "require": {
         "php": ">=7.1.3",
-        "ext-swoole": ">=1.10.1",
         "laravel/framework": "5.6.*"
     },
     "require-dev": {
@@ -28,7 +27,7 @@
             "Lawoole\\": "src/"
         },
         "files": [
-            "src/helpers.php"
+            "src/Foundation/helpers.php"
         ]
     },
     "autoload-dev": {

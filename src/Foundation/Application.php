@@ -41,9 +41,29 @@ class Application extends BaseApplication implements ApplicationContract
     /**
      * {@inheritdoc}
      */
+    protected function bindPathsInContainer()
+    {
+        parent::bindPathsInContainer();
+
+        $this->instance('path.route', $this->routePath());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function environmentPath()
     {
         return $this->environmentPath ?: $this->configPath('environment');
+    }
+
+    /**
+     * Get the path to the route files.
+     *
+     * @return string
+     */
+    public function routePath()
+    {
+        return $this->basePath.DIRECTORY_SEPARATOR.'routes';
     }
 
     /**
