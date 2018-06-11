@@ -11,7 +11,7 @@ interface Stream extends Closeable, Seekable
     public function getSize();
 
     /**
-     * Returns whether the stream is writable.
+     * Return whether the stream is writable.
      *
      * @return bool
      */
@@ -27,7 +27,7 @@ interface Stream extends Closeable, Seekable
     public function write($string);
 
     /**
-     * Returns whether the stream is readable.
+     * Return whether the stream is readable.
      *
      * @return bool
      */
@@ -43,7 +43,7 @@ interface Stream extends Closeable, Seekable
     public function read($length);
 
     /**
-     * Returns the remaining contents of the stream as a string.
+     * Return the remaining contents of the stream as a string.
      *
      * @return string
      */

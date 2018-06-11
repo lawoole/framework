@@ -4,28 +4,28 @@ namespace Lawoole\Contracts\Server;
 interface ServerSocket
 {
     /**
-     * 获得服务对象
+     * Get the server.
      *
      * @return \Lawoole\Contracts\Server\Server
      */
     public function getServer();
 
     /**
-     * 获得 Swoole 端口对象
+     * Get the Swoole port instance.
      *
      * @return \Swoole\Server\Port
      */
     public function getSwoolePort();
 
     /**
-     * 判断是否已经绑定到服务
+     * Return whether the ServerSocket has been bound to a server.
      *
      * @return bool
      */
     public function isBound();
 
     /**
-     * 获得所有当前连接的迭代器
+     * Get an iterator for all connected connections in the ServerSocket.
      *
      * @return \Iterator
      */

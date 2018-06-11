@@ -1,12 +1,12 @@
 <?php
-namespace Lawoole\Support;
+namespace Lawoole\Snowflake;
 
 use Illuminate\Support\ServiceProvider;
 
 class SnowflakeServiceProvider extends ServiceProvider
 {
     /**
-     * 注册服务
+     * Register the service provider.
      */
     public function register()
     {
@@ -16,7 +16,7 @@ class SnowflakeServiceProvider extends ServiceProvider
     }
 
     /**
-     * 获得提供的服务名
+     * Get the services provided by the provider.
      *
      * @return array
      */

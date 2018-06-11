@@ -1,73 +1,80 @@
 <?php
-namespace Lawoole\Support;
+namespace Lawoole\Snowflake;
+
+use Lawoole\Contracts\Snowflake\Snowflake as SnowflakeContract;
 
 /**
  * 00000000000000000000000000000000 | 00000 | 00000 | 00000000000 | 00000000000
  * -------- Time in second -------- | - M - | - R - | - Process - | --- Inc ---
  */
-class Snowflake
+class Snowflake implements SnowflakeContract
 {
     /**
-     * 最后生成时间
+     * The timestamp base number.
      *
      * @var int
      */
-    protected $lastSecond = 0;
+    const BASE_TIME = 1262275200;
 
     /**
-     * 常量掩码
+     * Last generate time.
+     *
+     * @var int
+     */
+    protected $lastTimestamp = 0;
+
+    /**
+     * Constants mask.
      *
      * @var int
      */
     protected $mask;
 
     /**
-     * 机器编码
+     * The machine id.
      *
      * @var int
      */
     protected $machineId = 0;
 
     /**
-     * 随机码
+     * The random id.
      *
      * @var int
      */
     protected $randomId = 0;
 
     /**
-     * 进程编码
+     * The process id.
      *
      * @var int
      */
     protected $processId = 0;
 
     /**
-     * 自增计数
+     * The sequence.
      *
      * @var int
      */
     protected $sequence = 0;
 
     /**
-     * 创建雪花生成器
+     * Create a snowflake id generator.
      */
     public function __construct()
     {
-        // 设置机器码
         if (function_exists('swoole_get_local_mac')) {
+            // We set the machine id by local machine mac address if possible.
             $this->setMachineId(crc32(serialize(swoole_get_local_mac())));
         }
 
-        // 设置进程码
         $this->setProcessId(getmypid());
 
-        // 设置随机码
         $this->setRandomId(random_int(0, 0x1f));
     }
 
     /**
-     * 更新常量掩码
+     * Update the constants mask.
      */
     protected function updateMask()
     {
@@ -75,7 +82,7 @@ class Snowflake
     }
 
     /**
-     * 设置机器编码
+     * Set the machine id.
      *
      * @param int $machineId
      */
@@ -85,7 +92,7 @@ class Snowflake
     }
 
     /**
-     * 设置随机码
+     * Set the random id.
      *
      * @param int $randomId
      */
@@ -95,7 +102,7 @@ class Snowflake
     }
 
     /**
-     * 设置进程编码
+     * Set the process id.
      *
      * @param int $processId
      */
@@ -105,27 +112,27 @@ class Snowflake
     }
 
     /**
-     * 生成唯一编码
+     * Generate a new snowflake id.
      *
      * @return string
      */
-    public function generate()
+    public function nextId()
     {
-        // 时间戳
-        $timestamp = time();
+        $timestamp = time() - static::BASE_TIME;
 
-        // 自增数
-        if ($this->lastSecond == $timestamp) {
+        if ($this->lastTimestamp >= $timestamp) {
+            $timestamp = $this->lastTimestamp;
+
             $sequence = ++ $this->sequence;
 
             if ($sequence > 0x7ff) {
-                $this->lastSecond = ++ $timestamp;
+                $this->lastTimestamp = ++ $timestamp;
 
-                // 重置自增
                 $sequence = $this->sequence = 0;
             }
         } else {
-            $this->lastSecond = $timestamp;
+            $this->lastTimestamp = $timestamp;
+
             $sequence = $this->sequence = 0;
         }
 

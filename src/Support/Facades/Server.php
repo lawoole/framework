@@ -6,22 +6,12 @@ use Illuminate\Support\Facades\Facade;
 class Server extends Facade
 {
     /**
-     * 获得服务名
+     * Get the registered name of the component.
      *
      * @return string
      */
     protected static function getFacadeAccessor()
     {
         return 'server';
-    }
-
-    /**
-     * 判断是否运行在 Swoole 中
-     *
-     * @return bool
-     */
-    public static function inSwoole()
-    {
-        return static::$app->bound('server.swoole');
     }
 }

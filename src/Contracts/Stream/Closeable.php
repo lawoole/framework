@@ -4,7 +4,7 @@ namespace Lawoole\Contracts\Stream;
 interface Closeable
 {
     /**
-     * Returns whether the stream is closed.
+     * Return whether the stream is closed.
      *
      * @return bool
      */

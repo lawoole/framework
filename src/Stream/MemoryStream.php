@@ -33,7 +33,7 @@ class MemoryStream extends Stream implements StreamContract
     }
 
     /**
-     * Returns whether the stream is seekable.
+     * Return whether the stream is seekable.
      *
      * @return bool
      */
@@ -43,7 +43,7 @@ class MemoryStream extends Stream implements StreamContract
     }
 
     /**
-     * Returns whether the pointer is at the end of the stream.
+     * Return whether the pointer is at the end of the stream.
      *
      * @return bool
      */
@@ -53,7 +53,7 @@ class MemoryStream extends Stream implements StreamContract
     }
 
     /**
-     * Returns the current position of the read/write pointer.
+     * Return the current position of the read/write pointer.
      *
      * @return int|bool
      */
@@ -108,7 +108,7 @@ class MemoryStream extends Stream implements StreamContract
     }
 
     /**
-     * Returns whether the stream is writable.
+     * Return whether the stream is writable.
      *
      * @return bool
      */
@@ -136,7 +136,7 @@ class MemoryStream extends Stream implements StreamContract
     }
 
     /**
-     * Returns whether the stream is readable.
+     * Return whether the stream is readable.
      *
      * @return bool
      */
@@ -158,7 +158,7 @@ class MemoryStream extends Stream implements StreamContract
     }
 
     /**
-     * Returns the remaining contents of the stream as a string.
+     * Return the remaining contents of the stream as a string.
      *
      * @return string
      */

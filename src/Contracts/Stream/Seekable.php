@@ -4,21 +4,21 @@ namespace Lawoole\Contracts\Stream;
 interface Seekable
 {
     /**
-     * Returns whether the stream is seekable.
+     * Return whether the stream is seekable.
      *
      * @return bool
      */
     public function isSeekable();
 
     /**
-     * Returns whether the pointer is at the end of the stream.
+     * Return whether the pointer is at the end of the stream.
      *
      * @return bool
      */
     public function eof();
 
     /**
-     * Returns the current position of the read/write pointer.
+     * Return the current position of the read/write pointer.
      *
      * @return int|bool
      */

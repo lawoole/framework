@@ -4,45 +4,45 @@ namespace Lawoole\Contracts\Server;
 interface Server
 {
     /**
-     * 获得 Swoole 服务对象
+     * Get the Swoole server instance.
      *
      * @return \Swoole\Server
      */
     public function getSwooleServer();
 
     /**
-     * 添加监听定义
+     * Add a port listening.
      *
      * @param \Lawoole\Contracts\Server\ServerSocket $serverSocket
      */
     public function listen(ServerSocket $serverSocket);
 
     /**
-     * 添加子进程
+     * Add a child process.
      *
      * @param \Lawoole\Contracts\Server\Process $process
      */
     public function fork(Process $process);
 
     /**
-     * 判断服务是否正在运行
+     * Return whether the server is running.
      *
      * @return bool
      */
-    public function isServing();
+    public function isRunning();
 
     /**
-     * 启动服务
+     * Start the server.
      */
-    public function serve();
+    public function start();
 
     /**
-     * 停止服务
+     * Shutdown the server.
      */
     public function shutdown();
 
     /**
-     * 获得所有当前连接的迭代器
+     * Get an iterator for all connected connections.
      *
      * @return \Iterator
      */

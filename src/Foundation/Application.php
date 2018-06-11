@@ -115,6 +115,7 @@ class Application extends BaseApplication implements ApplicationContract
              'schedule'         => [\Illuminate\Console\Scheduling\Schedule::class],
              'server'           => [\Lawoole\Contracts\Server\Server::class, \Lawoole\Server\ServerManager::class],
              'server.swoole'    => [\Swoole\Server::class],
+             'snowflake'        => [\Lawoole\Contracts\Snowflake\Snowflake::class, \Lawoole\Snowflake\Snowflake::class],
         ] as $key => $aliases) {
             foreach ($aliases as $alias) {
                 $this->alias($key, $alias);

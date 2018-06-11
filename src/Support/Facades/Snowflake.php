@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Facade;
 class Snowflake extends Facade
 {
     /**
-     * 获得服务名
+     * Get the registered name of the component.
      *
      * @return string
      */

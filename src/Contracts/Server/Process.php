@@ -4,14 +4,14 @@ namespace Lawoole\Contracts\Server;
 interface Process
 {
     /**
-     * 获得 Swoole 进程对象
+     * Get the Swoole process instance.
      *
      * @return \Swoole\Process
      */
     public function getSwooleProcess();
 
     /**
-     * 退出进程
+     * Quit the process.
      *
      * @param int $status
      */

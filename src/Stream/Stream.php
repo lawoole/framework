@@ -13,7 +13,7 @@ abstract class Stream implements StreamContract
     protected $closed = false;
 
     /**
-     * Returns whether the stream is closed.
+     * Return whether the stream is closed.
      *
      * @return bool
      */
