@@ -1,14 +1,13 @@
 <?php
 namespace Lawoole\Stream;
 
-use Lawoole\Contracts\Stream\InputStream;
-use Lawoole\Contracts\Stream\OutputStream;
+use Lawoole\Contracts\Stream\Stream as StreamContract;
 use RuntimeException;
 
-class MemoryStream implements InputStream, OutputStream
+class MemoryStream extends Stream implements StreamContract
 {
     /**
-     * 流资源
+     * The memory stream.
      *
      * @var resource
      */
@@ -22,7 +21,7 @@ class MemoryStream implements InputStream, OutputStream
     protected $length;
 
     /**
-     * 创建内存流
+     * Create a memory stream.
      */
     public function __construct()
     {
@@ -41,30 +40,6 @@ class MemoryStream implements InputStream, OutputStream
         if ($this->resource == null) {
             throw new RuntimeException('Cannot use the stream cause it had been closed.');
         }
-    }
-
-    /**
-     * 判断是否已经读取到流的末尾
-     *
-     * @return bool
-     */
-    public function eof()
-    {
-        $this->check();
-
-        return ftell($this->resource) >= $this->length;
-    }
-
-    /**
-     * 获得当前流的指针位置
-     *
-     * @return int
-     */
-    public function tell()
-    {
-        $this->check();
-
-        return ftell($this->resource);
     }
 
     /**
@@ -112,17 +87,140 @@ class MemoryStream implements InputStream, OutputStream
     }
 
     /**
-     * 立即刷写流中的数据
+     * Returns whether the stream is seekable.
+     *
+     * @return bool
      */
-    public function flush()
+    public function isSeekable()
     {
+        return true;
     }
 
     /**
-     * 关闭流并释放与之相关的系统资源
+     * Returns whether the pointer is at the end of the stream.
+     *
+     * @return bool
+     */
+    public function eof()
+    {
+        return $this->resource && ftell($this->resource) >= $this->length;
+    }
+
+    /**
+     * Returns the current position of the read/write pointer.
+     *
+     * @return int|bool
+     */
+    public function tell()
+    {
+        // TODO: Implement tell() method.
+    }
+
+    /**
+     * Seek to a position in the stream.
+     *
+     * @param int $offset Stream offset.
+     * @param int $whence Specifies how the cursor position will be calculated.
+     *
+     * @return bool
+     */
+    public function seek($offset, $whence = SEEK_SET)
+    {
+        // TODO: Implement seek() method.
+    }
+
+    /**
+     * Rewind the read/write pointer to the head of the stream.
+     *
+     * @return bool
+     */
+    public function rewind()
+    {
+        // TODO: Implement rewind() method.
+    }
+
+    /**
+     * Get the size of the stream if available.
+     *
+     * @return int|null
+     */
+    public function getSize()
+    {
+        // TODO: Implement getSize() method.
+    }
+
+    /**
+     * Returns whether the stream is writable.
+     *
+     * @return bool
+     */
+    public function isWritable()
+    {
+        // TODO: Implement isWritable() method.
+    }
+
+    /**
+     * Write data to the stream.
+     *
+     * @param string $string The string that is to be written.
+     *
+     * @return int|bool
+     */
+    public function write($string)
+    {
+        // TODO: Implement write() method.
+    }
+
+    /**
+     * Returns whether the stream is readable.
+     *
+     * @return bool
+     */
+    public function isReadable()
+    {
+        // TODO: Implement isReadable() method.
+    }
+
+    /**
+     * Read data from the stream.
+     *
+     * @param int $length Length for the data to be read.
+     *
+     * @return string|bool
+     */
+    public function read($length)
+    {
+        // TODO: Implement read() method.
+    }
+
+    /**
+     * Returns the remaining contents of the stream as a string.
+     *
+     * @return string
+     */
+    public function getContents()
+    {
+        // TODO: Implement getContents() method.
+    }
+
+    /**
+     * Attempts to seek to the beginning of the stream and reads all data into
+     * a string until the end of the stream is reached.
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        // TODO: Implement __toString() method.
+    }
+
+    /**
+     * Closes the stream and any underlying resources.
      */
     public function close()
     {
+        parent::close();
+
         if ($this->resource) {
             fclose($this->resource);
 
@@ -132,10 +230,12 @@ class MemoryStream implements InputStream, OutputStream
     }
 
     /**
-     * 释放流
+     * Destroy the memory stream.
      */
     public function __destruct()
     {
-        $this->close();
+        if (!$this->isClosed()) {
+            $this->close();
+        }
     }
 }
