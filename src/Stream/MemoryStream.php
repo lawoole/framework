@@ -11,79 +11,25 @@ class MemoryStream extends Stream implements StreamContract
      *
      * @var resource
      */
-    protected $resource;
+    protected $stream;
 
     /**
-     * 数据总长度
+     * The size of stream.
      *
      * @var int
      */
-    protected $length;
+    protected $size = 0;
 
     /**
      * Create a memory stream.
      */
     public function __construct()
     {
-        $this->resource = @fopen('php://memory', 'w+');
+        $this->stream = @fopen('php://memory', 'w+');
 
-        if ($this->resource == false) {
+        if ($this->stream == false) {
             throw new RuntimeException('Cannot open the php://memory stream.');
         }
-    }
-
-    /**
-     * 检查流是否已经关闭
-     */
-    protected function check()
-    {
-        if ($this->resource == null) {
-            throw new RuntimeException('Cannot use the stream cause it had been closed.');
-        }
-    }
-
-    /**
-     * 重置流指针到流的开始
-     */
-    public function rewind()
-    {
-        $this->check();
-
-        return rewind($this->resource);
-    }
-
-    /**
-     * 从流中读取指定长度的字数据
-     *
-     * @param int $length
-     *
-     * @return string
-     */
-    public function read($length)
-    {
-        $this->check();
-
-        return fread($this->resource, $length);
-    }
-
-    /**
-     * 向流中写入数据
-     *
-     * @param string $string
-     *
-     * @return int
-     */
-    public function write($string)
-    {
-        $this->check();
-
-        $position = ftell($this->resource);
-
-        $length = fwrite($this->resource, $string);
-
-        $this->length = max($this->length, $position + $length);
-
-        return $length;
     }
 
     /**
@@ -103,7 +49,7 @@ class MemoryStream extends Stream implements StreamContract
      */
     public function eof()
     {
-        return $this->resource && ftell($this->resource) >= $this->length;
+        return !$this->stream || feof($this->stream);
     }
 
     /**
@@ -113,7 +59,7 @@ class MemoryStream extends Stream implements StreamContract
      */
     public function tell()
     {
-        // TODO: Implement tell() method.
+        return $this->stream ? ftell($this->stream) : false;
     }
 
     /**
@@ -126,7 +72,7 @@ class MemoryStream extends Stream implements StreamContract
      */
     public function seek($offset, $whence = SEEK_SET)
     {
-        // TODO: Implement seek() method.
+        return $this->stream && fseek($this->stream, $offset, $whence) === 0;
     }
 
     /**
@@ -136,7 +82,7 @@ class MemoryStream extends Stream implements StreamContract
      */
     public function rewind()
     {
-        // TODO: Implement rewind() method.
+        return $this->stream && rewind($this->stream);
     }
 
     /**
@@ -146,7 +92,19 @@ class MemoryStream extends Stream implements StreamContract
      */
     public function getSize()
     {
-        // TODO: Implement getSize() method.
+        if ($this->size !== null) {
+            return $this->size;
+        }
+
+        $stats = fstat($this->stream);
+
+        if (isset($stats['size'])) {
+            $this->size = $stats['size'];
+
+            return $this->size;
+        }
+
+        return null;
     }
 
     /**
@@ -156,7 +114,7 @@ class MemoryStream extends Stream implements StreamContract
      */
     public function isWritable()
     {
-        // TODO: Implement isWritable() method.
+        return true;
     }
 
     /**
@@ -168,7 +126,13 @@ class MemoryStream extends Stream implements StreamContract
      */
     public function write($string)
     {
-        // TODO: Implement write() method.
+        if ($this->stream == null) {
+            return false;
+        }
+
+        $this->size = null;
+
+        return fwrite($this->stream, $string);
     }
 
     /**
@@ -178,7 +142,7 @@ class MemoryStream extends Stream implements StreamContract
      */
     public function isReadable()
     {
-        // TODO: Implement isReadable() method.
+        return true;
     }
 
     /**
@@ -190,7 +154,7 @@ class MemoryStream extends Stream implements StreamContract
      */
     public function read($length)
     {
-        // TODO: Implement read() method.
+        return $this->stream ? fread($this->stream, $length) : false;
     }
 
     /**
@@ -200,7 +164,7 @@ class MemoryStream extends Stream implements StreamContract
      */
     public function getContents()
     {
-        // TODO: Implement getContents() method.
+        return $this->stream ? (string) stream_get_contents($this->stream) : '';
     }
 
     /**
@@ -211,7 +175,13 @@ class MemoryStream extends Stream implements StreamContract
      */
     public function __toString()
     {
-        // TODO: Implement __toString() method.
+        if ($this->stream == null) {
+            return '';
+        }
+
+        $this->seek(0);
+
+        return (string) stream_get_contents($this->stream);
     }
 
     /**
@@ -221,11 +191,11 @@ class MemoryStream extends Stream implements StreamContract
     {
         parent::close();
 
-        if ($this->resource) {
-            fclose($this->resource);
+        if ($this->stream) {
+            fclose($this->stream);
 
-            $this->resource = null;
-            $this->length = 0;
+            $this->stream = null;
+            $this->size = 0;
         }
     }
 
