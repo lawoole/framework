@@ -1,5 +1,5 @@
 <?php
-namespace Lawoole\Contracts\Rpc;
+namespace Lawoole\Contracts\Homer;
 
 use Lawoole\Contracts\Support\Attachable;
 

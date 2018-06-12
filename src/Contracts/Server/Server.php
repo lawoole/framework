@@ -33,11 +33,15 @@ interface Server
 
     /**
      * Start the server.
+     *
+     * @return bool
      */
     public function start();
 
     /**
      * Shutdown the server.
+     *
+     * @return bool
      */
     public function shutdown();
 

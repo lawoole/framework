@@ -1,12 +1,12 @@
 <?php
-namespace Lawoole\Contracts\Rpc;
+namespace Lawoole\Contracts\Homer;
 
 interface Homer
 {
     /**
      * Get the context of current invoking.
      *
-     * @return \Lawoole\Contracts\Rpc\Context
+     * @return \Lawoole\Contracts\Homer\Context
      */
     public function getContext();
 }

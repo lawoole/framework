@@ -9,7 +9,7 @@ use Lawoole\Server\Commands\StartCommand;
 class ServerServiceProvider extends ServiceProvider
 {
     /**
-     * Server 命令
+     * The commands to be registered.
      *
      * @var array
      */
@@ -20,24 +20,25 @@ class ServerServiceProvider extends ServiceProvider
     ];
 
     /**
-     * 注册服务
+     * Register the service provider.
      */
     public function register()
     {
-        $this->app->singleton('server.manager', function ($app) {
-            $config = $app->make('config')->get('server');
-
-            $driver = $config['driver'] ?? 'tcp';
-
-            return new ServerManager($app, $driver, $config);
+        $this->app->singleton('server.factory', function ($app) {
+            return new ServerFactory($app);
         });
 
+        // By default, the server factory creates a server instance based on the
+        // 'server' configuration. We can easily get it through the IoC container
+        // or the server facade.
         $this->app->singleton('server', function ($app) {
-            return $app->make('server.manager')->server();
+            return $app['server.factory']->make($app['config']['server']);
         });
 
+        // We can get a Swoole server instance from server, this allows us to easily
+        // perform in-depth operations.
         $this->app->singleton('server.swoole', function ($app) {
-            return $app->make('server')->getSwooleServer();
+            return $app['server']->getSwooleServer();
         });
 
         $this->registerCommands($this->commands);
@@ -58,7 +59,7 @@ class ServerServiceProvider extends ServiceProvider
     }
 
     /**
-     * 注册命令
+     * Register the command.
      */
     protected function registerServerStartCommand()
     {
@@ -68,7 +69,7 @@ class ServerServiceProvider extends ServiceProvider
     }
 
     /**
-     * 注册命令
+     * Register the command.
      */
     protected function registerServerShutdownCommand()
     {
@@ -78,7 +79,7 @@ class ServerServiceProvider extends ServiceProvider
     }
 
     /**
-     * 注册命令
+     * Register the command.
      */
     protected function registerServerReloadCommand()
     {
