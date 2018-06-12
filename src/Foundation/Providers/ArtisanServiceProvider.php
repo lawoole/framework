@@ -27,8 +27,6 @@ class ArtisanServiceProvider extends BaseServiceProvider
 
     /**
      * Register the command.
-     *
-     * @return void
      */
     protected function registerVersionCommand()
     {
