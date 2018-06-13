@@ -40,7 +40,7 @@ class ScheduleServiceProvider extends ServiceProvider
             $type = $definition['type'] ?? 'command';
 
             if (!method_exists($this, $method = 'define'.ucfirst($type).'Schedule')) {
-                throw new InvalidArgumentException("Schedule [{$type}] is not support");
+                throw new InvalidArgumentException("Schedule [{$type}] is not support.");
             }
 
             $this->$method($schedule, $definition);

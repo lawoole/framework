@@ -1,9 +1,11 @@
 <?php
 namespace Lawoole\Server;
 
-use Lawoole\Contracts\Server\Factory;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
+use Lawoole\Contracts\Server\Factory as FactoryContract;
 
-class ServerFactory implements Factory
+class ServerFactory implements FactoryContract
 {
     /**
      * The application instance.
@@ -31,6 +33,45 @@ class ServerFactory implements Factory
      */
     public function make(array $config)
     {
-        // TODO: Implement make() method.
+        $driver = $this->getDriver($config);
+
+        if (method_exists($this, $method = 'create'.Str::studly($driver).'Driver')) {
+            return $this->$method($config);
+        }
+
+        throw new InvalidArgumentException("Driver [{$driver}] is not supported.");
+    }
+
+    /**
+     * Get the driver type of the server.
+     *
+     * @param array $config
+     *
+     * @return string
+     */
+    protected function getDriver(array $config)
+    {
+        return $config['driver'] ?? 'tcp';
+    }
+
+    protected function createTcpDriver(array $config)
+    {
+
+    }
+
+    protected function createHttpDriver(array $config)
+    {
+
+    }
+
+    protected function createWebsocketDriver(array $config)
+    {
+
+    }
+
+
+    protected function getDefaultServerSocket(array $config)
+    {
+
     }
 }

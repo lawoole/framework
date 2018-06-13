@@ -25,7 +25,7 @@ interface ServerSocket
     public function isBound();
 
     /**
-     * Get an iterator for all connected connections in the ServerSocket.
+     * Get an iterator for all connected connections in the server socket.
      *
      * @return \Iterator
      */

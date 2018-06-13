@@ -2,9 +2,8 @@
 namespace Lawoole\Server\ServerSockets;
 
 use EmptyIterator;
-use Illuminate\Support\Arr;
+use Illuminate\Contracts\Foundation\Application;
 use IteratorAggregate;
-use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Contracts\Server\ServerSocket as ServerSocketContract;
 use Lawoole\Server\Concerns\DispatchEvents;
 use Lawoole\Server\Server;
@@ -17,70 +16,49 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     use DispatchEvents;
 
     /**
-     * 服务容器
+     * The application instance.
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Illuminate\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
-     * 配置
-     *
-     * @var array
-     */
-    protected $config;
-
-    /**
-     * 服务对象
+     * The server instance.
      *
      * @var \Lawoole\Contracts\Server\Server
      */
     protected $server;
 
     /**
-     * 监听地址
+     * The event handler.
      *
-     * @var string
-     */
-    protected $host;
-
-    /**
-     * 监听端口
-     *
-     * @var int
-     */
-    protected $port;
-
-    /**
-     * Socket 类型
-     *
-     * @var int
-     */
-    protected $socketType;
-
-    /**
-     * 事件处理器
-     *
-     * @var \Lawoole\Server\ServerSockets\ServerSocketHandler
+     * @var mixed
      */
     protected $handler;
 
     /**
-     * 控制台输出
+     * The output for console.
      *
      * @var \Symfony\Component\Console\Output\OutputInterface
      */
     protected $output;
 
     /**
-     * Swoole 端口对象
+     * The Swoole port instance.
      *
      * @var \Swoole\Server\Port
      */
     protected $swoolePort;
 
     /**
-     * 配置选项
+     * The server socket configurations.
+     *
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * The server socket options.
      *
      * @var array
      */
@@ -90,7 +68,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     ];
 
     /**
-     * 可用事件回调
+     * The array of available commands.
      *
      * @var array
      */
@@ -99,31 +77,73 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     ];
 
     /**
-     * 创建服务 Socket 对象
+     * Create a new server socket instance.
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Illuminate\Contracts\Foundation\Application $app
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @param array $config
      */
-    public function __construct(Application $app, array $config)
+    public function __construct(Application $app, OutputInterface $output, array $config)
     {
         $this->app = $app;
-        $this->output = $app['console.output'];
-
+        $this->output = $output;
         $this->config = $config;
-        $this->host = $config['host'];
-        $this->port = $config['port'];
 
-        $options = $config['options'] ?? [];
-
-        $this->socketType = Arr::pull($options, 'socket_type', function () {
-            return $this->getDefaultSocketType();
-        });
-
-        $this->setOptions($options);
+        $this->setOptions($config['options'] ?? []);
     }
 
     /**
-     * 获得默认的 Socket 类型
+     * Get the host.
+     *
+     * @return string
+     */
+    public function getHost()
+    {
+        return $this->config['port'] ?? $this->getDefaultHost();
+    }
+
+    /**
+     * Get default host for listening.
+     *
+     * @return string
+     */
+    protected function getDefaultHost()
+    {
+        return 'localhost';
+    }
+
+    /**
+     * Get the port number.
+     *
+     * @return int
+     */
+    public function getPort()
+    {
+        return $this->config['port'] ?? $this->getDefaultPort();
+    }
+
+    /**
+     * Get default port number for listening.
+     *
+     * @return int
+     */
+    protected function getDefaultPort()
+    {
+        return 6029;
+    }
+
+    /**
+     * Get the socket type for this server socket.
+     *
+     * @return int
+     */
+    public function getSocketType()
+    {
+        return $this->config['sock_type'] ?? $this->getDefaultSocketType();
+    }
+
+    /**
+     * Get default socket type for this server socket.
      *
      * @return int
      */
@@ -133,54 +153,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 获得配置
-     *
-     * @param string $name
-     * @param mixed $default
-     *
-     * @return mixed
-     */
-    public function getConfig($name = null, $default = null)
-    {
-        if ($name == null) {
-            return $this->config;
-        }
-
-        return $this->config[$name] ?? $default;
-    }
-
-    /**
-     * 获得监听地址
-     *
-     * @return string
-     */
-    public function getHost()
-    {
-        return $this->host;
-    }
-
-    /**
-     * 获得监听端口
-     *
-     * @return int
-     */
-    public function getPort()
-    {
-        return $this->port;
-    }
-
-    /**
-     * 获得 Socket 类型
-     *
-     * @return int
-     */
-    public function getSocketType()
-    {
-        return $this->socketType;
-    }
-
-    /**
-     * 获得服务对象
+     * Get the server.
      *
      * @return \Lawoole\Contracts\Server\Server
      */
@@ -190,7 +163,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 获得 Swoole 端口对象
+     * Get the Swoole port instance.
      *
      * @return \Swoole\Server\Port
      */
@@ -200,46 +173,73 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 设置配置选项
+     * Set the server socket options.
      *
      * @param array $options
      */
     public function setOptions(array $options)
     {
-        if ($this->server && $this->server->isServing()) {
-            throw new LogicException('Options cannot be set while the server is serving');
+        if ($this->server && $this->server->isRunning()) {
+            throw new LogicException('Options cannot be set while the server is running.');
         }
 
         $this->options = array_diff_key($this->options, $options) + $options;
 
-        // 如果已经绑定到服务，则同时更改 Swoole 端口对象的配置
         if ($this->swoolePort != null) {
             $this->swoolePort->set($this->options);
         }
     }
 
     /**
-     * 获得配置选项
+     * Get all server socket options.
      *
      * @return array
      */
     public function getOptions()
     {
-        return $this->options;
+        return $this->swoolePort ? $this->swoolePort->setting : $this->options;
     }
 
     /**
-     * 设置控制台输出
+     * Set the event handler.
+     *
+     * @param mixed $handler
+     *
+     * @return $this
+     */
+    public function setEventHandler($handler)
+    {
+        $this->handler = $handler;
+
+        return $this;
+    }
+
+    /**
+     * Get the event handler.
+     *
+     * @return mixed
+     */
+    public function getEventHandler()
+    {
+        return $this->handler;
+    }
+
+    /**
+     * Set the output for console.
      *
      * @param \Symfony\Component\Console\Output\OutputInterface $output
+     *
+     * @return $this
      */
     public function setOutput(OutputInterface $output)
     {
         $this->output = $output;
+
+        return $this;
     }
 
     /**
-     * 获得控制台输出
+     * Get the output for console.
      *
      * @return \Symfony\Component\Console\Output\OutputInterface
      */
@@ -249,7 +249,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 监听服务对象
+     * Bind the server socket to a server instance.
      *
      * @param \Lawoole\Server\Server $server
      * @param \Swoole\Server\Port $swoolePort
@@ -257,14 +257,14 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     public function listen(Server $server, Port $swoolePort = null)
     {
         if ($this->isBound()) {
-            throw new LogicException('ServerSocket can be bound to server only once.');
+            throw new LogicException('The server socket can be bound to server only once.');
         }
 
         if ($swoolePort == null) {
-            // 如果传入空的 Swoole 端口对象，则调用服务的监听方法以产生端口对象
-            $server->listen($this);
-
-            return;
+            // If the passed Swoole port is null, that means we are calling this
+            // method directly, so here we need to call the server method "listen"
+            // to do the actual binding.
+            return $server->listen($this);
         }
 
         $this->server = $server;
@@ -278,7 +278,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 判断是否已经绑定到服务
+     * Return whether the server socket has been bound to a server.
      *
      * @return bool
      */
@@ -288,7 +288,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 暴露服务 Socket
+     * Export the server socket and start to handle connection.
      */
     public function export()
     {
@@ -296,13 +296,13 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 获得所有当前连接的迭代器
+     * Get an iterator for all connected connections in the server socket.
      *
      * @return \Iterator
      */
     public function getConnectionIterator()
     {
-        if ($this->isBound() && $this->server->isServing()) {
+        if ($this->isBound() && $this->server->isRunning()) {
             return $this->swoolePort->connections;
         }
 
@@ -310,7 +310,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 获得当前服务所有连接的迭代器
+     * Get an iterator for all connected connections in the server socket.
      *
      * @return \Iterator
      */
@@ -320,27 +320,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 设置处理器
-     *
-     * @param \Lawoole\Server\ServerSockets\ServerSocketHandler
-     */
-    public function setHandler(ServerSocketHandler $handler)
-    {
-        $this->handler = $handler;
-    }
-
-    /**
-     * 获得处理器
-     *
-     * @return \Lawoole\Server\ServerSockets\ServerSocketHandler
-     */
-    public function getHandler()
-    {
-        return $this->handler;
-    }
-
-    /**
-     * 注册事件回调
+     * Register all event callbacks.
      *
      * @param array $events
      */
@@ -352,7 +332,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 注册事件回调
+     * Register all event callbacks.
      */
     protected function registerConnectCallback()
     {
@@ -362,7 +342,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerCloseCallback()
     {
@@ -372,7 +352,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerReceiveCallback()
     {
@@ -382,7 +362,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerPacketCallback()
     {
@@ -392,7 +372,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerBufferFullCallback()
     {
@@ -402,7 +382,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerBufferEmptyCallback()
     {

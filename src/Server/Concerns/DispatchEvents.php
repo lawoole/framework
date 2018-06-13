@@ -9,21 +9,28 @@ use Throwable;
 trait DispatchEvents
 {
     /**
-     * 服务容器
+     * The application instance.
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Illuminate\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
-     * 事件处理器
+     * The event handler.
      *
      * @var mixed
      */
     protected $handler;
 
     /**
-     * 分发事件
+     * The output for console.
+     *
+     * @var \Symfony\Component\Console\Output\OutputInterface
+     */
+    protected $output;
+
+    /**
+     * Dispatch the event to the handler.
      *
      * @param string $event
      * @param array $arguments
@@ -36,7 +43,7 @@ trait DispatchEvents
 
         try {
             if (method_exists($this->handler, $method = "on{$event}")) {
-                call_user_func_array([$this->handler, $method], $arguments);
+                $this->handler->$method(...$arguments);
             }
         } catch (Exception $e) {
             $this->handleException($e);
@@ -46,7 +53,7 @@ trait DispatchEvents
     }
 
     /**
-     * 处理异常
+     * Handle the exception with the exception handler.
      *
      * @param \Exception $e
      */

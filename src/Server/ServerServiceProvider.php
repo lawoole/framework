@@ -2,9 +2,10 @@
 namespace Lawoole\Server;
 
 use Illuminate\Support\ServiceProvider;
-use Lawoole\Server\Commands\ReloadCommand;
-use Lawoole\Server\Commands\ShutdownCommand;
-use Lawoole\Server\Commands\StartCommand;
+use Lawoole\Server\Console\ReloadCommand;
+use Lawoole\Server\Console\ServerCommand;
+use Lawoole\Server\Console\ShutdownCommand;
+use Lawoole\Server\Console\StartCommand;
 
 class ServerServiceProvider extends ServiceProvider
 {
@@ -14,6 +15,7 @@ class ServerServiceProvider extends ServiceProvider
      * @var array
      */
     protected $commands = [
+        'Server'         => 'command.server',
         'ServerStart'    => 'command.server.start',
         'ServerShutdown' => 'command.server.shutdown',
         'ServerReload'   => 'command.server.reload',
@@ -45,7 +47,7 @@ class ServerServiceProvider extends ServiceProvider
     }
 
     /**
-     * 注册命令
+     * Register the given commands.
      *
      * @param array $commands
      */
@@ -56,6 +58,16 @@ class ServerServiceProvider extends ServiceProvider
         }
 
         $this->commands(array_values($commands));
+    }
+
+    /**
+     * Register the command.
+     */
+    protected function registerServerCommand()
+    {
+        $this->app->singleton('command.server', function () {
+            return new ServerCommand;
+        });
     }
 
     /**
