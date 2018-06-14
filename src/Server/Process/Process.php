@@ -1,80 +1,72 @@
 <?php
 namespace Lawoole\Server\Process;
 
-use Lawoole\Contracts\Foundation\Application;
+use Illuminate\Contracts\Foundation\Application;
 use Lawoole\Contracts\Server\Process as ProcessContract;
 use Lawoole\Server\Concerns\DispatchEvents;
 use Lawoole\Server\Server;
 use LogicException;
 use Swoole\Process as SwooleProcess;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class Process implements ProcessContract
 {
     use DispatchEvents;
 
     /**
-     * 服务容器
+     * The application instance.
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Illuminate\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
-     * 服务对象
+     * The server instance.
      *
      * @var \Lawoole\Contracts\Server\Server
      */
     protected $server;
 
     /**
-     * 进程运行过程
+     * The event handler.
      *
-     * @var callable
-     */
-    protected $runnable;
-
-    /**
-     * 进程名
-     *
-     * @var string
-     */
-    protected $name;
-
-    /**
-     * Swoole 进程对象
-     *
-     * @var \Swoole\Process
-     */
-    protected $swooleProcess;
-
-    /**
-     * 事件处理器
-     *
-     * @var \Lawoole\Server\Process\ProcessHandler
+     * @var mixed
      */
     protected $handler;
 
     /**
-     * 控制台输出
+     * The output for console.
      *
      * @var \Symfony\Component\Console\Output\OutputInterface
      */
     protected $output;
 
     /**
-     * 创建服务进程对象
+     * The Swoole process instance.
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
-     * @param callable $runnable
-     * @param string $name
+     * @var \Swoole\Process
      */
-    public function __construct(Application $app, $runnable = null, $name = null)
+    protected $swooleProcess;
+
+    /**
+     * The server socket configurations.
+     *
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * Create a new server socket instance.
+     *
+     * @param \Illuminate\Contracts\Foundation\Application $app
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param array $config
+     */
+    public function __construct(Application $app, OutputInterface $output, array $config)
     {
         $this->app = $app;
-        $this->output = $app['console.output'];
-
-        $this->runnable = $runnable;
-        $this->name = $name;
+        $this->output = $output;
+        $this->config = $config;
     }
 
     /**
@@ -84,68 +76,109 @@ class Process implements ProcessContract
      */
     protected function createSwooleProcess()
     {
-        return new SwooleProcess(function () {
-            swoole_set_process_name(sprintf('%s : Process %s', $this->app->name(),
-                $this->name ?: $this->swooleProcess->pid));
+        return new SwooleProcess(function ($process) {
+            $process->name(sprintf('%s : Process %s', $this->app->name(), $this->getName() ?: $process->pid));
 
-            $this->dispatchEvent('Start', $this);
-
-            if (is_callable($this->runnable)) {
-                call_user_func($this->runnable, $this->server, $this);
-            }
+            $this->dispatchEvent('Start', $this->server, $this);
 
             swoole_event_add($this->swooleProcess->pipe, function () {
-                $data = $this->swooleProcess->read();
-
-                if ($data !== false) {
+                if (false !== ($data = $this->swooleProcess->read())) {
                     $this->dispatchEvent('Message', $this->server, $this, $data);
                 }
             });
+
+            call_user_func($this->runnableRetriever(), $this->server, $this);
         }, false, true);
     }
 
     /**
-     * 获得进程名
+     * Get the process name.
      *
      * @return string
      */
     public function getName()
     {
-        return $this->name;
+        return $this->config['name'] ?? null;
     }
 
     /**
-     * 设置进程名
+     * Get the runnable for the process.
      *
-     * @param string $name
+     * @return string|callable
      */
-    public function setName($name)
+    public function getRunnable()
     {
-        $this->name = $name;
+        return $this->config['runnable'] ?? null;
     }
 
     /**
-     * 获得处理器
+     * Get the runnable for the process.
      *
-     * @return \Lawoole\Server\Process\ProcessHandler
+     * @return callable
      */
-    public function getHandler()
+    protected function runnableRetriever()
+    {
+        $runnable = $this->getRunnable();
+
+        if ($runnable && is_callable($runnable)) {
+            return $runnable;
+        }
+
+        return function () {
+            $this->dispatchEvent('Run', $this->server, $this);
+        };
+    }
+
+    /**
+     * Set the event handler.
+     *
+     * @param mixed $handler
+     *
+     * @return $this
+     */
+    public function setEventHandler($handler)
+    {
+        $this->handler = $handler;
+
+        return $this;
+    }
+
+    /**
+     * Get the event handler.
+     *
+     * @return mixed
+     */
+    public function getEventHandler()
     {
         return $this->handler;
     }
 
     /**
-     * 设置处理器
+     * Set the output for console.
      *
-     * @param \Lawoole\Server\Process\ProcessHandler
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     *
+     * @return $this
      */
-    public function setHandler(ProcessHandler $handler)
+    public function setOutput(OutputInterface $output)
     {
-        $this->handler = $handler;
+        $this->output = $output;
+
+        return $this;
     }
 
     /**
-     * 获得 Swoole 进程对象
+     * Get the output for console.
+     *
+     * @return \Symfony\Component\Console\Output\OutputInterface
+     */
+    public function getOutput()
+    {
+        return $this->output;
+    }
+
+    /**
+     * Get the Swoole process instance.
      *
      * @return \Swoole\Process
      */
@@ -155,7 +188,7 @@ class Process implements ProcessContract
     }
 
     /**
-     * 绑定服务对象
+     * Bind the process to the server.
      *
      * @param \Lawoole\Server\Server $server
      */
@@ -171,7 +204,7 @@ class Process implements ProcessContract
     }
 
     /**
-     * 判断是否已经绑定到服务
+     * Return whether the process has been bound to a server.
      *
      * @return bool
      */
@@ -181,7 +214,7 @@ class Process implements ProcessContract
     }
 
     /**
-     * 向进程传递数据
+     * Send message to the process.
      *
      * @param string $data
      */
@@ -191,7 +224,7 @@ class Process implements ProcessContract
     }
 
     /**
-     * 退出进程
+     * Exit the process with given status.
      *
      * @param int $status
      */

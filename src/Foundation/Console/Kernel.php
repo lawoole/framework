@@ -38,10 +38,21 @@ class Kernel extends BaseKernel implements KernelContract
         $output = $output ?: new ConsoleOutput;
 
         // Share the input and the output, so that we can get them anywhere easily.
-        $this->app->instance('console.input', $input);
-        $this->app->instance('console.output', $output);
+        $this->shareIoStream($input, $output);
 
         parent::handle($input, $output);
+    }
+
+    /**
+     * Share the input stream and output stream with the container.
+     *
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     */
+    protected function shareIoStream($input, $output)
+    {
+        $this->app->instance('console.input', $input);
+        $this->app->instance('console.output', $output);
     }
 
     /**

@@ -7,13 +7,6 @@ use Illuminate\Foundation\Application as BaseApplication;
 class Application extends BaseApplication implements ApplicationContract
 {
     /**
-     * The name of service.
-     *
-     * @var string
-     */
-    const NAME = 'The Lawoole Service';
-
-    /**
      * The Lawoole framework version.
      *
      * @var string
@@ -21,13 +14,30 @@ class Application extends BaseApplication implements ApplicationContract
     const VERSION = '0.5.0';
 
     /**
-     * Get the name of service.
+     * The name of service.
+     *
+     * @var string
+     */
+    protected $name = 'The Lawoole Service';
+
+    /**
+     * Get the name of application.
      *
      * @return string
      */
     public function name()
     {
-        return static::NAME;
+        return $this->name;
+    }
+
+    /**
+     * Set the name of application.
+     *
+     * @param string $name
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
     }
 
     /**
@@ -112,7 +122,7 @@ class Application extends BaseApplication implements ApplicationContract
              'homer.context'    => [\Lawoole\Contracts\Homer\Context::class, \Lawoole\Homer\Context::class],
              'homer.dispatcher' => [\Lawoole\Homer\Dispatcher::class],
              'schedule'         => [\Illuminate\Console\Scheduling\Schedule::class],
-             'server'           => [\Lawoole\Contracts\Server\Server::class, \Lawoole\Server\ServerManager::class],
+             'server'           => [\Lawoole\Contracts\Server\Server::class, \Lawoole\Server\Server::class],
              'server.swoole'    => [\Swoole\Server::class],
              'snowflake'        => [\Lawoole\Contracts\Snowflake\Snowflake::class, \Lawoole\Snowflake\Snowflake::class],
         ] as $key => $aliases) {

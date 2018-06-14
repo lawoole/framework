@@ -2,78 +2,94 @@
 namespace Lawoole\Server;
 
 use EmptyIterator;
-use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Contracts\Foundation\Application;
 use IteratorAggregate;
-use Lawoole\Console\OutputStyle;
-use Lawoole\Contracts\Foundation\Application;
-use Lawoole\Contracts\Server\Process;
 use Lawoole\Contracts\Server\Server as ServerContract;
-use Lawoole\Contracts\Server\ServerSocket as ServerSocketContract;
+use Lawoole\Contracts\Server\WorkerExitUnexpectedException;
+use Lawoole\Server\Concerns\DispatchEvents;
+use Lawoole\Server\Process\Process;
 use Lawoole\Server\ServerSockets\ServerSocket;
-use RuntimeException;
+use LogicException;
 use Swoole\Server as SwooleServer;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class Server implements ServerContract, IteratorAggregate
 {
+    use DispatchEvents;
+
     /**
-     * 服务容器
+     * The application instance.
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Illuminate\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
-     * 事件总线
+     * The event dispatcher instance.
      *
      * @var \Illuminate\Contracts\Events\Dispatcher
      */
     protected $events;
 
     /**
-     * 控制台输出
+     * The event handler.
+     *
+     * @var mixed
+     */
+    protected $handler;
+
+    /**
+     * The output for console.
      *
      * @var \Symfony\Component\Console\Output\OutputInterface
      */
     protected $output;
 
     /**
-     * 控制台输出样式
+     * The styled output.
      *
-     * @var \Lawoole\Console\OutputStyle
+     * @var \Illuminate\Console\OutputStyle
      */
     protected $outputStyle;
 
     /**
-     * Swoole 服务对象
+     * The Swoole server instance.
      *
      * @var \Swoole\Server
      */
     protected $swooleServer;
 
     /**
-     * 服务是否正在运行
+     * Whether the server is running.
      *
      * @var bool
      */
-    protected $serving = false;
+    protected $running = false;
 
     /**
-     * 默认服务 Socket
+     * The default server socket for the server.
      *
      * @var \Lawoole\Server\ServerSockets\ServerSocket
      */
     protected $serverSocket;
 
     /**
-     * 服务 Socket 集合
+     * An array contains all bound server sockets.
      *
      * @var \Lawoole\Server\ServerSockets\ServerSocket[]
      */
     protected $serverSockets = [];
 
     /**
-     * 配置选项
+     * The server configurations.
+     *
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * The server options.
      *
      * @var array
      */
@@ -82,7 +98,7 @@ class Server implements ServerContract, IteratorAggregate
     ];
 
     /**
-     * 可用事件回调
+     * An array of available server events.
      *
      * @var array
      */
@@ -90,28 +106,40 @@ class Server implements ServerContract, IteratorAggregate
         'Start', 'Shutdown', 'ManagerStart', 'ManagerStop',
         'WorkerStart', 'WorkerStop', 'WorkerExit', 'WorkerError',
         'Task', 'Finish', 'PipeMessage', 'BufferFull', 'BufferEmpty',
-        'Connect', 'Close', 'Receive', 'Packet'
+        'Connect', 'Close', 'Receive'
     ];
 
     /**
-     * 创建服务对象
+     * Create a server instance.
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Illuminate\Contracts\Foundation\Application $app
      * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
-     * @param int $processMode
+     * @param array $config
      */
-    public function __construct(Application $app, ServerSocket $serverSocket, $processMode)
+    public function __construct(Application $app, ServerSocket $serverSocket, array $config)
     {
         $this->app = $app;
         $this->events = $app['events'];
         $this->output = $app['console.output'];
-        $this->outputStyle = $app[OutputStyle::class];
+        $this->output = $app['console.output.style'];
 
         $this->serverSocket = $serverSocket;
 
-        $this->swooleServer = $this->createSwooleServer($serverSocket, $processMode);
+        $this->config = $config;
+
+        $this->initialize();
+    }
+
+    /**
+     * Initialize the server.
+     */
+    protected function initialize()
+    {
+        $this->swooleServer = $this->createSwooleServer();
 
         $this->configureDefaultServerSocket();
+
+        $this->setOptions($this->config['options'] ?? []);
 
         $this->registerEventCallbacks($this->serverEvents);
 
@@ -119,35 +147,41 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * 获得事件分发总线
-     *
-     * @return \Illuminate\Contracts\Events\Dispatcher
-     */
-    public function getEventDispatcher()
-    {
-        return $this->events;
-    }
-
-    /**
-     * 创建 Swoole 服务
-     *
-     * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
-     * @param int $processMode
+     * Create the Swoole server instance.
      *
      * @return \Swoole\Server
      */
-    protected function createSwooleServer(ServerSocket $serverSocket, $processMode)
+    protected function createSwooleServer()
     {
         return new SwooleServer(
-            $serverSocket->getHost(),
-            $serverSocket->getPort(),
-            $processMode,
-            $serverSocket->getSocketType()
+            $this->serverSocket->getHost(),
+            $this->serverSocket->getPort(),
+            $this->parseServerMode(),
+            $this->serverSocket->getSocketType()
         );
     }
 
     /**
-     * 获得 Swoole 服务对象
+     * Get the server mode constant from the configuration.
+     *
+     * @return int
+     */
+    protected function parseServerMode()
+    {
+        $mode = $this->config['mode'] ?? 'process';
+
+        switch ($mode) {
+            case 'base':
+                return SWOOLE_BASE;
+            case 'process':
+                return SWOOLE_PROCESS;
+            default:
+                return $mode;
+        }
+    }
+
+    /**
+     * Get the Swoole server instance.
      *
      * @return \Swoole\Server
      */
@@ -157,7 +191,7 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * 配置默认监听
+     * Configure the default server socket.
      */
     protected function configureDefaultServerSocket()
     {
@@ -165,14 +199,14 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * 设置配置选项
+     * Set the server options.
      *
      * @param array $options
      */
     public function setOptions(array $options = [])
     {
-        if ($this->serving) {
-            throw new RuntimeException('Options cannot be set while the server is serving.');
+        if ($this->isRunning()) {
+            throw new LogicException('Options cannot be set while the server is running.');
         }
 
         $this->options = array_diff_key($this->options, $options) + $options;
@@ -181,7 +215,7 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * 获得配置选项
+     * Get the server options.
      *
      * @return array
      */
@@ -191,27 +225,79 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * 添加监听定义
+     * Set the event handler.
      *
-     * @param \Lawoole\Contracts\Server\ServerSocket $serverSocket
+     * @param mixed $handler
+     *
+     * @return $this
      */
-    public function listen(ServerSocketContract $serverSocket)
+    public function setEventHandler($handler)
     {
-        if ($this->serving) {
-            throw new RuntimeException('Cannot add listening while the server is serving.');
+        $this->handler = $handler;
+
+        return $this;
+    }
+
+    /**
+     * Get the event handler.
+     *
+     * @return mixed
+     */
+    public function getEventHandler()
+    {
+        return $this->handler;
+    }
+
+    /**
+     * Set the output for console.
+     *
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     *
+     * @return $this
+     */
+    public function setOutput(OutputInterface $output)
+    {
+        $this->output = $output;
+
+        return $this;
+    }
+
+    /**
+     * Get the output for console.
+     *
+     * @return \Symfony\Component\Console\Output\OutputInterface
+     */
+    public function getOutput()
+    {
+        return $this->output;
+    }
+
+    /**
+     * Add a port listening.
+     *
+     * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
+     */
+    public function listen(ServerSocket $serverSocket)
+    {
+        if ($this->isRunning()) {
+            throw new LogicException('Cannot add listening while the server is serving.');
         }
 
         if ($serverSocket->isBound()) {
-            throw new RuntimeException('ServerSocket can be bound to server only once.');
+            throw new LogicException('The server socket can be bound to server only once.');
+        }
+
+        $address = $serverSocket->getHost().':'.$serverSocket->getPort();
+
+        if (isset($this->serverSockets[$address])) {
+            throw new LogicException('The same address has been listened before.');
         }
 
         $swoolePort = $this->swooleServer->listen(
-            $host = $serverSocket->getHost(),
-            $port = $serverSocket->getPort(),
+            $serverSocket->getHost(),
+            $serverSocket->getPort(),
             $serverSocket->getSocketType()
         );
-
-        $address = $host.($port ? ':'.$port : '');
 
         $this->serverSockets[$address] = $serverSocket;
 
@@ -219,9 +305,9 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * 添加子进程
+     * Add a child process.
      *
-     * @param \Lawoole\Contracts\Server\Process $process
+     * @param \Lawoole\Server\Process\Process $process
      */
     public function fork(Process $process)
     {
@@ -231,43 +317,49 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * 判断服务是否正在运行
+     * Return whether the server is running.
      *
      * @return bool
      */
-    public function isServing()
+    public function isRunning()
     {
-        return $this->serving;
+        return $this->running;
     }
 
     /**
-     * 启动服务
+     * Start the server.
+     *
+     * @return bool
      */
-    public function serve()
+    public function start()
     {
         $this->events->dispatch(new Events\ServerLaunching($this));
 
-        $this->serving = true;
+        $this->running = true;
 
-        $this->swooleServer->start();
+        $result = $this->swooleServer->start();
 
-        $this->serving = false;
+        $this->running = false;
+
+        return $result;
     }
 
     /**
-     * 停止服务
+     * Shutdown the server.
+     *
+     * @return bool
      */
     public function shutdown()
     {
-        if ($this->serving == false) {
-            return;
+        if (!$this->isRunning()) {
+            return true;
         }
 
-        $this->swooleServer->shutdown();
+        return $this->swooleServer->shutdown();
     }
 
     /**
-     * 重启所有工作进程
+     * Reload all workers.
      *
      * @param bool $onlyTask
      *
@@ -279,13 +371,13 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * 获得所有当前连接的迭代器
+     * Get an iterator for all connected connections.
      *
      * @return \Iterator
      */
     public function getConnectionIterator()
     {
-        if ($this->serving) {
+        if ($this->isRunning()) {
             return $this->swooleServer->connections;
         }
 
@@ -293,7 +385,7 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * 获得所有当前连接的迭代器
+     * Get an iterator for all connected connections.
      *
      * @return \Iterator
      */
@@ -303,7 +395,7 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * 关闭连接
+     * Close the given connection.
      *
      * @param int $fd
      * @param bool $force
@@ -316,7 +408,7 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * 注册事件回调
+     * Register all event callbacks.
      *
      * @param array $events
      */
@@ -328,35 +420,37 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerStartCallback()
     {
         $this->swooleServer->on('Start', function () {
-            $name = $this->app->name();
-
-            $this->outputStyle->info("{$name} server is running.");
+            $this->outputStyle->info("{$this->app->name()} server is running.");
 
             if (php_uname('s') != 'Darwin') {
-                swoole_set_process_name("{$name} : Master");
+                swoole_set_process_name("{$this->app->name()} : Master");
             }
 
             $this->events->dispatch(new Events\ServerStarted($this));
+
+            $this->dispatchEvent('Start', $this);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerShutdownCallback()
     {
         $this->swooleServer->on('Shutdown', function () {
             $this->events->dispatch(new Events\ServerShutdown($this));
+
+            $this->dispatchEvent('Shutdown', $this);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerManagerStartCallback()
     {
@@ -366,56 +460,66 @@ class Server implements ServerContract, IteratorAggregate
             }
 
             $this->events->dispatch(new Events\ManagerStarted($this));
+
+            $this->dispatchEvent('ManagerStart', $this);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerManagerStopCallback()
     {
         $this->swooleServer->on('ManagerStop', function () {
             $this->events->dispatch(new Events\ManagerStopped($this));
+
+            $this->dispatchEvent('ManagerStop', $this);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerWorkerStartCallback()
     {
         $this->swooleServer->on('WorkerStart', function ($server, $workerId) {
             if (php_uname('s') != 'Darwin') {
-                swoole_set_process_name("{$this->app->name()} : Worker {$workerId}"
-                    .($server->taskworker ? ' Task' : ''));
+                swoole_set_process_name(sprintf('%s : Worker %d%s', $this->app->name(), $workerId
+                    , $server->taskworker ? ' Task' : ''));
             }
 
             $this->events->dispatch(new Events\WorkerStarted($this, $workerId));
+
+            $this->dispatchEvent('WorkerStart', $this, $workerId);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerWorkerStopCallback()
     {
         $this->swooleServer->on('WorkerStop', function ($server, $workerId) {
             $this->events->dispatch(new Events\WorkerStopped($this, $workerId));
+
+            $this->dispatchEvent('WorkerStop', $this, $workerId);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerWorkerExitCallback()
     {
         $this->swooleServer->on('WorkerExit', function ($server, $workerId) {
             $this->events->dispatch(new Events\WorkerExiting($this, $workerId));
+
+            $this->dispatchEvent('WorkerExit', $this, $workerId);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerWorkerErrorCallback()
     {
@@ -423,115 +527,97 @@ class Server implements ServerContract, IteratorAggregate
             $this->reportWorkerError($workerId, $workerPid, $exitCode, $signal);
 
             $this->events->dispatch(new Events\WorkerError($this, $workerId, $workerPid, $exitCode, $signal));
+
+            $this->dispatchEvent('WorkerError', $this, $workerId, $workerPid, $exitCode, $signal);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerTaskCallback()
     {
         $this->swooleServer->on('Task', function ($server, $taskId, $srcWorkerId, $data) {
             $this->events->dispatch(new Events\TaskTriggered($this, $taskId, $srcWorkerId, $data));
+
+            $this->dispatchEvent('Task', $this, $taskId, $srcWorkerId, $data);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerFinishCallback()
     {
         $this->swooleServer->on('Finish', function ($server, $taskId, $data) {
             $this->events->dispatch(new Events\TaskFinished($this, $taskId, $data));
+
+            $this->dispatchEvent('Finish', $this, $taskId, $data);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerPipeMessageCallback()
     {
         $this->swooleServer->on('PipeMessage', function ($server, $srcWorkerId, $data) {
             $this->events->dispatch(new Events\PipeMessageReceived($this, $srcWorkerId, $data));
+
+            $this->dispatchEvent('PipeMessage', $this, $srcWorkerId, $data);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerBufferFullCallback()
     {
         $this->swooleServer->on('BufferFull', function ($server, $fd) {
-            $this->serverSocket->dispatchEvent('BufferFull', $this, $this->serverSocket, $fd);
+            $this->dispatchEvent('BufferFull', $this, $fd);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerBufferEmptyCallback()
     {
         $this->swooleServer->on('BufferEmpty', function ($server, $fd) {
-            $this->serverSocket->dispatchEvent('BufferEmpty', $this, $this->serverSocket, $fd);
+            $this->dispatchEvent('BufferEmpty', $this, $fd);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerConnectCallback()
     {
         $this->swooleServer->on('Connect', function ($server, $fd, $reactorId) {
-            $this->serverSocket->dispatchEvent('Connect', $this, $this->serverSocket, $fd, $reactorId);
+            $this->dispatchEvent('Connect', $this, $fd, $reactorId);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerCloseCallback()
     {
         $this->swooleServer->on('Close', function ($server, $fd, $reactorId) {
-            $this->serverSocket->dispatchEvent('Close', $this, $this->serverSocket, $fd, $reactorId);
+            $this->dispatchEvent('Close', $this, $fd, $reactorId);
         });
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerReceiveCallback()
     {
-        $this->swooleServer->on('Receive', function ($server, $fd, $reactorId, $data) {
-            $this->serverSocket->dispatchEvent('Receive', $this, $this->serverSocket, $fd, $reactorId, $data);
-        });
+        $this->swooleServer->on('Receive', function () {});
     }
 
     /**
-     * 注册事件回调
-     */
-    protected function registerPacketCallback()
-    {
-        $this->swooleServer->on('Packet', function ($server, $data, $clientInfo) {
-            $this->serverSocket->dispatchEvent('Packet', $this, $this->serverSocket, $data, $clientInfo);
-        });
-    }
-
-    /**
-     * 处理异常
-     *
-     * @param \Exception $e
-     */
-    protected function handleException(Exception $e)
-    {
-        $handler = $this->app->make(ExceptionHandler::class);
-
-        $handler->report($e);
-
-        $handler->renderForConsole($this->output, $e);
-    }
-
-    /**
-     * 报告进程异常退出
+     * Report worker exit
      *
      * @param int $workerId
      * @param int $workerPid
@@ -540,17 +626,18 @@ class Server implements ServerContract, IteratorAggregate
      */
     protected function reportWorkerError($workerId, $workerPid, $exitCode, $signal)
     {
-        $message = "Worker {$workerId} exit with code {$exitCode}, signal {$signal}, pid {$workerPid}.";
+        $message = sprintf('The worker %d quit unexpected with exit code %d, signal %d, pid %d.', $workerId, $exitCode,
+            $signal, $workerPid);
 
         $handler = $this->app->make(ExceptionHandler::class);
 
-        $handler->report(new RuntimeException($message));
+        $handler->report(new WorkerExitUnexpectedException($message));
 
         $this->outputStyle->warn($message);
     }
 
     /**
-     * 代理调用到 Swoole 服务
+     * Dynamically pass methods to the Swoole server.
      *
      * @param string $method
      * @param array $parameters

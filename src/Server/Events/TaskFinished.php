@@ -4,21 +4,21 @@ namespace Lawoole\Server\Events;
 class TaskFinished extends ServerEvent
 {
     /**
-     * 任务 Id
+     * The task id.
      *
      * @var int
      */
     public $taskId;
 
     /**
-     * 数据
+     * The task result.
      *
      * @var mixed
      */
     public $data;
 
     /**
-     * 创建任务推送事件
+     * Create a new event instance.
      *
      * @param \Lawoole\Server\Server $server
      * @param int $taskId

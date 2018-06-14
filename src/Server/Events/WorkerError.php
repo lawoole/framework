@@ -4,28 +4,28 @@ namespace Lawoole\Server\Events;
 class WorkerError extends WorkerEvent
 {
     /**
-     * 工作进程 Pid
+     * The process id for the worker.
      *
      * @var int
      */
     public $workerPid;
 
     /**
-     * 工作进程退出码
+     * The process exit status code.
      *
      * @var int
      */
     public $exitCode;
 
     /**
-     * 触发信号
+     * The signal to trigger the error.
      *
      * @var int
      */
     public $signal;
 
     /**
-     * 创建工作进程错误退出事件
+     * Create a new event instance.
      *
      * @param \Lawoole\Server\Server $server
      * @param int $workerId

@@ -12,6 +12,18 @@ class LoadConfigurations extends BaseLoadConfigurations
     /**
      * {@inheritdoc}
      */
+    public function bootstrap(Application $app)
+    {
+        parent::bootstrap($app);
+
+        if ($name = $app['config']['app.name']) {
+            $app->setName($name);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     protected function loadConfigurationFiles(Application $app, RepositoryContract $repository)
     {
         parent::loadConfigurationFiles($app, $repository);

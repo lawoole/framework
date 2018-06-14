@@ -3,7 +3,6 @@ namespace Lawoole\Server;
 
 use Illuminate\Support\ServiceProvider;
 use Lawoole\Server\Console\ReloadCommand;
-use Lawoole\Server\Console\ServerCommand;
 use Lawoole\Server\Console\ShutdownCommand;
 use Lawoole\Server\Console\StartCommand;
 
@@ -15,7 +14,6 @@ class ServerServiceProvider extends ServiceProvider
      * @var array
      */
     protected $commands = [
-        'Server'         => 'command.server',
         'ServerStart'    => 'command.server.start',
         'ServerShutdown' => 'command.server.shutdown',
         'ServerReload'   => 'command.server.reload',
@@ -27,7 +25,7 @@ class ServerServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton('server.factory', function ($app) {
-            return new ServerFactory($app);
+            return new ServerFactory($app, $app['console.output']);
         });
 
         // By default, the server factory creates a server instance based on the
@@ -58,16 +56,6 @@ class ServerServiceProvider extends ServiceProvider
         }
 
         $this->commands(array_values($commands));
-    }
-
-    /**
-     * Register the command.
-     */
-    protected function registerServerCommand()
-    {
-        $this->app->singleton('command.server', function () {
-            return new ServerCommand;
-        });
     }
 
     /**

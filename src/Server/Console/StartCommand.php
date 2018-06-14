@@ -6,39 +6,40 @@ use Illuminate\Console\Command;
 class StartCommand extends Command
 {
     /**
-     * 命令名
+     * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'start {--d|daemon= : Run the server in background. }';
+    protected $signature = 'server:start
+                            {--d|detach= : Run the server in background}';
 
     /**
-     * 命令描述
+     * The console command description.
      *
      * @var string
      */
-    protected $description = 'Start the Swoole server';
+    protected $description = 'Start the server';
 
     /**
-     * 执行命令
+     * Execute the console command.
      */
     public function handle()
     {
         $server = $this->laravel->make('server');
 
-        if ($this->option('daemon')) {
+        if ($this->option('detach')) {
             $server->setOptions(['daemon' => true]);
         }
 
         $this->saveRuntime();
 
-        $server->serve();
+        $server->start();
 
         $this->removeRuntime();
     }
 
     /**
-     * 记录服务器运行时信息
+     * Record server runtime info.
      */
     protected function saveRuntime()
     {
@@ -49,13 +50,13 @@ class StartCommand extends Command
         ];
 
         file_put_contents(
-            $this->laravel->storagePath('framework/server.runtime'),
+            storage_path('framework/server.runtime'),
             json_encode($payload, JSON_PRETTY_PRINT)
         );
     }
 
     /**
-     * 移除运行时记录
+     * Remove server runtime records.
      */
     protected function removeRuntime()
     {
@@ -65,12 +66,12 @@ class StartCommand extends Command
     }
 
     /**
-     * 获得运行时记录文件位置
+     * Get the file path which to save server runtime info.
      *
      * @return string
      */
     protected function getRuntimeFilePath()
     {
-        return $this->laravel->storagePath('framework/server.runtime');
+        return storage_path('framework/server.runtime');
     }
 }

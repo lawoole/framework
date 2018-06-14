@@ -4,14 +4,13 @@ namespace Lawoole\Server\ServerSockets;
 use EmptyIterator;
 use Illuminate\Contracts\Foundation\Application;
 use IteratorAggregate;
-use Lawoole\Contracts\Server\ServerSocket as ServerSocketContract;
 use Lawoole\Server\Concerns\DispatchEvents;
 use Lawoole\Server\Server;
 use LogicException;
 use Swoole\Server\Port;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ServerSocket implements ServerSocketContract, IteratorAggregate
+class ServerSocket implements IteratorAggregate
 {
     use DispatchEvents;
 
@@ -68,7 +67,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     ];
 
     /**
-     * The array of available commands.
+     * An array of available server socket events.
      *
      * @var array
      */
@@ -332,7 +331,7 @@ class ServerSocket implements ServerSocketContract, IteratorAggregate
     }
 
     /**
-     * Register all event callbacks.
+     * Register the event callback.
      */
     protected function registerConnectCallback()
     {

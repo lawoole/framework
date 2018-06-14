@@ -4,21 +4,21 @@ namespace Lawoole\Server\Events;
 class PipeMessageReceived extends ServerEvent
 {
     /**
-     * 来源工作进程 Id
+     * The worker id which message come from.
      *
      * @var int
      */
     public $srcWorkerId;
 
     /**
-     * 数据
+     * The message data.
      *
      * @var mixed
      */
     public $data;
 
     /**
-     * 创建任务推送事件
+     * Create a new event instance.
      *
      * @param \Lawoole\Server\Server $server
      * @param int $srcWorkerId

@@ -7,29 +7,30 @@ use Swoole\Process;
 class ReloadCommand extends Command
 {
     /**
-     * 命令名
+     * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'reload {--task : Reload task worker process only}';
+    protected $signature = 'server:reload
+                            {--task : Reload task worker processes only}';
 
     /**
-     * 命令描述
+     * The console command description.
      *
      * @var string
      */
-    protected $description = 'Reload the Swoole server';
+    protected $description = 'Reload the server';
 
     /**
-     * 执行命令
+     * Execute the console command.
      */
     public function handle()
     {
         $name = $this->laravel->name();
-        $runtimeFile = $this->laravel->storagePath('framework/server.runtime');
+        $runtimeFile = storage_path('framework/server.runtime');
 
         if (file_exists($runtimeFile)) {
-            $data = json_decode(file_get_contents($this->laravel->storagePath('framework/server.runtime')), true);
+            $data = json_decode(file_get_contents(storage_path('framework/server.runtime')), true);
 
             $this->info("{$name} server is reloading.");
 

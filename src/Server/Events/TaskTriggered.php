@@ -4,28 +4,28 @@ namespace Lawoole\Server\Events;
 class TaskTriggered extends ServerEvent
 {
     /**
-     * 任务 Id
+     * The task id.
      *
      * @var int
      */
     public $taskId;
 
     /**
-     * 来源工作进程 Id
+     * The worker id which task come from.
      *
      * @var int
      */
     public $srcWorkerId;
 
     /**
-     * 数据
+     * The input data.
      *
      * @var mixed
      */
     public $data;
 
     /**
-     * 创建任务推送事件
+     * Create a new event instance.
      *
      * @param \Lawoole\Server\Server $server
      * @param int $taskId

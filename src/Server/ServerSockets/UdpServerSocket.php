@@ -4,7 +4,7 @@ namespace Lawoole\Server\ServerSockets;
 class UdpServerSocket extends ServerSocket
 {
     /**
-     * 获得默认的 Socket 类型
+     * Get default socket type for this server socket.
      *
      * @return int
      */

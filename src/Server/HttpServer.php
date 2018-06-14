@@ -1,13 +1,12 @@
 <?php
 namespace Lawoole\Server;
 
-use Lawoole\Server\ServerSockets\ServerSocket;
 use Swoole\Http\Server as SwooleHttpServer;
 
 class HttpServer extends Server
 {
     /**
-     * 可用事件回调
+     * An array of available server events.
      *
      * @var array
      */
@@ -15,34 +14,29 @@ class HttpServer extends Server
         'Start', 'Shutdown', 'ManagerStart', 'ManagerStop',
         'WorkerStart', 'WorkerStop', 'WorkerExit', 'WorkerError',
         'Task', 'Finish', 'PipeMessage', 'BufferFull', 'BufferEmpty',
-        'Connect', 'Close', 'Receive', 'Packet', 'Request'
+        'Connect', 'Close', 'Receive', 'Request'
     ];
 
     /**
-     * 创建 Swoole 服务
+     * Create the Swoole server instance.
      *
-     * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
-     * @param int $processMode
-     *
-     * @return \Swoole\Server
+     * @return \Swoole\Http\Server
      */
-    protected function createSwooleServer(ServerSocket $serverSocket, $processMode)
+    protected function createSwooleServer()
     {
         return new SwooleHttpServer(
-            $serverSocket->getHost(),
-            $serverSocket->getPort(),
-            $processMode,
-            $serverSocket->getSocketType()
+            $this->serverSocket->getHost(),
+            $this->serverSocket->getPort(),
+            $this->parseServerMode(),
+            $this->serverSocket->getSocketType()
         );
     }
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerRequestCallback()
     {
-        $this->swooleServer->on('Request', function ($request, $response) {
-            $this->serverSocket->dispatchEvent('Request', $this, $this->serverSocket, $request, $response);
-        });
+        $this->swooleServer->on('Request', function () {});
     }
 }

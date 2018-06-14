@@ -1,6 +1,7 @@
 <?php
 namespace Lawoole\Foundation\Providers;
 
+use Illuminate\Console\OutputStyle;
 use Illuminate\Database\MigrationServiceProvider;
 use Illuminate\Foundation\Providers\ComposerServiceProvider;
 use Illuminate\Foundation\Providers\ConsoleSupportServiceProvider as BaseServiceProvider;
@@ -18,4 +19,24 @@ class ConsoleSupportServiceProvider extends BaseServiceProvider
         MigrationServiceProvider::class,
         ScheduleServiceProvider::class,
     ];
+
+    /**
+     * {@inheritdoc}
+     */
+    public function register()
+    {
+        parent::register();
+
+        $this->registerOutputStyle();
+    }
+
+    /**
+     * Register the styled output.
+     */
+    protected function registerOutputStyle()
+    {
+        $this->app->singleton('console.output.style', function ($app) {
+            return new OutputStyle($app['console.input'], $app['console.output']);
+        });
+    }
 }

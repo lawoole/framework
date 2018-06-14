@@ -4,7 +4,7 @@ namespace Lawoole\Server\ServerSockets;
 class HttpServerSocket extends ServerSocket
 {
     /**
-     * 配置选项
+     * The server socket options.
      *
      * @var array
      */
@@ -15,7 +15,7 @@ class HttpServerSocket extends ServerSocket
     ];
 
     /**
-     * 可用事件回调
+     * The array of available commands.
      *
      * @var array
      */
@@ -24,7 +24,7 @@ class HttpServerSocket extends ServerSocket
     ];
 
     /**
-     * 注册事件回调
+     * Register the event callback.
      */
     protected function registerRequestCallback()
     {

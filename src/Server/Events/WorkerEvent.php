@@ -4,14 +4,14 @@ namespace Lawoole\Server\Events;
 abstract class WorkerEvent extends ServerEvent
 {
     /**
-     * 工作进程 Id
+     * The worker id.
      *
      * @var int
      */
     public $workerId;
 
     /**
-     * 创建工作进程事件
+     * Create a new event instance.
      *
      * @param \Lawoole\Server\Server $server
      * @param int $workerId

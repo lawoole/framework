@@ -1,35 +1,49 @@
 <?php
 namespace Lawoole\Server\ServerSockets;
 
-use Lawoole\Contracts\Foundation\Application;
+use Illuminate\Support\Str;
 
 class UnixServerSocket extends ServerSocket
 {
     /**
-     * 服务 Socket 选项
+     * The server socket options.
      *
      * @var array
      */
     protected $options = [];
 
     /**
-     * 创建服务 Socket 对象
+     * Get the host.
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
-     * @param array $config
+     * @return string
      */
-    public function __construct(Application $app, array $config = [])
+    public function getHost()
     {
-        $unixSock = $config['unix_sock'];
-
-        $config['host'] = $unixSock;
-        $config['port'] = 0;
-
-        parent::__construct($app, $config);
+        return $this->config['unix_sock'] ?? $this->getDefaultHost();
     }
 
     /**
-     * 获得默认的 Socket 类型
+     * Get default host for listening.
+     *
+     * @return string
+     */
+    protected function getDefaultHost()
+    {
+        return $this->app->storagePath().'/framework/server-'.Str::random(6).'.sock';
+    }
+
+    /**
+     * Get default port number for listening.
+     *
+     * @return int
+     */
+    protected function getDefaultPort()
+    {
+        return 0;
+    }
+
+    /**
+     * Get default socket type for this server socket.
      *
      * @return int
      */

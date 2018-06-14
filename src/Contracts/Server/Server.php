@@ -11,20 +11,6 @@ interface Server
     public function getSwooleServer();
 
     /**
-     * Add a port listening.
-     *
-     * @param \Lawoole\Contracts\Server\ServerSocket $serverSocket
-     */
-    public function listen(ServerSocket $serverSocket);
-
-    /**
-     * Add a child process.
-     *
-     * @param \Lawoole\Contracts\Server\Process $process
-     */
-    public function fork(Process $process);
-
-    /**
      * Return whether the server is running.
      *
      * @return bool
@@ -44,6 +30,15 @@ interface Server
      * @return bool
      */
     public function shutdown();
+
+    /**
+     * Reload all workers.
+     *
+     * @param bool $onlyTask
+     *
+     * @return bool
+     */
+    public function reload($onlyTask = false);
 
     /**
      * Get an iterator for all connected connections.
