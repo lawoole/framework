@@ -1,10 +1,10 @@
 <?php
 namespace Lawoole\Foundation\Providers;
 
-use Illuminate\Console\OutputStyle;
 use Illuminate\Database\MigrationServiceProvider;
 use Illuminate\Foundation\Providers\ComposerServiceProvider;
 use Illuminate\Foundation\Providers\ConsoleSupportServiceProvider as BaseServiceProvider;
+use Lawoole\Console\OutputStyle;
 
 class ConsoleSupportServiceProvider extends BaseServiceProvider
 {

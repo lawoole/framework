@@ -3,47 +3,39 @@ namespace Lawoole\Http;
 
 use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Pipeline;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Facade;
-use Lawoole\Contracts\Foundation\Application;
-use Lawoole\Server\ServerSockets\HttpServerSocketHandler as BaseHttpServerSocketHandler;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
 
-class HttpServerSocketHandler extends BaseHttpServerSocketHandler
+class HttpServerSocketHandler
 {
     /**
-     * 服务容器
+     * The application instance.
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Illuminate\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
-     * 控制台共用请求
-     *
-     * @var \Illuminate\Http\Request
-     */
-    protected $consoleRequest;
-
-    /**
-     * 路由器
+     * The router instance.
      *
      * @var \Illuminate\Routing\Router
      */
     protected $router;
 
     /**
-     * 全局中间件
+     * The global HTTP middleware.
      *
      * @var array
      */
     protected $middleware;
 
     /**
-     * 中间件优先级定义
+     * The priority-sorted list of middleware.
      *
      * @var array
      */
@@ -57,22 +49,21 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
     ];
 
     /**
-     * 创建 Http 服务事件处理器
+     * Create a Http server event handler instance.
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Illuminate\Contracts\Foundation\Application $app
      * @param \Illuminate\Routing\Router $router
      */
     public function __construct(Application $app, Router $router)
     {
         $this->app = $app;
         $this->router = $router;
-        $this->consoleRequest = $app['console.request'];
 
         $this->loadMiddleware();
     }
 
     /**
-     * 载入中间件配置
+     * Load all configured middleware.
      */
     protected function loadMiddleware()
     {
@@ -96,7 +87,7 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
     }
 
     /**
-     * 收到 Http 处理请求时调用
+     * Called when the server receive a Http request.
      *
      * @param \Lawoole\Server\Server $server
      * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
@@ -105,13 +96,14 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
      */
     public function onRequest($server, $serverSocket, $request, $response)
     {
+        $swapHttpRequest = $this->app['request'];
+
         $httpRequest = $this->createHttpRequest($request);
 
         $respondent = $this->createRespondent($response);
 
         try {
             $this->app->instance('respondent', $respondent);
-            $this->app->instance('request', $httpRequest);
 
             $httpRequest->attributes->add([
                 'request'    => $request,
@@ -132,11 +124,11 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
 
         $this->sendResponse($respondent, $httpResponse);
 
-        $this->app->instance('request', $this->consoleRequest);
+        $this->app->instance('request', $swapHttpRequest);
     }
 
     /**
-     * 创建 Http 请求
+     * Create a Http request from the Swoole request.
      *
      * @param \Swoole\Http\Request $request
      *
@@ -146,27 +138,25 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
     {
         return new Request(
             $request->get ?? [], $request->post ?? [], [], $request->cookie ?? [], $request->files ?? [],
-            $this->getRequestServer($request), $request->rawContent()
+            $this->parseRequestServer($request), $request->rawContent()
         );
     }
 
     /**
-     * 获得请求 $_SERVER 形式参数
+     * Get the parameters like $_SERVER in Swoole request.
      *
      * @param \Swoole\Http\Request $request
      *
      * @return array
      */
-    protected function getRequestServer($request)
+    protected function parseRequestServer($request)
     {
         $server = [];
 
-        // 解析 $request->server
         foreach (($request->server ?? []) as $name => $value) {
             $server[strtoupper($name)] = $value;
         }
 
-        // 解析 $request->header
         foreach (($request->header ?? []) as $name => $value) {
             $server['HTTP_'.strtoupper($name)] = $value;
         }
@@ -175,7 +165,7 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
     }
 
     /**
-     * 创建响应发送器
+     * Create a respondent instance.
      *
      * @param \Swoole\Http\Response $response
      *
@@ -187,24 +177,20 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
     }
 
     /**
-     * 发送响应体
+     * Send response.
      *
      * @param \Lawoole\Http\Respondent $respondent
      * @param \Symfony\Component\HttpFoundation\Response $response
      */
     protected function sendResponse($respondent, $response)
     {
-        if ($response instanceof AsyncResponse) {
-            return;
-        }
-
         $respondent->sendHeader($response->getStatusCode(), $response->headers);
 
         $respondent->sendBody($response->getContent());
     }
 
     /**
-     * 向路由器发送请求
+     * Send the given request through the middleware / router.
      *
      * @param \Illuminate\Http\Request $request
      *
@@ -212,7 +198,9 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
      */
     protected function sendRequestThroughRouter($request)
     {
-        $this->setGlobalRequest($request);
+        $this->app->instance('request', $request);
+
+        Facade::clearResolvedInstance('request');
 
         $handler = $this->dispatchToRouter();
 
@@ -226,7 +214,7 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
     }
 
     /**
-     * 获得路由调度调用
+     * Get the route dispatcher callback.
      *
      * @return \Closure
      */
@@ -238,19 +226,7 @@ class HttpServerSocketHandler extends BaseHttpServerSocketHandler
     }
 
     /**
-     * 设置全局请求对象
-     *
-     * @param \Illuminate\Http\Request $request
-     */
-    protected function setGlobalRequest($request)
-    {
-        $this->app->instance('request', $request);
-
-        Facade::clearResolvedInstance('request');
-    }
-
-    /**
-     * 处理异常
+     * Report and render the exception to a response.
      *
      * @param \Illuminate\Http\Request $request
      * @param \Exception $e

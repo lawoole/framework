@@ -49,7 +49,7 @@ class Server implements ServerContract, IteratorAggregate
     /**
      * The styled output.
      *
-     * @var \Illuminate\Console\OutputStyle
+     * @var \Lawoole\Console\OutputStyle
      */
     protected $outputStyle;
 
@@ -121,7 +121,7 @@ class Server implements ServerContract, IteratorAggregate
         $this->app = $app;
         $this->events = $app['events'];
         $this->output = $app['console.output'];
-        $this->output = $app['console.output.style'];
+        $this->outputStyle = $app['console.output.style'];
 
         $this->serverSocket = $serverSocket;
 
@@ -484,8 +484,8 @@ class Server implements ServerContract, IteratorAggregate
     {
         $this->swooleServer->on('WorkerStart', function ($server, $workerId) {
             if (php_uname('s') != 'Darwin') {
-                swoole_set_process_name(sprintf('%s : Worker %d%s', $this->app->name(), $workerId
-                    , $server->taskworker ? ' Task' : ''));
+                swoole_set_process_name(sprintf('%s : Worker %d%s', $this->app->name(), $workerId,
+                    $server->taskworker ? ' Task' : ''));
             }
 
             $this->events->dispatch(new Events\WorkerStarted($this, $workerId));

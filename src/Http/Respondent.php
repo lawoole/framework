@@ -4,25 +4,27 @@ namespace Lawoole\Http;
 use DateTime;
 use DateTimeZone;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\Cookie;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class Respondent
 {
     /**
-     * Swoole 响应
+     * The Swoole response instance.
      *
      * @var \Swoole\Http\Response
      */
     protected $response;
 
     /**
-     * 是否开启分段发送
+     * Split response into multiple parts.
      *
      * @var bool
      */
     protected $chucked = false;
 
     /**
-     * 创建响应发送器
+     * Create a respondent instance.
      *
      * @param \Swoole\Http\Response $response
      */
@@ -32,7 +34,7 @@ class Respondent
     }
 
     /**
-     * 发送响应头
+     * Send the response headers.
      *
      * @param int $statusCode
      * @param \Symfony\Component\HttpFoundation\ResponseHeaderBag $headerBag
@@ -40,74 +42,118 @@ class Respondent
     public function sendHeader($statusCode = 200, $headerBag = null)
     {
         if ($this->response->header !== null) {
-            // 已经设置过响应头，就认为是已经发送过响应头
+            // If any headers has been set in response, we will consider the
+            // response headers has been sent.
             return;
         }
 
         $this->response->status($statusCode);
 
-        if ($headerBag) {
-            // RFC2616 - 14.18 约定：所有的响应必须包含 Date 头
-            if (!$headerBag->has('Date')) {
-                $date = DateTime::createFromFormat('U', time(), new DateTimeZone('UTC'));
+        $headerBag = $headerBag ?? new ResponseHeaderBag;
 
-                $headerBag->set('Date', $date->format('D, d M Y H:i:s').' GMT');
-            }
+        // RFC2616 - 14.18
+        // Origin servers MUST include a Date header field in all responses.
+        $this->addDateHeaderIfNecessary($statusCode, $headerBag);
 
-            foreach ($headerBag->allPreserveCaseWithoutCookies() as $name => $values) {
-                $name = ucwords($name, '-');
+        foreach ($headerBag->allPreserveCaseWithoutCookies() as $name => $values) {
+            $this->setHeaderInResponse($name, (array) $values);
+        }
 
-                foreach ($values as $value) {
-                    $this->response->header($name, $value);
-                }
-            }
-
-            foreach ($headerBag->getCookies() as $cookie) {
-                if ($cookie->isRaw()) {
-                    $this->response->rawcookie(
-                        $cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(), $cookie->getPath(),
-                        $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly()
-                    );
-                } else {
-                    $this->response->cookie(
-                        $cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(), $cookie->getPath(),
-                        $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly()
-                    );
-                }
-            }
+        foreach ($headerBag->getCookies() as $cookie) {
+            $this->setCookieInResponse($cookie);
         }
     }
 
     /**
-     * 发送响应体
+     * Add the Date header if it's missing.
      *
-     * @param string $data
+     * @see https://tools.ietf.org/html/rfc2616#section-14.18
+     *
+     * @param int $statusCode
+     * @param \Symfony\Component\HttpFoundation\ResponseHeaderBag $headerBag
      */
-    public function sendBody($data)
+    protected function addDateHeaderIfNecessary($statusCode, $headerBag)
+    {
+        if ($statusCode >= 200 && $statusCode < 500 && !$headerBag->has('Date')) {
+            $date = DateTime::createFromFormat('U', time(), new DateTimeZone('UTC'));
+
+            $headerBag->set('Date', $date->format('D, d M Y H:i:s').' GMT');
+        }
+    }
+
+    /**
+     * Set response header.
+     *
+     * @param string $name
+     * @param array $values
+     */
+    protected function setHeaderInResponse($name, array $values)
+    {
+        $name = ucwords($name, '-');
+
+        foreach ($values as $value) {
+            $this->response->header($name, $value);
+        }
+    }
+
+    /**
+     * Set a cookie in response header.
+     *
+     * @param \Symfony\Component\HttpFoundation\Cookie $cookie
+     */
+    protected function setCookieInResponse(Cookie $cookie)
+    {
+        $method = $cookie->isRaw() ? 'rawcookie' : 'cookie';
+
+        $this->response->$method(
+            $cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(), $cookie->getPath(),
+            $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly()
+        );
+    }
+
+    /**
+     * Return whether the response body has been split.
+     *
+     * @return bool
+     */
+    public function isChucked()
+    {
+        return $this->chucked;
+    }
+
+    /**
+     * Send response body.
+     *
+     * @param string $body
+     */
+    public function sendBody($body)
     {
         if ($this->chucked) {
-            throw new RuntimeException('Cannot send data by sendBody() while the response has be chucked.');
+            throw new RuntimeException('Cannot send data by sendBody() while the response is chucked.');
         }
 
-        $this->response->end($data);
+        $this->response->end($body);
     }
 
     /**
-     * 发送分段数据
+     * Send response body in chucked.
      *
      * @param string $data
+     * @param bool $last
      */
-    public function sendChuck($data)
+    public function sendChuck($data, $last = false)
     {
         $this->chucked = true;
 
-        if (strlen($data) > 0) {
+        if ($last == true) {
+            $this->response->end($data);
+        } elseif (strlen($data) > 0) {
             $this->response->write($data);
         }
     }
 
     /**
-     * 结束分段响应发送
+     * Finish the chuck sending.
      */
     public function finishChuck()
     {
