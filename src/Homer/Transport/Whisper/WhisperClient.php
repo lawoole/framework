@@ -10,14 +10,14 @@ use Throwable;
 class WhisperClient extends Client
 {
     /**
-     * Swoole 客户端
+     * The Swoole client instance.
      *
      * @var \Swoole\Client
      */
     protected $client;
 
     /**
-     * 获得默认序列化方式
+     * Get default serialize type.
      *
      * @return string
      */
@@ -27,7 +27,7 @@ class WhisperClient extends Client
     }
 
     /**
-     * 是否已经连接到服务器
+     * Return whether the client has connected to the server.
      *
      * @return bool
      */
@@ -37,7 +37,7 @@ class WhisperClient extends Client
     }
 
     /**
-     * 连接服务器
+     * Connect to the server.
      */
     protected function doConnect()
     {
@@ -72,7 +72,7 @@ class WhisperClient extends Client
     }
 
     /**
-     * 断开与服务器的连接
+     * Disconnect to the server.
      */
     protected function doDisconnect()
     {
@@ -84,7 +84,7 @@ class WhisperClient extends Client
     }
 
     /**
-     * 发送消息请求
+     * Send calling request.
      *
      * @param string $data
      *
@@ -114,7 +114,7 @@ class WhisperClient extends Client
     }
 
     /**
-     * 发送数据
+     * Send data.
      *
      * @param string $data
      *
@@ -144,7 +144,7 @@ class WhisperClient extends Client
     }
 
     /**
-     * 判断异常是否由连接问题引发
+     * Return whether the exception caused by connection.
      *
      * @param \Throwable $e
      *
@@ -162,7 +162,7 @@ class WhisperClient extends Client
     }
 
     /**
-     * 判断异常是否由超时引发
+     * Return whether the exception caused by network timeout.
      *
      * @param \Throwable $e
      *
@@ -178,7 +178,7 @@ class WhisperClient extends Client
     }
 
     /**
-     * 接收消息
+     * Receive result.
      *
      * @return string
      */

@@ -8,21 +8,21 @@ use Throwable;
 abstract class Invoker
 {
     /**
-     * 调用接口名
+     * The interface name.
      *
      * @var string
      */
     protected $interface;
 
     /**
-     * 选项
+     * Calling options.
      *
      * @var array
      */
     protected $options;
 
     /**
-     * 创建调用器
+     * Create a invoker instance.
      *
      * @param string $interface
      * @param array $options
@@ -34,7 +34,7 @@ abstract class Invoker
     }
 
     /**
-     * 获得调用接口类名
+     * Get interface name.
      *
      * @return string
      */
@@ -44,7 +44,17 @@ abstract class Invoker
     }
 
     /**
-     * 执行调用
+     * Return whether in debug mode.
+     *
+     * @return bool
+     */
+    protected function isDebug()
+    {
+        return $this->options['debug'] ?? false;
+    }
+
+    /**
+     * Do invoking.
      *
      * @param \Lawoole\Homer\Invocation $invocation
      *
@@ -60,7 +70,7 @@ abstract class Invoker
     }
 
     /**
-     * 执行调用并得到调用结果
+     * Do invoking and get the result.
      *
      * @param \Lawoole\Homer\Invocation $invocation
      *
@@ -69,7 +79,7 @@ abstract class Invoker
     abstract protected function doInvoke(Invocation $invocation);
 
     /**
-     * 创建调用异常结果
+     * Create a result with exception.
      *
      * @param \Throwable $e
      *

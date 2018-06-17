@@ -5,34 +5,34 @@ use Illuminate\Support\Arr;
 use Lawoole\Homer\Context;
 use Lawoole\Homer\Invokers\RemoteInvoker;
 use Lawoole\Homer\Proxy;
-use Lawoole\Homer\Transport\ClientFactory;
+use Lawoole\Homer\Transport\Client;
 use LogicException;
 
 class ReferenceComponent extends Component
 {
     /**
-     * 调用上下文
+     * The invoking context instance.
      *
      * @var \Lawoole\Homer\Context
      */
     protected $context;
 
     /**
-     * 客户端工厂
+     * The client instance.
      *
-     * @var \Lawoole\Homer\Transport\ClientFactory
+     * @var \Lawoole\Homer\Transport\Client
      */
-    protected $clientFactory;
+    protected $client;
 
     /**
-     * 调用代理
+     * The instance of calling proxy.
      *
      * @var \Lawoole\Homer\Proxy
      */
     protected $proxy;
 
     /**
-     * 设置调用上下文
+     * The invoking context instance.
      *
      * @param \Lawoole\Homer\Context $context
      *
@@ -46,21 +46,21 @@ class ReferenceComponent extends Component
     }
 
     /**
-     * 设置客户端工厂
+     * Set the client instance.
      *
-     * @param \Lawoole\Homer\Transport\ClientFactory $factory
+     * @param \Lawoole\Homer\Transport\Client $client
      *
      * @return $this
      */
-    public function setClientFactory(ClientFactory $factory)
+    public function setClient(Client $client)
     {
-        $this->clientFactory = $factory;
+        $this->client = $client;
 
         return $this;
     }
 
     /**
-     * 引用远程服务
+     * Reference the interface.
      */
     public function refer()
     {
@@ -72,15 +72,13 @@ class ReferenceComponent extends Component
             throw new LogicException('Client factory must be set before refer to the service.');
         }
 
-        $identify = Arr::get($this->config, 'id', function () {
-            return Arr::get($this->config, 'interface');
-        });
+        $identify = $this->config['id'] ?? $this->config['interface'] ?? null;
 
         $this->container->instance($identify, $this->getProxy());
     }
 
     /**
-     * 获得调用代理
+     * Get the calling proxy of interface.
      *
      * @return \Lawoole\Homer\Proxy
      */
@@ -94,7 +92,7 @@ class ReferenceComponent extends Component
     }
 
     /**
-     * 创建调用代理
+     * Create the
      *
      * @return \Lawoole\Homer\Proxy
      */
@@ -102,13 +100,9 @@ class ReferenceComponent extends Component
     {
         $config = $this->config;
 
-        $client = $this->clientFactory->getClient(
-            Arr::pull($config, 'client')
-        );
-
         $interface = Arr::pull($config, 'interface');
 
-        $invoker = new RemoteInvoker($this->context, $client, $interface, $config);
+        $invoker = new RemoteInvoker($this->context, $this->client, $interface, $config);
 
         return new Proxy($invoker);
     }

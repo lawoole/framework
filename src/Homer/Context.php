@@ -2,28 +2,28 @@
 namespace Lawoole\Homer;
 
 use Illuminate\Contracts\Container\Container;
-use Lawoole\Homer\Concerns\HasAttachments;
+use Lawoole\Support\Concerns\HasAttachments;
 
 class Context
 {
     use HasAttachments;
 
     /**
-     * 容器
+     * The container instance.
      *
      * @var \Illuminate\Contracts\Container\Container
      */
     protected $container;
 
     /**
-     * 当前调用对象
+     * The current invocation instance.
      *
      * @var \Lawoole\Homer\Invocation
      */
     protected $invocation;
 
     /**
-     * 创建调用上下文
+     * Create a invoking context instance.
      *
      * @param \Illuminate\Contracts\Container\Container $container
      */
@@ -33,7 +33,7 @@ class Context
     }
 
     /**
-     * 获得容器
+     * Get the container instance.
      *
      * @return \Illuminate\Contracts\Container\Container
      */
@@ -43,7 +43,7 @@ class Context
     }
 
     /**
-     * 获得当前调用
+     * Get the current invocation instance.
      *
      * @return \Lawoole\Homer\Invocation
      */
@@ -53,7 +53,7 @@ class Context
     }
 
     /**
-     * 设置调用
+     * Set the invocation instance.
      *
      * @param \Lawoole\Homer\Invocation $invocation
      */
@@ -65,7 +65,7 @@ class Context
     }
 
     /**
-     * 清除当前调用
+     * Remove the invocation instance.
      */
     public function forgetInvocation()
     {

@@ -4,28 +4,28 @@ namespace Lawoole\Homer\Transport;
 trait SerializeServerSocketMessages
 {
     /**
-     * 序列化工具工厂
+     * The data serializer factory.
      *
-     * @var \Lawoole\Homer\Serialization\Serializers\SerializerFactory
+     * @var \Lawoole\Homer\Serialize\Factory
      */
     protected $serializerFactory;
 
     /**
-     * 序列化消息
+     * Get the serializer for the server socket.
      *
      * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
      *
-     * @return \Lawoole\Homer\Serialization\Serializers\Serializer
+     * @return \Lawoole\Homer\Serialize\Serializer
      */
     protected function getSerializer($serverSocket)
     {
-        return $this->serializerFactory->getSerializer(
+        return $this->serializerFactory->serializer(
             $serverSocket->getConfig('serializer') ?: $this->getDefaultSerializer()
         );
     }
 
     /**
-     * 获得默认序列化方式
+     * Get default serialize type.
      *
      * @return string
      */

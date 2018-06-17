@@ -1,12 +1,14 @@
 <?php
 namespace Lawoole\Homer;
 
-use Lawoole\Homer\Concerns\SerializeException;
+use Lawoole\Contracts\Support\Attachable;
+use Lawoole\Homer\Serialize\Serializable;
+use Lawoole\Support\Concerns\HasAttachments;
 use Throwable;
 
-class Result
+class Result implements Attachable
 {
-    use SerializeException;
+    use HasAttachments, Serializable;
 
     /**
      * 调用结果值

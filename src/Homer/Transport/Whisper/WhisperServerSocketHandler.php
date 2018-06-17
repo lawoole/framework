@@ -1,47 +1,47 @@
 <?php
 namespace Lawoole\Homer\Transport\Whisper;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Log;
-use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Homer\Dispatcher;
+use Lawoole\Homer\Serialize\Factory as SerializerFactory;
 use Lawoole\Homer\Transport\SerializeServerSocketMessages;
-use Lawoole\Server\ServerSockets\ServerSocketHandler as BaseServerSocketHandler;
 use Throwable;
 
-class WhisperServerSocketHandler extends BaseServerSocketHandler
+class WhisperServerSocketHandler
 {
     use SerializeServerSocketMessages;
 
     /**
-     * 服务容器
+     * The application instance.
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Illuminate\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
-     * 消息调度器
+     * The invoker dispatcher.
      *
      * @var \Lawoole\Homer\Dispatcher
      */
     protected $dispatcher;
 
     /**
-     * 创建 Http 协议处理器
+     * Create a Whisper socket handler.
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Illuminate\Contracts\Foundation\Application $app
      * @param \Lawoole\Homer\Dispatcher $dispatcher
+     * @param \Lawoole\Homer\Serialize\Factory $serializerFactory
      */
-    public function __construct(Application $app, Dispatcher $dispatcher)
+    public function __construct(Application $app, Dispatcher $dispatcher, SerializerFactory $serializerFactory)
     {
         $this->app = $app;
         $this->dispatcher = $dispatcher;
-
-        $this->serializerFactory = $app['homer.factory.serializer'];
+        $this->serializerFactory = $serializerFactory;
     }
 
     /**
-     * 获得默认序列化方式
+     * Get default serialize type.
      *
      * @return string
      */
@@ -83,7 +83,7 @@ class WhisperServerSocketHandler extends BaseServerSocketHandler
     }
 
     /**
-     * 发送响应
+     * Send the response.
      *
      * @param \Lawoole\Server\Server $server
      * @param int $fd

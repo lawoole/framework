@@ -6,17 +6,17 @@ use Lawoole\Homer\HomerException;
 class InvokingException extends HomerException
 {
     /**
-     * 异常类型：未知异常
+     * Exception type: Unknown exception.
      */
     const UNKNOWN = 0;
 
     /**
-     * 异常类型：业务异常
+     * Exception type: Business exception.
      */
     const BUSINESS = 1;
 
     /**
-     * 判断异常是否为业务异常
+     * Return whether the exception is a business exception.
      *
      * @return bool
      */

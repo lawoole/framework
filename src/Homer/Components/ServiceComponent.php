@@ -10,28 +10,28 @@ use LogicException;
 class ServiceComponent extends Component
 {
     /**
-     * 调用上下文
+     * The invoking context instance.
      *
      * @var \Lawoole\Homer\Context
      */
     protected $context;
 
     /**
-     * 调用调度器
+     * The invoking dispatcher.
      *
      * @var \Lawoole\Homer\Dispatcher
      */
     protected $dispatcher;
 
     /**
-     * 服务调用器
+     * The interface invoker.
      *
      * @var \Lawoole\Homer\Invokers\Invoker
      */
     protected $invoker;
 
     /**
-     * 设置调用上下文
+     * The invoking context instance.
      *
      * @param \Lawoole\Homer\Context $context
      *
@@ -45,7 +45,7 @@ class ServiceComponent extends Component
     }
 
     /**
-     * 设置调用调度器
+     * Set the invoking dispatcher.
      *
      * @param \Lawoole\Homer\Dispatcher $dispatcher
      *
@@ -59,7 +59,7 @@ class ServiceComponent extends Component
     }
 
     /**
-     * 暴露服务
+     * Export the interface.
      */
     public function export()
     {
@@ -77,7 +77,7 @@ class ServiceComponent extends Component
     }
 
     /**
-     * 获得服务调用器
+     * Get invoker for the interface.
      *
      * @return \Lawoole\Homer\Invokers\Invoker
      */
@@ -91,7 +91,7 @@ class ServiceComponent extends Component
     }
 
     /**
-     * 创建服务调用器
+     * Create the invoker.
      *
      * @return \Lawoole\Homer\Invokers\Invoker
      */

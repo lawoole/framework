@@ -4,17 +4,17 @@ namespace Lawoole\Support;
 class Network
 {
     /**
-     * 默认本地主机地址
+     * Default local host ip.
      */
     const LOCAL_HOST = '127.0.0.1';
 
     /**
-     * 默认任意主机地址
+     * Any hosts address.
      */
     const ANY_HOST = '0.0.0.0';
 
     /**
-     * 获得本地主机
+     * Get the local host ip.
      *
      * @return string
      */
@@ -32,7 +32,7 @@ class Network
     }
 
     /**
-     * 判断主机是否可用
+     * Return whether the host is usable.
      *
      * @param string $host
      *

@@ -1,19 +1,19 @@
 <?php
-namespace Lawoole\Homer\Concerns;
+namespace Lawoole\Support\Concerns;
 
 use Illuminate\Support\Arr;
 
 trait HasAttachments
 {
     /**
-     * 附加信息
+     * All attachments.
      *
      * @var array
      */
     protected $attachments = [];
 
     /**
-     * 获得附加信息
+     * Get all attachments.
      *
      * @return array
      */
@@ -23,17 +23,7 @@ trait HasAttachments
     }
 
     /**
-     * 设置附加信息
-     *
-     * @param array $attachments
-     */
-    public function setAttachments(array $attachments)
-    {
-        $this->attachments = $attachments;
-    }
-
-    /**
-     * 获得附加信息
+     * Get an attachment by key.
      *
      * @param string $key
      * @param mixed $default
@@ -46,7 +36,17 @@ trait HasAttachments
     }
 
     /**
-     * 设置附加信息
+     * Set attachments.
+     *
+     * @param array $attachments
+     */
+    public function setAttachments(array $attachments)
+    {
+        $this->attachments = $attachments;
+    }
+
+    /**
+     * Set an attachment by key.
      *
      * @param string $key
      * @param mixed $value

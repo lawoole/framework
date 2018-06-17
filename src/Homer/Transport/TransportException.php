@@ -6,32 +6,32 @@ use Lawoole\Homer\HomerException;
 class TransportException extends HomerException
 {
     /**
-     * 异常类型：未知异常
+     * Exception exception: Unknown exception.
      */
     const UNKNOWN = 0;
 
     /**
-     * 异常类型：连接异常
+     * Exception exception: Connection exception.
      */
     const CONNECTION = 1;
 
     /**
-     * 异常类型：网络超时
+     * Exception exception: Network timeout exception.
      */
     const TIMEOUT = 2;
 
     /**
-     * 异常类型：数据序列化失败
+     * Exception exception: Data serialization exception.
      */
     const SERIALIZATION = 3;
 
     /**
-     * 异常类型：远端处理异常
+     * Exception exception: Remote processing exception.
      */
     const REMOTE = 4;
 
     /**
-     * 判断异常是否为连接异常
+     * Return whether the exception is a connection exception.
      *
      * @return bool
      */
@@ -41,7 +41,7 @@ class TransportException extends HomerException
     }
 
     /**
-     * 判断异常是否为网络超时
+     * Return whether the exception is a network timeout exception.
      *
      * @return bool
      */
@@ -51,7 +51,7 @@ class TransportException extends HomerException
     }
 
     /**
-     * 判断异常是否为数据序列化失败
+     * Return whether the exception is a data serialization exception.
      *
      * @return bool
      */
@@ -61,7 +61,7 @@ class TransportException extends HomerException
     }
 
     /**
-     * 判断异常是否为远端处理异常
+     * Return whether the exception is a remote processing exception.
      *
      * @return bool
      */

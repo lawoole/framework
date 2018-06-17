@@ -10,28 +10,28 @@ use Lawoole\Homer\Result;
 class ConcreteInvoker extends Invoker
 {
     /**
-     * 调用上下文
+     * The invoking context instance.
      *
      * @var \Lawoole\Homer\Context
      */
     protected $context;
 
     /**
-     * 调用实体
+     * The concrete to be called.
      *
      * @var string|object|\Closure
      */
     protected $concrete;
 
     /**
-     * 调用实体对象实例
+     * The concrete instance.
      *
      * @var object|\Closure
      */
     protected $instance;
 
     /**
-     * 创建实体调用器
+     * Create a concrete invoker instance.
      *
      * @param \Lawoole\Homer\Context $context
      * @param string $interface
@@ -47,7 +47,7 @@ class ConcreteInvoker extends Invoker
     }
 
     /**
-     * 判断是否允许动态调用
+     * Return whether the concrete can be called dynamically.
      *
      * @return bool
      */
@@ -57,7 +57,7 @@ class ConcreteInvoker extends Invoker
     }
 
     /**
-     * 执行调用并得到调用结果
+     * Do invoking and get the result.
      *
      * @param \Lawoole\Homer\Invocation $invocation
      *
@@ -85,7 +85,7 @@ class ConcreteInvoker extends Invoker
     }
 
     /**
-     * 获得实际调用对象
+     * Get the concrete instance.
      *
      * @return object|\Closure
      */
@@ -110,7 +110,7 @@ class ConcreteInvoker extends Invoker
     }
 
     /**
-     * 检查调用实体对象实例
+     * Check the concrete instance before it be called.
      *
      * @param object|\Closure $instance
      */
@@ -128,7 +128,7 @@ class ConcreteInvoker extends Invoker
     }
 
     /**
-     * 创建调用结果
+     * Create a invoking result.
      *
      * @param mixed $value
      *

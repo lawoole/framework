@@ -20,6 +20,7 @@
     },
     "require-dev": {
         "phpunit/phpunit": "~7.0",
+        "guzzlehttp/guzzle": "~6.0",
         "lawoole/swoole": "dev-master"
     },
     "autoload": {

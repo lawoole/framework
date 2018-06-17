@@ -6,7 +6,7 @@ use Lawoole\Server\ServerSockets\ServerSocket;
 class WhisperServerSocket extends ServerSocket
 {
     /**
-     * 配置选项
+     * The server socket options.
      *
      * @var array
      */

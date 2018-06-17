@@ -6,21 +6,21 @@ use Illuminate\Contracts\Container\Container;
 abstract class Component
 {
     /**
-     * 容器
+     * The container instance.
      *
      * @var \Illuminate\Contracts\Container\Container
      */
     protected $container;
 
     /**
-     * 配置
+     * The component config.
      *
      * @var array
      */
     protected $config;
 
     /**
-     * 创建组件
+     * Create a component instance.
      *
      * @param \Illuminate\Contracts\Container\Container $container
      * @param array $config

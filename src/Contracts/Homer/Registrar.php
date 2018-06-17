@@ -4,9 +4,20 @@ namespace Lawoole\Contracts\Homer;
 interface Registrar
 {
     /**
-     * @param array $reference
+     * Register a reference in the Homer.
+     *
+     * @param array $config
      *
      * @return mixed
      */
-    public function resolveReference(array $reference);
+    public function resolveReference(array $config);
+
+    /**
+     * Register a service in the Homer.
+     *
+     * @param array $config
+     *
+     * @return mixed
+     */
+    public function resolveService(array $config);
 }

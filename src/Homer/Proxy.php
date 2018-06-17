@@ -3,46 +3,45 @@ namespace Lawoole\Homer;
 
 use BadMethodCallException;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 use Lawoole\Homer\Invokers\Invoker;
 use ReflectionClass;
-use ReflectionException;
+use Throwable;
 
 class Proxy
 {
     /**
-     * 调用器
+     * The invoker uses for calling.
      *
      * @var \Lawoole\Homer\Invokers\Invoker
      */
     protected $invoker;
 
     /**
-     * 调用接口名
+     * The bound interface name.
      *
      * @var string
      */
     protected $interface;
 
     /**
-     * 调用接口反射
+     * The reflection for the interface.
      *
      * @var \ReflectionClass
      */
     protected $reflection;
 
     /**
-     * 接口方法
+     * The instance methods.
      *
      * @var array
      */
     protected $methods;
 
     /**
-     * 创建调用代理
+     * Create a invoking proxy instance.
      *
      * @param \Lawoole\Homer\Invokers\Invoker $invoker
-     *
-     * @throws \ReflectionException
      */
     public function __construct(Invoker $invoker)
     {
@@ -52,11 +51,9 @@ class Proxy
     }
 
     /**
-     * 分析调用器
+     * Parse the invoker.
      *
      * @param \Lawoole\Homer\Invokers\Invoker $invoker
-     *
-     * @throws \ReflectionException
      */
     protected function parseInvoker(Invoker $invoker)
     {
@@ -66,13 +63,13 @@ class Proxy
             $reflection = new ReflectionClass($this->interface);
 
             if (!$reflection->isInterface()) {
-                throw new I("{$this->interface} must be an interface.");
+                throw new InvalidArgumentException("{$this->interface} must be an interface.");
             }
 
             $this->methods = $this->getMethods($reflection);
 
             $this->reflection = $reflection;
-        } catch (ReflectionException $e) {
+        } catch (Throwable $e) {
             Log::channel('homer')->warning("Reflect {$this->interface} failed.", [
                 'exception' => $e,
             ]);
@@ -82,7 +79,7 @@ class Proxy
     }
 
     /**
-     * 获得接口方法
+     * Get instance methods.
      *
      * @param \ReflectionClass $reflection
      *
@@ -100,7 +97,7 @@ class Proxy
     }
 
     /**
-     * 获得调用器
+     * Get the invoker.
      *
      * @return \Lawoole\Homer\Invokers\Invoker
      */
@@ -110,7 +107,7 @@ class Proxy
     }
 
     /**
-     * 获得调用接口类名
+     * Get the interface name.
      *
      * @return string
      */
@@ -120,7 +117,7 @@ class Proxy
     }
 
     /**
-     * 执行调用
+     * Do the calling.
      *
      * @param string $method
      * @param array $arguments
@@ -141,6 +138,11 @@ class Proxy
         if (!$result instanceof Result) {
             $resultType = get_class($result) ?: 'unknown';
 
+            Log::channel('homer')->warning("The result is not a Result instance.", [
+                'type'   => $resultType,
+                'result' => var_export($result, true),
+            ]);
+
             throw new HomerException("Calling result must instance of Result, while the {$resultType} given.");
         }
 
@@ -148,7 +150,7 @@ class Proxy
     }
 
     /**
-     * 创建调用
+     * Create a invocation.
      *
      * @param string $method
      * @param array $arguments
@@ -161,7 +163,7 @@ class Proxy
     }
 
     /**
-     * 执行调用
+     * Delegate the calling to the invoker.
      *
      * @param string $name
      * @param array $arguments

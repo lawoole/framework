@@ -8,14 +8,14 @@ use Throwable;
 class Dispatcher
 {
     /**
-     * 调用器
+     * All registered invokers.
      *
      * @var \Lawoole\Homer\Invokers\Invoker[]
      */
     protected $invokers = [];
 
     /**
-     * 暴露调用器
+     * Export the invoker.
      *
      * @param \Lawoole\Homer\Invokers\Invoker $invoker
      */
@@ -33,7 +33,7 @@ class Dispatcher
     }
 
     /**
-     * 处理消息
+     * Handler the invoking request.
      *
      * @param mixed $message
      *
@@ -59,7 +59,7 @@ class Dispatcher
     }
 
     /**
-     * 处理调用
+     * Handle the invocation.
      *
      * @param \Lawoole\Homer\Invocation $invocation
      *
@@ -73,7 +73,7 @@ class Dispatcher
     }
 
     /**
-     * 调度调用
+     * Dispatch the invocation.
      *
      * @param \Lawoole\Homer\Invocation $invocation
      *

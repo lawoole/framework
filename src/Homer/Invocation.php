@@ -1,35 +1,37 @@
 <?php
 namespace Lawoole\Homer;
 
-use Lawoole\Homer\Concerns\HasAttachments;
+use Lawoole\Contracts\Support\Attachable;
+use Lawoole\Homer\Serialize\Serializable;
+use Lawoole\Support\Concerns\HasAttachments;
 
-class Invocation
+class Invocation implements Attachable
 {
-    use HasAttachments;
+    use HasAttachments, Serializable;
 
     /**
-     * 调用接口名
+     * The interface name calling to.
      *
      * @var string
      */
     protected $interface;
 
     /**
-     * 调用方法名
+     * The calling method name.
      *
      * @var string
      */
     protected $method;
 
     /**
-     * 调用参数
+     * The invocation arguments.
      *
      * @var array
      */
     protected $arguments;
 
     /**
-     * 新建调用对象实例
+     * Create a new invocation instance.
      *
      * @param string $interface
      * @param string $method
@@ -46,7 +48,7 @@ class Invocation
     }
 
     /**
-     * 获得调用接口类名
+     * Get the calling interface name.
      *
      * @return string
      */
@@ -56,7 +58,7 @@ class Invocation
     }
 
     /**
-     * 设置调用的接口名
+     * Set the calling interface name.
      *
      * @param string $interface
      */
@@ -66,7 +68,7 @@ class Invocation
     }
 
     /**
-     * 获得调用方法名
+     * Get the calling method name.
      *
      * @return string
      */
@@ -76,7 +78,7 @@ class Invocation
     }
 
     /**
-     * 设置调用方法名
+     * Set the calling method name.
      *
      * @param string $method
      */
@@ -86,7 +88,7 @@ class Invocation
     }
 
     /**
-     * 获得调用参数
+     * Get the calling arguments.
      *
      * @return array
      */
@@ -96,7 +98,7 @@ class Invocation
     }
 
     /**
-     * 设置调用参数
+     * Set the calling arguments.
      *
      * @param array $arguments
      */

@@ -1,46 +1,56 @@
 <?php
 namespace Lawoole\Homer\Transport;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
-use Lawoole\Contracts\Foundation\Application;
+use Lawoole\Homer\Serialize\Factory as SerializerFactory;
 use Lawoole\Homer\Transport\Http\HttpClient;
 use Lawoole\Homer\Transport\Whisper\WhisperClient;
 
 class ClientFactory
 {
     /**
-     * 服务容器
+     * The application instance.
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Illuminate\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
-     * 已创建的客户端
+     * The data serializer factory.
+     *
+     * @var \Lawoole\Homer\Serialize\Factory
+     */
+    protected $serializerFactory;
+
+    /**
+     * All clients.
      *
      * @var \Lawoole\Homer\Transport\Client[]
      */
     protected $clients = [];
 
     /**
-     * 创建客户端工厂
+     * Create a client factory instance.
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Illuminate\Contracts\Foundation\Application $app
+     * @param \Lawoole\Homer\Serialize\Factory $serializerFactory
      */
-    public function __construct(Application $app)
+    public function __construct(Application $app, SerializerFactory $serializerFactory)
     {
         $this->app = $app;
+        $this->serializerFactory = $serializerFactory;
     }
 
     /**
-     * 获得客户端
+     * Get client instance.
      *
      * @param array $config
      *
      * @return \Lawoole\Homer\Transport\Client
      */
-    public function getClient(array $config)
+    public function client(array $config)
     {
         $key = $this->getClientKey($config);
 
@@ -52,7 +62,7 @@ class ClientFactory
     }
 
     /**
-     * 创建客户端
+     * Create the client instance.
      *
      * @param array $config
      *
@@ -69,16 +79,16 @@ class ClientFactory
 
         switch ($urls['scheme']) {
             case 'http':
-                return new HttpClient($this->app, $config);
+                return new HttpClient($this->app, $this->serializerFactory, $config);
             case 'whisper':
-                return new WhisperClient($this->app, $config);
+                return new WhisperClient($this->app, $this->serializerFactory, $config);
             default:
                 throw new InvalidArgumentException('Protocol '.$urls['scheme'].' is not supported for Homer.');
         }
     }
 
     /**
-     * 获得客户端标记
+     * Get the identify key of client.
      *
      * @param array $config
      *

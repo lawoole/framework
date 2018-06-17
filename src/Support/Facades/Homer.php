@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Facade;
 class Homer extends Facade
 {
     /**
-     * 获得容器注册名
+     * Get the registered name of the component.
      *
      * @return string
      */

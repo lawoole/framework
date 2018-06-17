@@ -2,14 +2,14 @@
 namespace Lawoole\Homer;
 
 use Illuminate\Support\ServiceProvider;
-use Lawoole\Homer\Serialization\Serializers\SerializerFactory;
+use Lawoole\Homer\Serialize\Factory as SerializerFactory;
 use Lawoole\Homer\Transport\ClientFactory;
 use Lawoole\Homer\Transport\Whisper\WhisperServerSocket;
 
 class HomerServiceProvider extends ServiceProvider
 {
     /**
-     * 注册服务
+     * Register the service provider.
      */
     public function register()
     {
@@ -17,17 +17,17 @@ class HomerServiceProvider extends ServiceProvider
 
         $this->registerDispatcher();
 
-        $this->registerHomer();
-
-        $this->registerClientFactory();
+        $this->registerServerSockets();
 
         $this->registerSerializerFactory();
 
-        $this->registerServerSockets();
+        $this->registerClientFactory();
+
+        $this->registerHomer();
     }
 
     /**
-     * 注册调用上下文
+     * Register the invoking context instance.
      */
     protected function registerContext()
     {
@@ -37,7 +37,7 @@ class HomerServiceProvider extends ServiceProvider
     }
 
     /**
-     * 注册调用分发器
+     * Register the invocation dispatcher instance.
      */
     protected function registerDispatcher()
     {
@@ -47,35 +47,7 @@ class HomerServiceProvider extends ServiceProvider
     }
 
     /**
-     * 注册 Homer 管理器
-     */
-    protected function registerHomer()
-    {
-        $this->app->singleton('homer', function ($app) {
-            return new HomerManager($app, $app['config']['homer']);
-        });
-    }
-
-    /**
-     * 注册客户端工厂
-     */
-    protected function registerClientFactory()
-    {
-        $this->app->singleton('homer.factory.client', function ($app) {
-            return new ClientFactory($app);
-        });
-    }
-
-    /**
-     * 注册序列化工具工厂
-     */
-    protected function registerSerializerFactory()
-    {
-        $this->app->singleton('homer.factory.serializer', SerializerFactory::class);
-    }
-
-    /**
-     * 注册服务 Socket
+     * Register all extension socket protocols.
      */
     protected function registerServerSockets()
     {
@@ -83,7 +55,42 @@ class HomerServiceProvider extends ServiceProvider
     }
 
     /**
-     * 启动服务
+     * Register the serializer factory instance.
+     */
+    protected function registerSerializerFactory()
+    {
+        $this->app->singleton('homer.factory.serializer', function () {
+            return new SerializerFactory;
+        });
+
+        $this->app->alias('homer.factory.serializer', SerializerFactory::class);
+    }
+
+    /**
+     * Register the client factory instance.
+     */
+    protected function registerClientFactory()
+    {
+        $this->app->singleton('homer.factory.client', function ($app) {
+            return new ClientFactory($app, $app['homer.factory.serializer']);
+        });
+
+        $this->app->alias('homer.factory.client', ClientFactory::class);
+    }
+
+    /**
+     * Register the Homer manager.
+     */
+    protected function registerHomer()
+    {
+        $this->app->singleton('homer', function ($app) {
+            return new HomerManager($app, $app['homer.context'], $app['homer.dispatcher'],
+                $app['homer.factory.client'], $app['config']['homer']);
+        });
+    }
+
+    /**
+     * Bootstrap the Homer service.
      */
     public function boot()
     {

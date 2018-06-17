@@ -25,21 +25,6 @@ class MemoryStreamTest extends TestCase
         $this->assertEquals('at', $stream->read(2));
     }
 
-    public function testEof()
-    {
-        $stream = new MemoryStream;
-
-        $this->assertTrue($stream->eof());
-
-        $stream->write('Dog');
-
-        $this->assertTrue($stream->eof());
-
-        $stream->rewind();
-
-        $this->assertFalse($stream->eof());
-    }
-
     public function testCrosstalk()
     {
         $left = new MemoryStream;

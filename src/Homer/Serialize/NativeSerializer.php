@@ -1,28 +1,28 @@
 <?php
-namespace Lawoole\Homer\Serialization\Serializers;
+namespace Lawoole\Homer\Serialize;
 
 class NativeSerializer extends Serializer
 {
     /**
-     * 序列化数据
+     * Serialize the data.
      *
      * @param mixed $message
      *
      * @return string
      */
-    public function serialize($message)
+    public function doSerialize($message)
     {
         return serialize($message);
     }
 
     /**
-     * 反序列化数据
+     * Deserialize the data.
      *
      * @param string $data
      *
      * @return mixed
      */
-    public function unserialize($data)
+    public function doDeserialize($data)
     {
         return unserialize($data);
     }

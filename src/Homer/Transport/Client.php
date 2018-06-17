@@ -1,64 +1,54 @@
 <?php
 namespace Lawoole\Homer\Transport;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Log;
-use Lawoole\Contracts\Foundation\Application;
 use Lawoole\Homer\HomerException;
+use Lawoole\Homer\Serialize\Factory as SerializerFactory;
 use Throwable;
 
 abstract class Client
 {
     /**
-     * 服务容器
+     * The application instance.
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Illuminate\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
-     * 配置
+     * The client configurations.
      *
      * @var array
      */
     protected $config;
 
     /**
-     * 序列化工具
+     * The data serializer.
      *
-     * @var \Lawoole\Homer\Serialization\Serializers\Serializer
+     * @var \Lawoole\Homer\Serialize\Serializer
      */
     protected $serializer;
 
     /**
-     * 创建客户端
+     * Create a client instance.
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @param \Illuminate\Contracts\Foundation\Application $app
+     * @param \Lawoole\Homer\Serialize\Factory $serializerFactory
      * @param array $config
      */
-    public function __construct(Application $app, array $config = [])
+    public function __construct(Application $app, SerializerFactory $serializerFactory, array $config = [])
     {
         $this->app = $app;
         $this->config = $config;
 
-        $this->serializer = $this->createSerializer();
-    }
-
-    /**
-     * 创建序列化工具
-     *
-     * @return \Lawoole\Homer\Serialization\Serializers\Serializer
-     */
-    protected function createSerializer()
-    {
-        $factory = $this->app['homer.factory.serializer'];
-
-        return $factory->getSerializer(
+        $this->serializer = $serializerFactory->serializer(
             $config['serializer'] ?? $this->getDefaultSerializer()
         );
     }
 
     /**
-     * 获得远端主机名
+     * Get the host
      *
      * @return string
      */
@@ -68,7 +58,7 @@ abstract class Client
     }
 
     /**
-     * 获得远端端口
+     * Get the remote port.
      *
      * @return int
      */
@@ -78,7 +68,7 @@ abstract class Client
     }
 
     /**
-     * 获得服务器地址
+     * Get the server address.
      *
      * @return string
      */
@@ -88,17 +78,7 @@ abstract class Client
     }
 
     /**
-     * 获得序列化工具
-     *
-     * @return \Lawoole\Homer\Serialization\Serializers\Serializer
-     */
-    public function getSerializer()
-    {
-        return $this->serializer;
-    }
-
-    /**
-     * 获得超时
+     * Get receive timeout.
      *
      * @return int
      */
@@ -108,7 +88,7 @@ abstract class Client
     }
 
     /**
-     * 获得连接失败重试次数
+     * Get the retry times of calling request.
      *
      * @return int
      */
@@ -118,7 +98,7 @@ abstract class Client
     }
 
     /**
-     * 连接服务器
+     * Connect to the server.
      */
     public function connect()
     {
@@ -158,7 +138,7 @@ abstract class Client
     }
 
     /**
-     * 断开与服务器的连接
+     * Disconnect to the server.
      */
     public function disconnect()
     {
@@ -172,7 +152,7 @@ abstract class Client
     }
 
     /**
-     * 重新连接服务器
+     * Reconnect to the server.
      */
     public function reconnect()
     {
@@ -182,7 +162,7 @@ abstract class Client
     }
 
     /**
-     * 发送消息请求
+     * Send calling request.
      *
      * @param mixed $message
      *
@@ -228,7 +208,7 @@ abstract class Client
     }
 
     /**
-     * 检查连接
+     * Check the connection.
      */
     protected function reconnectIfLostConnection()
     {
@@ -240,31 +220,31 @@ abstract class Client
     }
 
     /**
-     * 获得默认序列化方式
+     * Get default serialize driver used in the client.
      *
      * @return string
      */
     abstract protected function getDefaultSerializer();
 
     /**
-     * 是否已经连接到服务器
+     * Return whether the client has connected to the server.
      *
      * @return bool
      */
     abstract public function isConnected();
 
     /**
-     * 连接服务器
+     * Connect to the server.
      */
     abstract protected function doConnect();
 
     /**
-     * 断开与服务器的连接
+     * Disconnect to the server.
      */
     abstract protected function doDisconnect();
 
     /**
-     * 发送消息请求
+     * Send calling request.
      *
      * @param string $data
      *

@@ -1,13 +1,13 @@
 <?php
-namespace Lawoole\Homer\Serialization;
+namespace Lawoole\Homer\Serialize\Serializations;
 
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Container\Container as ContainerContract;
 
-class ContainerSerialization
+class ContainerSerialization extends Serialization
 {
     /**
-     * 创建容器传输包
+     * Create a container serialization instance.
      *
      * @param \Illuminate\Contracts\Container\Container $container
      */
@@ -16,11 +16,11 @@ class ContainerSerialization
     }
 
     /**
-     * 获得容器
+     * Get the container instance from the serialization.
      *
      * @return \Illuminate\Contracts\Container\Container
      */
-    public function getContainer()
+    public function recover()
     {
         return Container::getInstance();
     }

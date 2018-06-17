@@ -1,21 +1,21 @@
 <?php
-namespace Lawoole\Homer\Serialization;
+namespace Lawoole\Homer\Serialize\Serializations;
 
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
 
-class ValidatorSerialization
+class ValidatorSerialization extends Serialization
 {
     /**
-     * 验证信息
+     * Validate result's messages.
      *
      * @var array
      */
     protected $messages;
 
     /**
-     * 创建验证器包
+     * Create a validator serialization instance.
      *
      * @param \Illuminate\Contracts\Validation\Validator $validator
      */
@@ -25,11 +25,11 @@ class ValidatorSerialization
     }
 
     /**
-     * 获得验证器
+     * Recover the validator from the serialization.
      *
      * @return \Illuminate\Contracts\Validation\Validator
      */
-    public function getValidator()
+    public function recover()
     {
         $validator = ValidatorFacade::make([], []);
 

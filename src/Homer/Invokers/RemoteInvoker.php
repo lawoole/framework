@@ -11,21 +11,21 @@ use Throwable;
 class RemoteInvoker extends Invoker
 {
     /**
-     * 调用上下文
+     * The invoking context instance.
      *
      * @var \Lawoole\Homer\Context
      */
     protected $context;
 
     /**
-     * 客户端对象
+     * The calling client.
      *
      * @var \Lawoole\Homer\Transport\Client
      */
     protected $client;
 
     /**
-     * 远程调用器
+     * Create a remote invoker instance.
      *
      * @param \Lawoole\Homer\Context $context
      * @param \Lawoole\Homer\Transport\Client $client
@@ -41,17 +41,7 @@ class RemoteInvoker extends Invoker
     }
 
     /**
-     * 判断是否开启调试
-     *
-     * @return bool
-     */
-    protected function isDebug()
-    {
-        return $this->options['debug'] ?? false;
-    }
-
-    /**
-     * 执行调用并得到调用结果
+     * Do invoking and get the result.
      *
      * @param \Lawoole\Homer\Invocation $invocation
      *
@@ -78,13 +68,15 @@ class RemoteInvoker extends Invoker
             $result = $this->createExceptionResult($e);
         }
 
-        $this->logInvoking($invocation, $result, $this->getElapsedTime($startTime));
+        if ($this->isDebug()) {
+            $this->logInvoking($invocation, $result, $this->getElapsedTime($startTime));
+        }
 
         return $result;
     }
 
     /**
-     * 记录调用日志
+     * Log the invocation.
      *
      * @param \Lawoole\Homer\Invocation $invocation
      * @param \Lawoole\Homer\Result $result
@@ -92,24 +84,22 @@ class RemoteInvoker extends Invoker
      */
     protected function logInvoking(Invocation $invocation, Result $result, $time = null)
     {
-        if ($this->isDebug()) {
-            $invoking = "{$invocation->getInterface()}->{$invocation->getMethod()}()";
+        $invoking = "{$invocation->getInterface()}->{$invocation->getMethod()}()";
 
-            Log::channel('homer')->debug(sprintf('%s %5.2fms %s',
-                $result->hasException() ? 'Success' : 'Failure', $time, $invoking
-            ), [
-                'during'      => $time,
-                'method'      => $invoking,
-                'arguments'   => $invocation->getArguments(),
-                'attachments' => $invocation->getAttachments(),
-                'result'      => $result->getValue(),
-                'exception'   => $result->getException(),
-            ]);
-        }
+        Log::channel('homer')->debug(sprintf('%s %5.2fms %s',
+            $result->hasException() ? 'Success' : 'Failure', $time, $invoking
+        ), [
+            'during'      => $time,
+            'method'      => $invoking,
+            'arguments'   => $invocation->getArguments(),
+            'attachments' => $invocation->getAttachments(),
+            'result'      => $result->getValue(),
+            'exception'   => $result->getException(),
+        ]);
     }
 
     /**
-     * 获得逝去时间差
+     * Calculate the time elapsed.
      *
      * @param int $start
      *

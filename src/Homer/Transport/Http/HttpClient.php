@@ -10,14 +10,14 @@ use Throwable;
 class HttpClient extends Client
 {
     /**
-     * Guzzle 客户端
+     * The GuzzleHttp client instance.
      *
      * @var \GuzzleHttp\Client
      */
     protected $client;
 
     /**
-     * 获得默认序列化方式
+     * Get default serialize type.
      *
      * @return string
      */
@@ -27,7 +27,7 @@ class HttpClient extends Client
     }
 
     /**
-     * 是否已经连接到服务器
+     * Return whether the client has connected to the server.
      *
      * @return bool
      */
@@ -37,7 +37,7 @@ class HttpClient extends Client
     }
 
     /**
-     * 连接服务器
+     * Connect to the server.
      */
     protected function doConnect()
     {
@@ -48,7 +48,7 @@ class HttpClient extends Client
     }
 
     /**
-     * 断开与服务器的连接
+     * Disconnect to the server.
      */
     protected function doDisconnect()
     {
@@ -56,7 +56,7 @@ class HttpClient extends Client
     }
 
     /**
-     * 发送消息请求
+     * Send calling request.
      *
      * @param string $data
      *
@@ -90,7 +90,7 @@ class HttpClient extends Client
     }
 
     /**
-     * 判断异常是否由连接问题引发
+     *  Return whether the exception caused by connection.
      *
      * @param \Throwable $e
      *

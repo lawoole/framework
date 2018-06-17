@@ -1,56 +1,53 @@
 <?php
-namespace Lawoole\Homer\Serialization\Serializers;
+namespace Lawoole\Homer\Serialize;
 
 use InvalidArgumentException;
 
-class SerializerFactory
+class Factory
 {
     /**
-     * 默认序列化方式
-     */
-    const DEFAULT_SERIALIZER = 'php';
-
-    /**
-     * 序列化工具集合
+     * All resolved serializers.
      *
      * @var array
      */
     protected $serializers = [];
 
     /**
-     * 获得序列化工具
+     * Get the serializer by type.
      *
      * @param string $type
      *
-     * @return \Lawoole\Homer\Serialization\Serializers\Serializer
+     * @return \Lawoole\Homer\Serialize\Serializer
      */
-    public function getSerializer($type = null)
+    public function serializer($type = null)
     {
-        if ($type === null) {
-            $type = self::DEFAULT_SERIALIZER;
-        }
+        $type = $type ?? 'php';
 
         if (isset($this->serializers[$type])) {
             return $this->serializers[$type];
         }
 
-        return $this->serializers[$type] = $this->createSerializer($type);
+        return $this->serializers[$type] = $this->resolve($type);
     }
 
     /**
-     * 创建序列化工具
+     * Resolve the serializer by type.
      *
      * @param string $type
      *
-     * @return \Lawoole\Homer\Serialization\Serializers\Serializer
+     * @return \Lawoole\Homer\Serialize\Serializer
      */
-    protected function createSerializer($type)
+    protected function resolve($type)
     {
         switch ($type) {
             case 'php':
                 return new NativeSerializer;
             case 'swoole':
                 return new SwooleSerializer;
+            case 'igbinary':
+                return new IgbinarySerializer;
+            case 'msgpack':
+                return new MessagePackSerializer;
             default:
                 throw new InvalidArgumentException("Serializer type [{$type}] is not supported.");
         }

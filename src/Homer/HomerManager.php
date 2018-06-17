@@ -1,67 +1,80 @@
 <?php
 namespace Lawoole\Homer;
 
-use BadMethodCallException;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
-use Lawoole\Contracts\Foundation\Application;
+use Lawoole\Contracts\Homer\Context as ContextContract;
+use Lawoole\Contracts\Homer\Homer as HomerContract;
+use Lawoole\Contracts\Homer\Registrar;
 use Lawoole\Homer\Components\ReferenceComponent;
 use Lawoole\Homer\Components\ServiceComponent;
+use Lawoole\Homer\Transport\ClientFactory;
 
-class HomerManager
+class HomerManager implements HomerContract, Registrar
 {
     /**
-     * 服务容器
+     * The application instance.
      *
-     * @var \Lawoole\Contracts\Foundation\Application
+     * @var \Illuminate\Contracts\Foundation\Application
      */
     protected $app;
 
     /**
-     * 配置
+     * The config of Homer.
      *
      * @var array
      */
     protected $config;
 
     /**
-     * 是否已经启动
+     * Whether the Homer has been boot.
      *
      * @var bool
      */
     protected $booted = false;
 
     /**
-     * 调用上下文
+     * The invoking context instance.
      *
      * @var \Lawoole\Homer\Context
      */
     protected $context;
 
     /**
-     * 调用调度器
+     * The invoking dispatcher.
      *
      * @var \Lawoole\Homer\Dispatcher
      */
     protected $dispatcher;
 
     /**
-     * 创建 Homer 管理对象
+     * The client factory instance.
      *
-     * @param \Lawoole\Contracts\Foundation\Application $app
+     * @var \Lawoole\Homer\Transport\ClientFactory
+     */
+    protected $clientFactory;
+
+    /**
+     * Create a Homer manager instance.
+     *
+     * @param \Illuminate\Contracts\Foundation\Application $app
+     * @param \Lawoole\Contracts\Homer\Context $context
+     * @param \Lawoole\Homer\Dispatcher $dispatcher
+     * @param \Lawoole\Homer\Transport\ClientFactory $clientFactory
      * @param array $config
      */
-    public function __construct(Application $app, array $config = [])
+    public function __construct(Application $app, ContextContract $context, Dispatcher $dispatcher,
+        ClientFactory $clientFactory, array $config = [])
     {
         $this->app = $app;
         $this->config = $config;
-
-        $this->context = $app['homer.context'];
-        $this->dispatcher = $app['homer.dispatcher'];
+        $this->context = $context;
+        $this->dispatcher = $dispatcher;
     }
 
     /**
-     * 启动 Homer
+     * Boot the Homer.
      */
     public function boot()
     {
@@ -77,7 +90,7 @@ class HomerManager
     }
 
     /**
-     * 解析并注册引用
+     * Resolve and register all configured references.
      */
     protected function resolveReferences()
     {
@@ -87,30 +100,56 @@ class HomerManager
             return;
         }
 
-        $clientFactory = $this->app['homer.factory.client'];
-
         foreach ($references as $config) {
-            if (!isset($config['client'])) {
-                $config['client'] = ['url' => $config['url']];
-            } elseif (is_string($config['client'])) {
-                $client = Arr::get($this->config, 'clients.'.$config['client']);
-
-                if ($client == null) {
-                    throw new InvalidArgumentException('Client '.$config['client'].' doesn\'t configured.');
-                }
-
-                $config['client'] = $client;
-            }
-
-            (new ReferenceComponent($this->app, $config))
-                ->setContext($this->context)
-                ->setClientFactory($clientFactory)
-                ->refer();
+            $this->resolveReference($config);
         }
     }
 
     /**
-     * 解析并注册服务
+     * Register a reference in the Homer.
+     *
+     * @param array $config
+     *
+     * @return mixed
+     */
+    public function resolveReference(array $config)
+    {
+        $config = $this->normalizeClientConfig($config);
+
+        $client = $this->clientFactory->client(Arr::pull($config, 'client'));
+
+        return (new ReferenceComponent($this->app, $config))
+            ->setContext($this->context)
+            ->setClient($client)
+            ->refer();
+    }
+
+    /**
+     * Normalize the client section in reference configurations.
+     *
+     * @param array $config
+     *
+     * @return array
+     */
+    protected function normalizeClientConfig(array $config)
+    {
+        if (!isset($config['client'])) {
+            $config['client'] = ['url' => $config['url']];
+        } elseif (is_string($config['client'])) {
+            $client = Arr::get($this->config, 'clients.'.$config['client']);
+
+            if ($client == null) {
+                throw new InvalidArgumentException('Client '.$config['client'].' doesn\'t configured.');
+            }
+
+            $config['client'] = $client;
+        }
+
+        return $config;
+    }
+
+    /**
+     * Resolve and register all configured services.
      */
     protected function resolveServices()
     {
@@ -121,15 +160,27 @@ class HomerManager
         }
 
         foreach ($services as $config) {
-            (new ServiceComponent($this->app, $config))
-                ->setContext($this->context)
-                ->setDispatcher($this->dispatcher)
-                ->export();
+            $this->resolveReference($config);
         }
     }
 
     /**
-     * 获得调用上下文
+     * Register a service in the Homer.
+     *
+     * @param array $config
+     *
+     * @return mixed
+     */
+    public function resolveService(array $config)
+    {
+        return (new ServiceComponent($this->app, $config))
+            ->setContext($this->context)
+            ->setDispatcher($this->dispatcher)
+            ->export();
+    }
+
+    /**
+     * Get the context of current invoking.
      *
      * @return \Lawoole\Homer\Context
      */
@@ -139,7 +190,7 @@ class HomerManager
     }
 
     /**
-     * 动态调用代理
+     * Pass methods onto the calling context.
      *
      * @param string $method
      * @param array $arguments
@@ -148,12 +199,6 @@ class HomerManager
      */
     public function __call($method, $arguments)
     {
-        $context = $this->getContext();
-
-        if (method_exists($context, $method)) {
-            return call_user_func_array([$context, $method], $arguments);
-        }
-
-        throw new BadMethodCallException(sprintf('Method %s::%s does not exist.', static::class, $method));
+        return $this->getContext()->$method(...$arguments);
     }
 }
