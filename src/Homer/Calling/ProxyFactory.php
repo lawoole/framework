@@ -162,7 +162,7 @@ class ProxyFactory
 
             if (!$parameter->isVariadic()) {
                 if ($parameter->isDefaultValueAvailable()) {
-                    $definition .= ' = ' . var_export($parameter->getDefaultValue(), true);
+                    $definition .= ' = '.var_export($parameter->getDefaultValue(), true);
                 } elseif ($parameter->isOptional()) {
                     $definition .= ' = null';
                 }

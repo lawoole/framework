@@ -10,7 +10,7 @@ class DateTimeSerializationTest extends TestCase
     public function dateTimeProvider()
     {
         return [
-            [Carbon::create(1949, 10, 1, 14, 0, 0, 0)],
+            [Carbon::create(1949, 10, 1, 14, 0, 0)],
             [Carbon::today('Asia/Shanghai')],
             [Carbon::now('UTC')],
             [Carbon::now()],
