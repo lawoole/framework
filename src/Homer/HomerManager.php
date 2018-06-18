@@ -1,15 +1,13 @@
 <?php
 namespace Lawoole\Homer;
 
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
-use Lawoole\Contracts\Homer\Context as ContextContract;
 use Lawoole\Contracts\Homer\Homer as HomerContract;
 use Lawoole\Contracts\Homer\Registrar;
+use Lawoole\Homer\Calling\Dispatcher;
 use Lawoole\Homer\Components\ReferenceComponent;
 use Lawoole\Homer\Components\ServiceComponent;
-use Lawoole\Homer\Transport\ClientFactory;
 
 class HomerManager implements HomerContract, Registrar
 {
@@ -44,9 +42,16 @@ class HomerManager implements HomerContract, Registrar
     /**
      * The invoking dispatcher.
      *
-     * @var \Lawoole\Homer\Dispatcher
+     * @var \Lawoole\Homer\Calling\Dispatcher
      */
     protected $dispatcher;
+
+    /**
+     * The proxy factory instance.
+     *
+     * @var \Lawoole\Homer\Calling\ProxyFactory
+     */
+    protected $proxyFactory;
 
     /**
      * The client factory instance.
@@ -59,18 +64,19 @@ class HomerManager implements HomerContract, Registrar
      * Create a Homer manager instance.
      *
      * @param \Illuminate\Contracts\Foundation\Application $app
-     * @param \Lawoole\Contracts\Homer\Context $context
-     * @param \Lawoole\Homer\Dispatcher $dispatcher
+     * @param \Lawoole\Homer\Calling\ProxyFactory $proxyFactory
      * @param \Lawoole\Homer\Transport\ClientFactory $clientFactory
      * @param array $config
      */
-    public function __construct(Application $app, ContextContract $context, Dispatcher $dispatcher,
-        ClientFactory $clientFactory, array $config = [])
+    public function __construct($app, $proxyFactory, $clientFactory, array $config = [])
     {
         $this->app = $app;
+        $this->proxyFactory = $proxyFactory;
+        $this->clientFactory = $clientFactory;
         $this->config = $config;
-        $this->context = $context;
-        $this->dispatcher = $dispatcher;
+
+        $this->context = new Context($app);
+        $this->dispatcher = new Dispatcher;
     }
 
     /**
@@ -116,11 +122,10 @@ class HomerManager implements HomerContract, Registrar
     {
         $config = $this->normalizeClientConfig($config);
 
-        $client = $this->clientFactory->client(Arr::pull($config, 'client'));
-
         return (new ReferenceComponent($this->app, $config))
             ->setContext($this->context)
-            ->setClient($client)
+            ->setProxyFactory($this->proxyFactory)
+            ->setClientFactory($this->clientFactory)
             ->refer();
     }
 

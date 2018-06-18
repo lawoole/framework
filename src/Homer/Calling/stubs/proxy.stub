@@ -1,0 +1,68 @@
+<?php
+namespace Lawoole\Homer\Calling\Proxy;
+
+use Illuminate\Support\Facades\Log;
+use Lawoole\Homer\Calling\CallingException;
+use Lawoole\Homer\Calling\Invocation;
+use Lawoole\Homer\Calling\Invokers\Invoker;
+use Lawoole\Homer\Calling\Result;
+
+class ProxyClass implements ProxyInterface
+{
+    /**
+     * The bound interface name.
+     *
+     * @var string
+     */
+    protected $interface;
+
+    /**
+     * The invoker uses for calling.
+     *
+     * @var \Lawoole\Homer\Invokers\Invoker
+     */
+    protected $invoker;
+
+    /**
+     * Create a invoking proxy instance.
+     *
+     * @param string $interface
+     * @param \Lawoole\Homer\Invokers\Invoker $invoker
+     */
+    public function __construct($interface, Invoker $invoker)
+    {
+        $this->interface = $interface;
+        $this->invoker = $invoker;
+    }
+
+    /**
+     * Delegate the calling to the invoker.
+     *
+     * @param string $method
+     * @param array $arguments
+     *
+     * @return mixed
+     * @throws \Throwable
+     */
+    public function __call($method, $arguments)
+    {
+        $invocation = new Invocation($this->interface, $method, $arguments);
+
+        $result = $this->invoker->invoke($invocation);
+
+        if (!$result instanceof Result) {
+            $resultType = get_class($result) ?: 'unknown';
+
+            Log::channel('homer')->warning("The result is not a Result instance.", [
+                'type'   => $resultType,
+                'result' => var_export($result, true),
+            ]);
+
+            throw new CallingException("Calling result must instance of Result, while the {$resultType} given.");
+        }
+
+        return $result->recover();
+    }
+
+    // ## Implemented Methods ##
+}

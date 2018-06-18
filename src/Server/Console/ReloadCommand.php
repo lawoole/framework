@@ -26,21 +26,18 @@ class ReloadCommand extends Command
      */
     public function handle()
     {
-        $name = $this->laravel->name();
         $runtimeFile = storage_path('framework/server.runtime');
 
         if (file_exists($runtimeFile)) {
-            $data = json_decode(file_get_contents(storage_path('framework/server.runtime')), true);
-
-            $this->info("{$name} server is reloading.");
-
-            $signal = $this->option('task') ? SIGUSR2 : SIGUSR1;
-
-            Process::kill($data['pid'], $signal);
-
-            return;
+            return $this->info("No {$this->laravel->name()} server is running.");
         }
 
-        $this->info("No {$name} server is running.");
+        $data = json_decode(file_get_contents(storage_path('framework/server.runtime')), true);
+
+        $signal = $this->option('task') ? SIGUSR2 : SIGUSR1;
+
+        Process::kill($data['pid'], $signal);
+
+        $this->info("{$this->laravel->name()} server is going to reload.");
     }
 }

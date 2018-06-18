@@ -1,9 +1,9 @@
 <?php
-namespace Lawoole\Homer;
+namespace Lawoole\Homer\Calling;
 
 use Lawoole\Contracts\Support\Attachable;
 use Lawoole\Homer\Serialize\Serializable;
-use Lawoole\Support\Concerns\HasAttachments;
+use Lawoole\Support\HasAttachments;
 
 class Invocation implements Attachable
 {

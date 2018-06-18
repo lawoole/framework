@@ -36,7 +36,7 @@ class ObjectSerialization extends Serialization
         $instance = $this->values;
 
         foreach (get_object_vars($instance) as $key => $value) {
-            $instance->$key = $value instanceof Serialization ? $value->recover() : $value;;
+            $instance->$key = $value instanceof Serialization ? $value->recover() : $value;
         }
 
         return $instance;

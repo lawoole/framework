@@ -1,9 +1,9 @@
 <?php
-namespace Lawoole\Homer\Invokers;
+namespace Lawoole\Homer\Calling;
 
 use Lawoole\Homer\HomerException;
 
-class InvokingException extends HomerException
+class CallingException extends HomerException
 {
     /**
      * Exception type: Unknown exception.

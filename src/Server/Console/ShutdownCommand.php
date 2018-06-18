@@ -25,20 +25,16 @@ class ShutdownCommand extends Command
      */
     public function handle()
     {
-        $name = $this->laravel->name();
-
         $runtimeFile = storage_path('framework/server.runtime');
 
-        if (file_exists($runtimeFile)) {
-            $payload = json_decode(file_get_contents(storage_path('framework/server.runtime')), true);
-
-            $this->info("{$name} server is shutting down.");
-
-            Process::kill($payload['pid']);
-
-            return;
+        if (!file_exists($runtimeFile)) {
+            return $this->info("{$this->laravel->name()} server is not running.");
         }
 
-        $this->info("{$name} server is not running.");
+        $payload = json_decode(file_get_contents(storage_path('framework/server.runtime')), true);
+
+        Process::kill($payload['pid'], SIGTERM);
+
+        $this->info("{$this->laravel->name()} server is shutting down.");
     }
 }

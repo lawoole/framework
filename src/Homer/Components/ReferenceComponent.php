@@ -2,10 +2,10 @@
 namespace Lawoole\Homer\Components;
 
 use Illuminate\Support\Arr;
+use Lawoole\Homer\Calling\Invokers\RemoteInvoker;
+use Lawoole\Homer\Calling\ProxyFactory;
 use Lawoole\Homer\Context;
-use Lawoole\Homer\Invokers\RemoteInvoker;
-use Lawoole\Homer\Proxy;
-use Lawoole\Homer\Transport\Client;
+use Lawoole\Homer\Transport\ClientFactory;
 use LogicException;
 
 class ReferenceComponent extends Component
@@ -18,16 +18,23 @@ class ReferenceComponent extends Component
     protected $context;
 
     /**
+     * The proxy factory instance.
+     *
+     * @var \Lawoole\Homer\Calling\ProxyFactory
+     */
+    protected $proxyFactory;
+
+    /**
      * The client instance.
      *
      * @var \Lawoole\Homer\Transport\Client
      */
-    protected $client;
+    protected $clientFactory;
 
     /**
      * The instance of calling proxy.
      *
-     * @var \Lawoole\Homer\Proxy
+     * @var mixed
      */
     protected $proxy;
 
@@ -46,15 +53,29 @@ class ReferenceComponent extends Component
     }
 
     /**
-     * Set the client instance.
+     * Set the client factory instance.
      *
-     * @param \Lawoole\Homer\Transport\Client $client
+     * @param \Lawoole\Homer\Transport\ClientFactory $clientFactory
      *
      * @return $this
      */
-    public function setClient(Client $client)
+    public function setClientFactory(ClientFactory $clientFactory)
     {
-        $this->client = $client;
+        $this->clientFactory = $clientFactory;
+
+        return $this;
+    }
+
+    /**
+     * Set the proxy factory instance.
+     *
+     * @param \Lawoole\Homer\Calling\ProxyFactory $proxyFactory
+     *
+     * @return $this
+     */
+    public function setProxyFactory(ProxyFactory $proxyFactory)
+    {
+        $this->proxyFactory = $proxyFactory;
 
         return $this;
     }
@@ -64,8 +85,12 @@ class ReferenceComponent extends Component
      */
     public function refer()
     {
-        if ($this->config == null) {
+        if ($this->context == null) {
             throw new LogicException('Context must be set before refer to the service.');
+        }
+
+        if ($this->proxyFactory == null) {
+            throw new LogicException('Proxy factory must be set before refer to the service.');
         }
 
         if ($this->clientFactory == null) {
@@ -80,7 +105,7 @@ class ReferenceComponent extends Component
     /**
      * Get the calling proxy of interface.
      *
-     * @return \Lawoole\Homer\Proxy
+     * @return mixed
      */
     public function getProxy()
     {
@@ -92,9 +117,9 @@ class ReferenceComponent extends Component
     }
 
     /**
-     * Create the
+     * Create the calling proxy.
      *
-     * @return \Lawoole\Homer\Proxy
+     * @return mixed
      */
     protected function createProxy()
     {
@@ -102,8 +127,10 @@ class ReferenceComponent extends Component
 
         $interface = Arr::pull($config, 'interface');
 
-        $invoker = new RemoteInvoker($this->context, $this->client, $interface, $config);
+        $client = $this->clientFactory->client(Arr::pull($config, 'client'));
 
-        return new Proxy($invoker);
+        $invoker = new RemoteInvoker($this->context, $client, $interface, $config);
+
+        return $this->proxyFactory->proxy($invoker);
     }
 }

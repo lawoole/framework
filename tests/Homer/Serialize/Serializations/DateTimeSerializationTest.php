@@ -32,18 +32,4 @@ class DateTimeSerializationTest extends TestCase
 
         $this->assertEquals($dateTime->getTimestamp(), $recovered->getTimestamp());
     }
-
-    /**
-     * @dataProvider dateTimeProvider
-     *
-     * @param \DateTime $dateTime
-     */
-    public function testOrdinarySerializing($dateTime)
-    {
-        $serialization = new DateTimeSerialization($dateTime);
-
-        $ordinary = $serialization->getOrdinaryValue();
-
-        $this->assertEquals($dateTime->getTimestamp(), Carbon::parse($ordinary)->getTimestamp());
-    }
 }

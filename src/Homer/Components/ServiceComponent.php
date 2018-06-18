@@ -2,9 +2,9 @@
 namespace Lawoole\Homer\Components;
 
 use Illuminate\Support\Arr;
+use Lawoole\Homer\Calling\Dispatcher;
+use Lawoole\Homer\Calling\Invokers\ConcreteInvoker;
 use Lawoole\Homer\Context;
-use Lawoole\Homer\Dispatcher;
-use Lawoole\Homer\Invokers\ConcreteInvoker;
 use LogicException;
 
 class ServiceComponent extends Component
@@ -19,14 +19,14 @@ class ServiceComponent extends Component
     /**
      * The invoking dispatcher.
      *
-     * @var \Lawoole\Homer\Dispatcher
+     * @var \Lawoole\Homer\Calling\Dispatcher
      */
     protected $dispatcher;
 
     /**
      * The interface invoker.
      *
-     * @var \Lawoole\Homer\Invokers\Invoker
+     * @var \Lawoole\Homer\Calling\Invokers\Invoker
      */
     protected $invoker;
 
@@ -47,7 +47,7 @@ class ServiceComponent extends Component
     /**
      * Set the invoking dispatcher.
      *
-     * @param \Lawoole\Homer\Dispatcher $dispatcher
+     * @param \Lawoole\Homer\Calling\Dispatcher $dispatcher
      *
      * @return $this
      */
@@ -79,7 +79,7 @@ class ServiceComponent extends Component
     /**
      * Get invoker for the interface.
      *
-     * @return \Lawoole\Homer\Invokers\Invoker
+     * @return \Lawoole\Homer\Calling\Invokers\Invoker
      */
     public function getInvoker()
     {
@@ -93,7 +93,7 @@ class ServiceComponent extends Component
     /**
      * Create the invoker.
      *
-     * @return \Lawoole\Homer\Invokers\Invoker
+     * @return \Lawoole\Homer\Calling\Invokers\Invoker
      */
     protected function createInvoker()
     {

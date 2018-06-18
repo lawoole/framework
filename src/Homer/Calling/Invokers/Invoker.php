@@ -1,8 +1,8 @@
 <?php
-namespace Lawoole\Homer\Invokers;
+namespace Lawoole\Homer\Calling\Invokers;
 
-use Lawoole\Homer\Invocation;
-use Lawoole\Homer\Result;
+use Lawoole\Homer\Calling\Invocation;
+use Lawoole\Homer\Calling\Result;
 use Throwable;
 
 abstract class Invoker
@@ -56,9 +56,9 @@ abstract class Invoker
     /**
      * Do invoking.
      *
-     * @param \Lawoole\Homer\Invocation $invocation
+     * @param \Lawoole\Homer\Calling\Invocation $invocation
      *
-     * @return \Lawoole\Homer\Result
+     * @return \Lawoole\Homer\Calling\Result
      */
     public function invoke(Invocation $invocation)
     {
@@ -72,9 +72,9 @@ abstract class Invoker
     /**
      * Do invoking and get the result.
      *
-     * @param \Lawoole\Homer\Invocation $invocation
+     * @param \Lawoole\Homer\Calling\Invocation $invocation
      *
-     * @return \Lawoole\Homer\Result
+     * @return \Lawoole\Homer\Calling\Result
      */
     abstract protected function doInvoke(Invocation $invocation);
 
@@ -83,7 +83,7 @@ abstract class Invoker
      *
      * @param \Throwable $e
      *
-     * @return \Lawoole\Homer\Result
+     * @return \Lawoole\Homer\Calling\Result
      */
     protected function createExceptionResult(Throwable $e)
     {

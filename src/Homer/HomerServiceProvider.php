@@ -2,6 +2,7 @@
 namespace Lawoole\Homer;
 
 use Illuminate\Support\ServiceProvider;
+use Lawoole\Homer\Calling\ProxyFactory;
 use Lawoole\Homer\Serialize\Factory as SerializerFactory;
 use Lawoole\Homer\Transport\ClientFactory;
 use Lawoole\Homer\Transport\Whisper\WhisperServerSocket;
@@ -13,10 +14,6 @@ class HomerServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->registerContext();
-
-        $this->registerDispatcher();
-
         $this->registerServerSockets();
 
         $this->registerSerializerFactory();
@@ -24,26 +21,6 @@ class HomerServiceProvider extends ServiceProvider
         $this->registerClientFactory();
 
         $this->registerHomer();
-    }
-
-    /**
-     * Register the invoking context instance.
-     */
-    protected function registerContext()
-    {
-        $this->app->singleton('homer.context', function ($app) {
-            return new Context($app);
-        });
-    }
-
-    /**
-     * Register the invocation dispatcher instance.
-     */
-    protected function registerDispatcher()
-    {
-        $this->app->singleton('homer.dispatcher', function () {
-            return new Dispatcher;
-        });
     }
 
     /**
@@ -67,6 +44,18 @@ class HomerServiceProvider extends ServiceProvider
     }
 
     /**
+     * Register the proxy factory instance.
+     */
+    protected function registerProxyFactory()
+    {
+        $this->app->singleton('homer.factory.proxy', function () {
+            return new ProxyFactory;
+        });
+
+        $this->app->alias('homer.factory.proxy', ProxyFactory::class);
+    }
+
+    /**
      * Register the client factory instance.
      */
     protected function registerClientFactory()
@@ -84,8 +73,8 @@ class HomerServiceProvider extends ServiceProvider
     protected function registerHomer()
     {
         $this->app->singleton('homer', function ($app) {
-            return new HomerManager($app, $app['homer.context'], $app['homer.dispatcher'],
-                $app['homer.factory.client'], $app['config']['homer']);
+            return new HomerManager($app, $app['homer.factory.proxy'], $app['homer.factory.client'],
+                $app['config']['homer']);
         });
     }
 

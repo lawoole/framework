@@ -1,5 +1,5 @@
 <?php
-namespace Lawoole\Support\Concerns;
+namespace Lawoole\Support;
 
 use Illuminate\Support\Arr;
 

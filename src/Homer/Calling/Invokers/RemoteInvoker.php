@@ -1,10 +1,11 @@
 <?php
-namespace Lawoole\Homer\Invokers;
+namespace Lawoole\Homer\Calling\Invokers;
 
 use Illuminate\Support\Facades\Log;
+use Lawoole\Homer\Calling\CallingException;
+use Lawoole\Homer\Calling\Invocation;
+use Lawoole\Homer\Calling\Result;
 use Lawoole\Homer\Context;
-use Lawoole\Homer\Invocation;
-use Lawoole\Homer\Result;
 use Lawoole\Homer\Transport\Client;
 use Throwable;
 
@@ -43,9 +44,9 @@ class RemoteInvoker extends Invoker
     /**
      * Do invoking and get the result.
      *
-     * @param \Lawoole\Homer\Invocation $invocation
+     * @param \Lawoole\Homer\Calling\Invocation $invocation
      *
-     * @return \Lawoole\Homer\Result
+     * @return \Lawoole\Homer\Calling\Result
      */
     protected function doInvoke(Invocation $invocation)
     {
@@ -61,7 +62,7 @@ class RemoteInvoker extends Invoker
                     'result' => (string) $result
                 ]);
 
-                throw new InvokingException('The invoke result must instance of Result, '
+                throw new CallingException('The invoke result must instance of Result, '
                     .class_basename($result).' given.');
             }
         } catch (Throwable $e) {
@@ -78,24 +79,25 @@ class RemoteInvoker extends Invoker
     /**
      * Log the invocation.
      *
-     * @param \Lawoole\Homer\Invocation $invocation
-     * @param \Lawoole\Homer\Result $result
+     * @param \Lawoole\Homer\Calling\Invocation $invocation
+     * @param \Lawoole\Homer\Calling\Result $result
      * @param float $time
      */
     protected function logInvoking(Invocation $invocation, Result $result, $time = null)
     {
-        $invoking = "{$invocation->getInterface()}->{$invocation->getMethod()}()";
-
-        Log::channel('homer')->debug(sprintf('%s %5.2fms %s',
-            $result->hasException() ? 'Success' : 'Failure', $time, $invoking
-        ), [
-            'during'      => $time,
-            'method'      => $invoking,
-            'arguments'   => $invocation->getArguments(),
-            'attachments' => $invocation->getAttachments(),
-            'result'      => $result->getValue(),
-            'exception'   => $result->getException(),
-        ]);
+        Log::channel('homer')->debug(
+            sprintf('%s %5.2fms %s->%s',
+                $result->hasException() ? 'Success' : 'Failure', $time, $invocation->getInterface(),
+                $invocation->getMethod()
+            ),
+            [
+                'during'      => $time,
+                'arguments'   => $invocation->getArguments(),
+                'attachments' => $invocation->getAttachments(),
+                'result'      => $result->getValue(),
+                'exception'   => $result->getException(),
+            ]
+        );
     }
 
     /**

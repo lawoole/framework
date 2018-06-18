@@ -1,9 +1,9 @@
 <?php
-namespace Lawoole\Homer;
+namespace Lawoole\Homer\Calling;
 
 use Lawoole\Contracts\Support\Attachable;
 use Lawoole\Homer\Serialize\Serializable;
-use Lawoole\Support\Concerns\HasAttachments;
+use Lawoole\Support\HasAttachments;
 use Throwable;
 
 class Result implements Attachable
@@ -11,21 +11,21 @@ class Result implements Attachable
     use HasAttachments, Serializable;
 
     /**
-     * 调用结果值
+     * The result data.
      *
      * @var mixed
      */
     protected $value;
 
     /**
-     * 调用异常
+     * The exception thrown while calling.
      *
      * @var \Throwable
      */
     protected $exception;
 
     /**
-     * 创建调用结果对象
+     * Create a calling result instance.
      *
      * @param mixed $value
      * @param \Throwable $exception
@@ -38,7 +38,7 @@ class Result implements Attachable
     }
 
     /**
-     * 获得调用结果值
+     * Get the result data.
      *
      * @return mixed
      */
@@ -48,7 +48,7 @@ class Result implements Attachable
     }
 
     /**
-     * 设置调用结果值
+     * Set the result data.
      *
      * @param mixed $value
      */
@@ -58,7 +58,7 @@ class Result implements Attachable
     }
 
     /**
-     * 获得调用异常
+     * Get the calling exception.
      *
      * @return \Throwable
      */
@@ -68,7 +68,7 @@ class Result implements Attachable
     }
 
     /**
-     * 设置调用异常
+     * Set the calling exception.
      *
      * @param \Throwable $exception
      */
@@ -78,7 +78,7 @@ class Result implements Attachable
     }
 
     /**
-     * 判断否存在异常
+     * Return whether result with a exception.
      *
      * @return bool
      */
@@ -88,7 +88,7 @@ class Result implements Attachable
     }
 
     /**
-     * 恢复调用结果
+     * Recover the result, a value will be return or a exception will be thrown.
      *
      * @return mixed
      *

@@ -1,8 +1,9 @@
 <?php
-namespace Lawoole\Homer;
+namespace Lawoole\Homer\Calling;
 
 use Illuminate\Support\Facades\Log;
-use Lawoole\Homer\Invokers\Invoker;
+use Lawoole\Homer\Calling\Invokers\Invoker;
+use Lawoole\Homer\HomerException;
 use Throwable;
 
 class Dispatcher
@@ -10,14 +11,14 @@ class Dispatcher
     /**
      * All registered invokers.
      *
-     * @var \Lawoole\Homer\Invokers\Invoker[]
+     * @var \Lawoole\Homer\Calling\Invokers\Invoker[]
      */
     protected $invokers = [];
 
     /**
      * Export the invoker.
      *
-     * @param \Lawoole\Homer\Invokers\Invoker $invoker
+     * @param \Lawoole\Homer\Calling\Invokers\Invoker $invoker
      */
     public function exportInvoker(Invoker $invoker)
     {
@@ -61,9 +62,9 @@ class Dispatcher
     /**
      * Handle the invocation.
      *
-     * @param \Lawoole\Homer\Invocation $invocation
+     * @param \Lawoole\Homer\Calling\Invocation $invocation
      *
-     * @return \Lawoole\Homer\Result
+     * @return \Lawoole\Homer\Calling\Result
      */
     protected function handleInvocation(Invocation $invocation)
     {
@@ -75,9 +76,9 @@ class Dispatcher
     /**
      * Dispatch the invocation.
      *
-     * @param \Lawoole\Homer\Invocation $invocation
+     * @param \Lawoole\Homer\Calling\Invocation $invocation
      *
-     * @return \Lawoole\Homer\Invokers\Invoker
+     * @return \Lawoole\Homer\Calling\Invokers\Invoker
      */
     protected function dispatchInvocation(Invocation $invocation)
     {
@@ -87,6 +88,6 @@ class Dispatcher
             return $this->invokers[$interface];
         }
 
-        throw new HomerException("No invoker found for {$interface}.");
+        throw new CallingException("No invoker found for {$interface}.");
     }
 }

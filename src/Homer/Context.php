@@ -2,7 +2,8 @@
 namespace Lawoole\Homer;
 
 use Illuminate\Contracts\Container\Container;
-use Lawoole\Support\Concerns\HasAttachments;
+use Lawoole\Homer\Calling\Invocation;
+use Lawoole\Support\HasAttachments;
 
 class Context
 {
@@ -18,7 +19,7 @@ class Context
     /**
      * The current invocation instance.
      *
-     * @var \Lawoole\Homer\Invocation
+     * @var \Lawoole\Homer\Calling\Invocation
      */
     protected $invocation;
 
@@ -45,7 +46,7 @@ class Context
     /**
      * Get the current invocation instance.
      *
-     * @return \Lawoole\Homer\Invocation
+     * @return \Lawoole\Homer\Calling\Invocation
      */
     public function getInvocation()
     {
@@ -55,7 +56,7 @@ class Context
     /**
      * Set the invocation instance.
      *
-     * @param \Lawoole\Homer\Invocation $invocation
+     * @param \Lawoole\Homer\Calling\Invocation $invocation
      */
     public function setInvocation(Invocation $invocation)
     {

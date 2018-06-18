@@ -120,8 +120,6 @@ class Application extends BaseApplication implements ApplicationContract
              'console.output'       => [\Symfony\Component\Console\Output\OutputInterface::class],
              'console.output.style' => [\Illuminate\Console\OutputStyle::class, \Lawoole\Console\OutputStyle::class],
              'homer'                => [\Lawoole\Contracts\Homer\Homer::class, \Lawoole\Homer\HomerManager::class],
-             'homer.context'        => [\Lawoole\Contracts\Homer\Context::class, \Lawoole\Homer\Context::class],
-             'homer.dispatcher'     => [\Lawoole\Homer\Dispatcher::class],
              'respondent'           => [\Lawoole\Http\Respondent::class],
              'schedule'             => [\Illuminate\Console\Scheduling\Schedule::class],
              'server'               => [\Lawoole\Contracts\Server\Server::class, \Lawoole\Server\Server::class],

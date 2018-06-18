@@ -1,11 +1,11 @@
 <?php
-namespace Lawoole\Homer\Invokers;
+namespace Lawoole\Homer\Calling\Invokers;
 
 use Closure;
 use InvalidArgumentException;
+use Lawoole\Homer\Calling\Invocation;
+use Lawoole\Homer\Calling\Result;
 use Lawoole\Homer\Context;
-use Lawoole\Homer\Invocation;
-use Lawoole\Homer\Result;
 
 class ConcreteInvoker extends Invoker
 {
@@ -59,9 +59,9 @@ class ConcreteInvoker extends Invoker
     /**
      * Do invoking and get the result.
      *
-     * @param \Lawoole\Homer\Invocation $invocation
+     * @param \Lawoole\Homer\Calling\Invocation $invocation
      *
-     * @return \Lawoole\Homer\Result
+     * @return \Lawoole\Homer\Calling\Result
      */
     protected function doInvoke(Invocation $invocation)
     {
@@ -101,7 +101,6 @@ class ConcreteInvoker extends Invoker
             $instance = $this->context->getContainer()->make($this->concrete);
         }
 
-        // 如果开启动态调用，则允许使用未实现接口的对象，甚至是闭包接收调用
         if (!$this->isDynamic()) {
             $this->checkConcreteInstance($instance);
         }
@@ -132,7 +131,7 @@ class ConcreteInvoker extends Invoker
      *
      * @param mixed $value
      *
-     * @return \Lawoole\Homer\Result
+     * @return \Lawoole\Homer\Calling\Result
      */
     protected function createInvokeResult($value)
     {
