@@ -2,9 +2,7 @@
 namespace Lawoole\Homer;
 
 use Illuminate\Support\ServiceProvider;
-use Lawoole\Homer\Calling\ProxyFactory;
-use Lawoole\Homer\Serialize\Factory as SerializerFactory;
-use Lawoole\Homer\Transport\ClientFactory;
+use Lawoole\Homer\Calling\Dispatcher;
 use Lawoole\Homer\Transport\Whisper\WhisperServerSocket;
 
 class HomerServiceProvider extends ServiceProvider
@@ -16,9 +14,9 @@ class HomerServiceProvider extends ServiceProvider
     {
         $this->registerServerSockets();
 
-        $this->registerSerializerFactory();
+        $this->registerContext();
 
-        $this->registerClientFactory();
+        $this->registerDispatcher();
 
         $this->registerHomer();
     }
@@ -32,39 +30,23 @@ class HomerServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register the serializer factory instance.
+     * Register invoking context.
      */
-    protected function registerSerializerFactory()
+    protected function registerContext()
     {
-        $this->app->singleton('homer.factory.serializer', function () {
-            return new SerializerFactory;
+        $this->app->singleton('homer.context', function ($app) {
+            return new Context($app);
         });
-
-        $this->app->alias('homer.factory.serializer', SerializerFactory::class);
     }
 
     /**
-     * Register the proxy factory instance.
+     * Register invoking dispatcher.
      */
-    protected function registerProxyFactory()
+    protected function registerDispatcher()
     {
-        $this->app->singleton('homer.factory.proxy', function () {
-            return new ProxyFactory;
+        $this->app->singleton('homer.dispatcher', function () {
+            return new Dispatcher;
         });
-
-        $this->app->alias('homer.factory.proxy', ProxyFactory::class);
-    }
-
-    /**
-     * Register the client factory instance.
-     */
-    protected function registerClientFactory()
-    {
-        $this->app->singleton('homer.factory.client', function ($app) {
-            return new ClientFactory($app, $app['homer.factory.serializer']);
-        });
-
-        $this->app->alias('homer.factory.client', ClientFactory::class);
     }
 
     /**
@@ -73,8 +55,7 @@ class HomerServiceProvider extends ServiceProvider
     protected function registerHomer()
     {
         $this->app->singleton('homer', function ($app) {
-            return new HomerManager($app, $app['homer.factory.proxy'], $app['homer.factory.client'],
-                $app['config']['homer']);
+            return new HomerManager($app, $app['homer.context'], $app['homer.dispatcher'], $app['config']['homer']);
         });
     }
 

@@ -5,9 +5,11 @@ use Illuminate\Support\Arr;
 use InvalidArgumentException;
 use Lawoole\Contracts\Homer\Homer as HomerContract;
 use Lawoole\Contracts\Homer\Registrar;
-use Lawoole\Homer\Calling\Dispatcher;
+use Lawoole\Homer\Calling\ProxyFactory;
 use Lawoole\Homer\Components\ReferenceComponent;
 use Lawoole\Homer\Components\ServiceComponent;
+use Lawoole\Homer\Serialize\Factory as SerializerFactory;
+use Lawoole\Homer\Transport\ClientFactory;
 
 class HomerManager implements HomerContract, Registrar
 {
@@ -54,6 +56,13 @@ class HomerManager implements HomerContract, Registrar
     protected $proxyFactory;
 
     /**
+     * The serializer factory instance.
+     *
+     * @var \Lawoole\Homer\Serialize\Factory
+     */
+    protected $serializerFactory;
+
+    /**
      * The client factory instance.
      *
      * @var \Lawoole\Homer\Transport\ClientFactory
@@ -64,19 +73,20 @@ class HomerManager implements HomerContract, Registrar
      * Create a Homer manager instance.
      *
      * @param \Illuminate\Contracts\Foundation\Application $app
-     * @param \Lawoole\Homer\Calling\ProxyFactory $proxyFactory
-     * @param \Lawoole\Homer\Transport\ClientFactory $clientFactory
+     * @param \Lawoole\Homer\Context $context
+     * @param \Lawoole\Homer\Calling\Dispatcher $dispatcher
      * @param array $config
      */
-    public function __construct($app, $proxyFactory, $clientFactory, array $config = [])
+    public function __construct($app, $context, $dispatcher, array $config = [])
     {
         $this->app = $app;
-        $this->proxyFactory = $proxyFactory;
-        $this->clientFactory = $clientFactory;
+        $this->context = $context;
+        $this->dispatcher = $dispatcher;
         $this->config = $config;
 
-        $this->context = new Context($app);
-        $this->dispatcher = new Dispatcher;
+        $this->proxyFactory = new ProxyFactory;
+        $this->serializerFactory = new SerializerFactory;
+        $this->clientFactory = new ClientFactory($app, $this->serializerFactory);
     }
 
     /**
@@ -93,6 +103,37 @@ class HomerManager implements HomerContract, Registrar
         $this->resolveServices();
 
         $this->resolveReferences();
+    }
+
+    /**
+     * Resolve and register all configured services.
+     */
+    protected function resolveServices()
+    {
+        $services = Arr::get($this->config, 'services');
+
+        if (!is_array($services) || empty($services)) {
+            return;
+        }
+
+        foreach ($services as $config) {
+            $this->resolveService($config);
+        }
+    }
+
+    /**
+     * Register a service in the Homer.
+     *
+     * @param array $config
+     *
+     * @return mixed
+     */
+    public function resolveService(array $config)
+    {
+        return (new ServiceComponent($this->app, $config))
+            ->setContext($this->context)
+            ->setDispatcher($this->dispatcher)
+            ->export();
     }
 
     /**
@@ -151,37 +192,6 @@ class HomerManager implements HomerContract, Registrar
         }
 
         return $config;
-    }
-
-    /**
-     * Resolve and register all configured services.
-     */
-    protected function resolveServices()
-    {
-        $services = Arr::get($this->config, 'services');
-
-        if (!is_array($services) || empty($services)) {
-            return;
-        }
-
-        foreach ($services as $config) {
-            $this->resolveReference($config);
-        }
-    }
-
-    /**
-     * Register a service in the Homer.
-     *
-     * @param array $config
-     *
-     * @return mixed
-     */
-    public function resolveService(array $config)
-    {
-        return (new ServiceComponent($this->app, $config))
-            ->setContext($this->context)
-            ->setDispatcher($this->dispatcher)
-            ->export();
     }
 
     /**

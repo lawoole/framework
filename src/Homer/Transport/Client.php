@@ -191,7 +191,7 @@ abstract class Client
                 }
             } while ($retryTimes > 0);
 
-            return $this->serializer->unserialize($data);
+            return $this->serializer->deserialize($data);
         } catch (HomerException $e) {
             $this->disconnect();
 

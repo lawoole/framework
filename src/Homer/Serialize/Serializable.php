@@ -28,7 +28,7 @@ trait Serializable
 
             $property->setValue($this, Maker::make($value));
 
-            $serializedProperties[] = $property->getName();
+            $properties[] = $property->getName();
         }
 
         return $properties;

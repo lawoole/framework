@@ -3,7 +3,7 @@ namespace Lawoole\Homer\Transport\Http;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Log;
-use Lawoole\Homer\Dispatcher;
+use Lawoole\Homer\Calling\Dispatcher;
 use Lawoole\Homer\Serialize\Factory as SerializerFactory;
 use Lawoole\Homer\Transport\SerializeServerSocketMessages;
 use Throwable;
@@ -22,7 +22,7 @@ class HttpServerSocketHandler
     /**
      * The invoker dispatcher.
      *
-     * @var \Lawoole\Homer\Dispatcher
+     * @var \Lawoole\Homer\Calling\Dispatcher
      */
     protected $dispatcher;
 
@@ -30,7 +30,7 @@ class HttpServerSocketHandler
      * Create a Http socket handler.
      *
      * @param \Illuminate\Contracts\Foundation\Application $app
-     * @param \Lawoole\Homer\Dispatcher $dispatcher
+     * @param \Lawoole\Homer\Calling\Dispatcher $dispatcher
      * @param \Lawoole\Homer\Serialize\Factory $serializerFactory
      */
     public function __construct(Application $app, Dispatcher $dispatcher, SerializerFactory $serializerFactory)
@@ -63,7 +63,7 @@ class HttpServerSocketHandler
         try {
             $serializer = $this->getSerializer($serverSocket);
 
-            $message = $serializer->unserialize($request->rawcontent());
+            $message = $serializer->deserialize($request->rawcontent());
 
             $result = $this->dispatcher->handleMessage($message);
 

@@ -3,6 +3,7 @@ namespace Lawoole\Server\ServerSockets;
 
 use EmptyIterator;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Arr;
 use IteratorAggregate;
 use Lawoole\Server\Concerns\DispatchEvents;
 use Lawoole\Server\Server;
@@ -89,6 +90,23 @@ class ServerSocket implements IteratorAggregate
         $this->config = $config;
 
         $this->setOptions($config['options'] ?? []);
+    }
+
+    /**
+     * Get the server socket configurations.
+     *
+     * @param string $key
+     * @param mixed $default
+     *
+     * @return array
+     */
+    public function getConfig($key = null, $default = null)
+    {
+        if ($key === null) {
+            return $this->config;
+        }
+
+        return Arr::get($this->config, $key, $default);
     }
 
     /**

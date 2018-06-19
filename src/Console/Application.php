@@ -12,6 +12,28 @@ class Application extends BaseApplication implements ApplicationContract
     /**
      * {@inheritdoc}
      */
+    protected function bootstrap()
+    {
+        parent::bootstrap();
+
+        $this->loadCommands();
+    }
+
+    /**
+     * Load the console commands.
+     */
+    protected function loadCommands()
+    {
+        if (($commands = $this->laravel['config']['console.commands']) == null) {
+            return;
+        }
+
+        $this->resolveCommands($commands);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     protected function doRunCommand(Command $command, InputInterface $input, OutputInterface $output)
     {
         $this->laravel->instance('console.command', $command);

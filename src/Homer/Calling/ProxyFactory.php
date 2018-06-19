@@ -1,6 +1,7 @@
 <?php
 namespace Lawoole\Homer\Calling;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Lawoole\Homer\Calling\Invokers\Invoker;
@@ -127,9 +128,9 @@ class ProxyFactory
                 $definitions[] = $definition;
             }
         } catch (Throwable $e) {
-//            Log::channel('homer')->warning("Reflect {$interface} failed.", [
-//                'exception' => $e,
-//            ]);
+           Log::channel('homer')->warning("Reflect {$interface} failed.", [
+               'exception' => $e,
+           ]);
 
             throw $e;
         }
