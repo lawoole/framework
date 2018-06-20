@@ -11,6 +11,7 @@ use Lawoole\Server\Concerns\DispatchEvents;
 use Lawoole\Server\Process\Process;
 use Lawoole\Server\ServerSockets\ServerSocket;
 use LogicException;
+use RuntimeException;
 use Swoole\Server as SwooleServer;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -298,6 +299,15 @@ class Server implements ServerContract, IteratorAggregate
             $serverSocket->getPort(),
             $serverSocket->getSocketType()
         );
+
+        if ($swoolePort == false) {
+            $errorCode = $this->swooleServer->getLastError();
+
+            throw new RuntimeException(sprintf(
+                'Listen %s%s fail, error code %d', $serverSocket->getHost(),
+                $serverSocket->getPort() ? ':'.$serverSocket->getPort() : '', $errorCode
+            ), $errorCode);
+        }
 
         $this->serverSockets[$address] = $serverSocket;
 
