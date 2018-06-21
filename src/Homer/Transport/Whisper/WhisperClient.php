@@ -92,25 +92,19 @@ class WhisperClient extends Client
      */
     protected function doRequest($data)
     {
-        try {
-            $this->send(pack('N', strlen($data)).$data);
+        $this->send(pack('N', strlen($data)).$data);
 
-            $data = $this->receive();
+        $data = $this->receive();
 
-            $status = unpack('nstatus', substr($data, 0, 2))['status'];
-            $data = substr($data, 6);
+        $status = unpack('nstatus', substr($data, 0, 2))['status'];
+        $data = substr($data, 6);
 
-            if ($status != 200) {
-                throw new TransportException($data ?: 'Http request failed, status: '.$status,
-                    TransportException::REMOTE);
-            }
-
-            return $data;
-        } catch (Throwable $e) {
-            $this->disconnect();
-
-            throw $e;
+        if ($status != 200) {
+            throw new TransportException($data ?: 'Http request failed, status: '.$status,
+                TransportException::REMOTE);
         }
+
+        return $data;
     }
 
     /**
@@ -128,12 +122,13 @@ class WhisperClient extends Client
             if ($result === false) {
                 $errorCode = $this->client->errCode;
 
-                throw new TransportException('Send data failed, cause: '.socket_strerror($errorCode).'.', $errorCode);
+                throw new TransportException('Send data failed, cause: '.socket_strerror($errorCode).'.',
+                    TransportException::CONNECTION);
             }
+        }  catch (TransportException $e) {
+            throw $e;
         } catch (Throwable $e) {
             if ($this->causedByConnectionProblem($e)) {
-                $this->disconnect();
-
                 throw new TransportException($e->getMessage(), TransportException::CONNECTION, $e);
             }
 
@@ -155,9 +150,9 @@ class WhisperClient extends Client
         $message = $e->getMessage();
 
         return Str::contains($message, [
-            'Broken pipe[32]',
-            'Connection reset by peer[104]',
-            'Connection refused[111]',
+            'Broken pipe',
+            'Connection reset by peer',
+            'Connection refused',
         ]);
     }
 
@@ -173,7 +168,7 @@ class WhisperClient extends Client
         $message = $e->getMessage();
 
         return Str::contains($message, [
-            'Resource temporarily unavailable [11]',
+            'Resource temporarily unavailable',
         ]);
     }
 
@@ -196,7 +191,7 @@ class WhisperClient extends Client
                 }
 
                 throw new TransportException('Receive data failed, cause: '.socket_strerror($errorCode).'.',
-                    $errorCode);
+                    TransportException::CONNECTION);
             } elseif ($data === '') {
                 throw new TransportException('Receive data failed, cause the connection has been closed.',
                     TransportException::CONNECTION);
@@ -205,8 +200,6 @@ class WhisperClient extends Client
             throw $e;
         } catch (Throwable $e) {
             if ($this->causedByTimeout($e)) {
-                $this->disconnect();
-
                 throw new TransportException('Receive timeout in '.$this->getTimeout().' ms.',
                     TransportException::TIMEOUT, $e);
             }

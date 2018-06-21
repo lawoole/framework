@@ -78,8 +78,6 @@ class HttpClient extends Client
             throw $e;
         } catch (Throwable $e) {
             if ($this->causedByConnectionProblem($e)) {
-                $this->disconnect();
-
                 throw new TransportException($e->getMessage(), TransportException::CONNECTION, $e);
             }
 

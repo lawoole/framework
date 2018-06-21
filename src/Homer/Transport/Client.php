@@ -170,19 +170,21 @@ abstract class Client
      */
     public function request($message)
     {
-        $this->reconnectIfLostConnection();
-
         $retryTimes = $this->getRetryTimes();
 
         try {
             $body = $this->serializer->serialize($message);
 
             do {
+                $this->reconnectIfLostConnection();
+
                 try {
                     $data = $this->doRequest($body);
 
                     break;
                 } catch (TransportException $e) {
+                    $this->disconnect();
+
                     if ($e->isConnection() && $retryTimes-- > 0) {
                         continue;
                     }
