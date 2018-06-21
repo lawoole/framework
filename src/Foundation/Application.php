@@ -11,7 +11,7 @@ class Application extends BaseApplication implements ApplicationContract
      *
      * @var string
      */
-    const VERSION = '0.5.0';
+    const VERSION = '0.6.0';
 
     /**
      * The name of service.
