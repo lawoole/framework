@@ -193,7 +193,7 @@ abstract class Client
     }
 
     /**
-     * Make request
+     * Execute request.
      *
      * @param string $body
      *
