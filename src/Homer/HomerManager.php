@@ -10,6 +10,7 @@ use Lawoole\Homer\Components\ReferenceComponent;
 use Lawoole\Homer\Components\ServiceComponent;
 use Lawoole\Homer\Serialize\Factory as SerializerFactory;
 use Lawoole\Homer\Transport\ClientFactory;
+use Lawoole\Server\Events\ServerLaunching;
 
 class HomerManager implements HomerContract, Registrar
 {
@@ -110,15 +111,18 @@ class HomerManager implements HomerContract, Registrar
      */
     protected function resolveServices()
     {
-        $services = Arr::get($this->config, 'services');
+        // Do real export services when the server is launching.
+        $this->app['events']->listen(ServerLaunching::class, function () {
+            $services = Arr::get($this->config, 'services');
 
-        if (!is_array($services) || empty($services)) {
-            return;
-        }
+            if (!is_array($services) || empty($services)) {
+                return;
+            }
 
-        foreach ($services as $config) {
-            $this->resolveService($config);
-        }
+            foreach ($services as $config) {
+                $this->resolveService($config);
+            }
+        });
     }
 
     /**
