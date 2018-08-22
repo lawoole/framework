@@ -102,6 +102,8 @@ class ServiceComponent extends Component
         $interface = Arr::pull($config, 'interface');
         $concrete = Arr::pull($config, 'refer', $interface);
 
-        return new ConcreteInvoker($this->context, $interface, $concrete, $config);
+        $invoker = new ConcreteInvoker($this->context, $interface, $concrete, $config);
+
+        return $this->withMiddleware($invoker, $interface, $config);
     }
 }
