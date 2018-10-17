@@ -2,6 +2,7 @@
 namespace Lawoole\Homer;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Lawoole\Contracts\Homer\Homer as HomerContract;
 use Lawoole\Contracts\Homer\Registrar;
@@ -10,6 +11,7 @@ use Lawoole\Homer\Components\ReferenceComponent;
 use Lawoole\Homer\Components\ServiceComponent;
 use Lawoole\Homer\Serialize\Factory as SerializerFactory;
 use Lawoole\Homer\Transport\ClientFactory;
+use Lawoole\Server\Events\ServerLaunching;
 
 class HomerManager implements HomerContract, Registrar
 {
@@ -106,19 +108,39 @@ class HomerManager implements HomerContract, Registrar
     }
 
     /**
+     * Gather the middleware for the invoker with resolved class names.
+     *
+     * @param array $middleware
+     *
+     * @return array
+     */
+    protected function gatherInvokerMiddleware($middleware)
+    {
+        $nameMiddleware = $this->config['name_middleware'] ?? [];
+        $middlewareGroups = $this->config['middleware_groups'] ?? [];
+
+        return Collection::make($middleware)->map(function ($middleware) use ($nameMiddleware, $middlewareGroups) {
+            return (array) MiddlewareNameResolver::resolve($middleware, $nameMiddleware, $middlewareGroups);
+        })->flatten()->all();
+    }
+
+    /**
      * Resolve and register all configured services.
      */
     protected function resolveServices()
     {
-        $services = Arr::get($this->config, 'services');
+        // Do real export services when the server is launching.
+        $this->app['events']->listen(ServerLaunching::class, function () {
+            $services = Arr::get($this->config, 'services');
 
-        if (!is_array($services) || empty($services)) {
-            return;
-        }
+            if (!is_array($services) || empty($services)) {
+                return;
+            }
 
-        foreach ($services as $config) {
-            $this->resolveService($config);
-        }
+            foreach ($services as $config) {
+                $this->resolveService($config);
+            }
+        });
     }
 
     /**
@@ -130,9 +152,15 @@ class HomerManager implements HomerContract, Registrar
      */
     public function resolveService(array $config)
     {
+        $middleware = $this->gatherInvokerMiddleware(array_merge(
+            $this->config['middleware'] ?? [],
+            $config['middleware'] ?? []
+        ));
+
         return (new ServiceComponent($this->app, $config))
             ->setContext($this->context)
             ->setDispatcher($this->dispatcher)
+            ->setMiddleware($middleware)
             ->export();
     }
 
@@ -163,10 +191,16 @@ class HomerManager implements HomerContract, Registrar
     {
         $config = $this->normalizeClientConfig($config);
 
+        $middleware = $this->gatherInvokerMiddleware(array_merge(
+            $config['client']['middleware'] ?? [],
+            $config['middleware'] ?? []
+        ));
+
         return (new ReferenceComponent($this->app, $config))
             ->setContext($this->context)
             ->setProxyFactory($this->proxyFactory)
             ->setClientFactory($this->clientFactory)
+            ->setMiddleware($middleware)
             ->refer();
     }
 

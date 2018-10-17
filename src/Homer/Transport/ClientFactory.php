@@ -98,12 +98,6 @@ class ClientFactory
     {
         $url = Arr::pull($config, 'url');
 
-        $parameters = array_map(function ($value) {
-            return is_bool($value) ? var_export($value, true) : (string) $value;
-        }, $config);
-
-        ksort($parameters);
-
-        return $url.'?'.http_build_query($parameters);
+        return $url.':'.json_encode($config);
     }
 }

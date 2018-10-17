@@ -84,7 +84,7 @@ abstract class Client
      */
     public function getTimeout()
     {
-        return $this->options['timeout'] ?? 5000;
+        return $this->config['timeout'] ?? 5000;
     }
 
     /**
@@ -94,7 +94,7 @@ abstract class Client
      */
     public function getRetryTimes()
     {
-        return $this->options['retry_times'] ?? 0;
+        return $this->config['retry_times'] ?? 0;
     }
 
     /**
@@ -170,28 +170,11 @@ abstract class Client
      */
     public function request($message)
     {
-        $retryTimes = $this->getRetryTimes();
 
         try {
             $body = $this->serializer->serialize($message);
 
-            do {
-                $this->reconnectIfLostConnection();
-
-                try {
-                    $data = $this->doRequest($body);
-
-                    break;
-                } catch (TransportException $e) {
-                    $this->disconnect();
-
-                    if ($e->isConnection() && $retryTimes-- > 0) {
-                        continue;
-                    }
-
-                    throw $e;
-                }
-            } while ($retryTimes > 0);
+            $data = $this->executeRequest($body);
 
             return $this->serializer->deserialize($data);
         } catch (HomerException $e) {
@@ -207,6 +190,34 @@ abstract class Client
 
             throw new TransportException('Send rpc request failed, cause: '.$e->getMessage(), 0, $e);
         }
+    }
+
+    /**
+     * Execute request.
+     *
+     * @param string $body
+     *
+     * @return string
+     */
+    protected function executeRequest($body)
+    {
+        $retryTimes = $this->getRetryTimes();
+
+        do {
+            $this->reconnectIfLostConnection();
+
+            try {
+                return $this->doRequest($body);
+            } catch (TransportException $e) {
+                $this->disconnect();
+
+                if ($e->isConnection() && $retryTimes-- > 0) {
+                    continue;
+                }
+
+                throw $e;
+            }
+        } while (true);
     }
 
     /**

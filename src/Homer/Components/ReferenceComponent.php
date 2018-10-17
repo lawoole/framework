@@ -131,6 +131,8 @@ class ReferenceComponent extends Component
 
         $invoker = new RemoteInvoker($this->context, $client, $interface, $config);
 
+        $invoker = $this->withMiddleware($invoker, $interface, $config);
+
         return $this->proxyFactory->proxy($invoker);
     }
 }
