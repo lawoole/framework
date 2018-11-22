@@ -1,8 +1,6 @@
 <?php
 namespace Lawoole\Server\ServerSockets;
 
-use Illuminate\Support\Str;
-
 class UnixServerSocket extends ServerSocket
 {
     /**
@@ -29,7 +27,7 @@ class UnixServerSocket extends ServerSocket
      */
     protected function getDefaultHost()
     {
-        return $this->app->storagePath().'/framework/server-'.Str::random(6).'.sock';
+        return null;
     }
 
     /**

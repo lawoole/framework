@@ -25,7 +25,7 @@ class ServerServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton('server.factory', function ($app) {
-            return new ServerFactory($app, $app['console.output']);
+            return new ServerFactory($app);
         });
 
         // By default, the server factory creates a server instance based on the

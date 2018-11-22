@@ -7,7 +7,6 @@ use Lawoole\Server\Concerns\DispatchEvents;
 use Lawoole\Server\Server;
 use LogicException;
 use Swoole\Process as SwooleProcess;
-use Symfony\Component\Console\Output\OutputInterface;
 
 class Process implements ProcessContract
 {
@@ -28,20 +27,6 @@ class Process implements ProcessContract
     protected $server;
 
     /**
-     * The event handler.
-     *
-     * @var mixed
-     */
-    protected $handler;
-
-    /**
-     * The output for console.
-     *
-     * @var \Symfony\Component\Console\Output\OutputInterface
-     */
-    protected $output;
-
-    /**
      * The Swoole process instance.
      *
      * @var \Swoole\Process
@@ -56,27 +41,36 @@ class Process implements ProcessContract
     protected $config;
 
     /**
+     * Whether the process is running.
+     *
+     * @var bool
+     */
+    protected $running = false;
+
+    /**
      * Create a new server socket instance.
      *
      * @param \Illuminate\Contracts\Foundation\Application $app
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @param array $config
      */
-    public function __construct(Application $app, OutputInterface $output, array $config)
+    public function __construct(Application $app, array $config)
     {
         $this->app = $app;
-        $this->output = $output;
         $this->config = $config;
+
+        $this->swooleProcess = $this->createSwooleProcess();
     }
 
     /**
-     * 创建 Swoole 进程对象
+     * Create the Swoole process instance.
      *
      * @return \Swoole\Process
      */
     protected function createSwooleProcess()
     {
-        return new SwooleProcess(function ($process) {
+        $process = new SwooleProcess(function ($process) {
+            $this->running = true;
+
             $process->name(sprintf('%s : Process %s', $this->app->name(), $this->getName() ?: $process->pid));
 
             $this->dispatchEvent('Start', $this->server, $this);
@@ -89,16 +83,70 @@ class Process implements ProcessContract
 
             call_user_func($this->runnableRetriever(), $this->server, $this);
         }, false, true);
+
+        $process->setBlocking($this->isBlocking());
+
+        return $process;
     }
 
     /**
-     * Get the process name.
+     * Get the Swoole process instance.
+     *
+     * @return \Swoole\Process
+     */
+    public function getSwooleProcess()
+    {
+        return $this->swooleProcess;
+    }
+
+    /**
+     * Get the process's name.
      *
      * @return string
      */
     public function getName()
     {
         return $this->config['name'] ?? null;
+    }
+
+    /**
+     * Return whether the process is a daemon process.
+     *
+     * @return bool
+     */
+    public function isDaemon()
+    {
+        return $this->config['daemon'] ?? false;
+    }
+
+    /**
+     * Return whether the process's pipes are blocking.
+     *
+     * @return bool
+     */
+    public function isBlocking()
+    {
+        return $this->config['blocking'] ?? true;
+    }
+
+    /**
+     * Send message to the process.
+     *
+     * @param string $data
+     */
+    public function write($data)
+    {
+        $this->swooleProcess->write($data);
+    }
+
+    /**
+     * Return whether the process is running.
+     *
+     * @return bool
+     */
+    public function isRunning()
+    {
+        return $this->running;
     }
 
     /**
@@ -124,67 +172,9 @@ class Process implements ProcessContract
             return $runnable;
         }
 
-        return function () {
-            $this->dispatchEvent('Run', $this->server, $this);
+        return function ($server, $process) {
+            $this->dispatchEvent('Run', $server, $process);
         };
-    }
-
-    /**
-     * Set the event handler.
-     *
-     * @param mixed $handler
-     *
-     * @return $this
-     */
-    public function setEventHandler($handler)
-    {
-        $this->handler = $handler;
-
-        return $this;
-    }
-
-    /**
-     * Get the event handler.
-     *
-     * @return mixed
-     */
-    public function getEventHandler()
-    {
-        return $this->handler;
-    }
-
-    /**
-     * Set the output for console.
-     *
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     *
-     * @return $this
-     */
-    public function setOutput(OutputInterface $output)
-    {
-        $this->output = $output;
-
-        return $this;
-    }
-
-    /**
-     * Get the output for console.
-     *
-     * @return \Symfony\Component\Console\Output\OutputInterface
-     */
-    public function getOutput()
-    {
-        return $this->output;
-    }
-
-    /**
-     * Get the Swoole process instance.
-     *
-     * @return \Swoole\Process
-     */
-    public function getSwooleProcess()
-    {
-        return $this->swooleProcess;
     }
 
     /**
@@ -214,21 +204,11 @@ class Process implements ProcessContract
     }
 
     /**
-     * Send message to the process.
-     *
-     * @param string $data
-     */
-    public function write($data)
-    {
-        $this->swooleProcess->write($data);
-    }
-
-    /**
-     * Exit the process with given status.
+     * Stop the process executing.
      *
      * @param int $status
      */
-    public function quit($status = 0)
+    public function stop($status = 0)
     {
         $this->swooleProcess->exit($status);
     }

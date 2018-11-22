@@ -20,14 +20,16 @@ class HttpServer extends Server
     /**
      * Create the Swoole server instance.
      *
-     * @return \Swoole\Http\Server
+     * @param array $config
+     *
+     * @return \Swoole\Server
      */
-    protected function createSwooleServer()
+    protected function createSwooleServer(array $config)
     {
         return new SwooleHttpServer(
             $this->serverSocket->getHost(),
             $this->serverSocket->getPort(),
-            $this->parseServerMode(),
+            $this->parseServerMode($config),
             $this->serverSocket->getSocketType()
         );
     }

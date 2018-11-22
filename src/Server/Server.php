@@ -1,21 +1,19 @@
 <?php
 namespace Lawoole\Server;
 
+use BadMethodCallException;
 use EmptyIterator;
-use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Foundation\Application;
-use IteratorAggregate;
+use Lawoole\Contracts\Server\Process as ProcessContract;
 use Lawoole\Contracts\Server\Server as ServerContract;
+use Lawoole\Contracts\Server\ServerSocket as ServerSocketContract;
 use Lawoole\Contracts\Server\WorkerExitUnexpectedException;
 use Lawoole\Server\Concerns\DispatchEvents;
-use Lawoole\Server\Process\Process;
-use Lawoole\Server\ServerSockets\ServerSocket;
 use LogicException;
 use RuntimeException;
 use Swoole\Server as SwooleServer;
-use Symfony\Component\Console\Output\OutputInterface;
 
-class Server implements ServerContract, IteratorAggregate
+class Server implements ServerContract
 {
     use DispatchEvents;
 
@@ -34,25 +32,11 @@ class Server implements ServerContract, IteratorAggregate
     protected $events;
 
     /**
-     * The event handler.
-     *
-     * @var mixed
-     */
-    protected $handler;
-
-    /**
      * The output for console.
      *
      * @var \Symfony\Component\Console\Output\OutputInterface
      */
     protected $output;
-
-    /**
-     * The styled output.
-     *
-     * @var \Lawoole\Console\OutputStyle
-     */
-    protected $outputStyle;
 
     /**
      * The Swoole server instance.
@@ -95,7 +79,8 @@ class Server implements ServerContract, IteratorAggregate
      * @var array
      */
     protected $options = [
-        'reload_async' => true
+        'enable_coroutine' => false,
+        'reload_async'     => true,
     ];
 
     /**
@@ -114,33 +99,34 @@ class Server implements ServerContract, IteratorAggregate
      * Create a server instance.
      *
      * @param \Illuminate\Contracts\Foundation\Application $app
-     * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
+     * @param \Lawoole\Contracts\Server\ServerSocket $serverSocket
      * @param array $config
      */
-    public function __construct(Application $app, ServerSocket $serverSocket, array $config)
+    public function __construct(Application $app, ServerSocketContract $serverSocket, array $config)
     {
         $this->app = $app;
         $this->events = $app['events'];
         $this->output = $app['console.output'];
-        $this->outputStyle = $app['console.output.style'];
 
         $this->serverSocket = $serverSocket;
 
         $this->config = $config;
 
-        $this->initialize();
+        $this->initialize($config);
     }
 
     /**
      * Initialize the server.
+     *
+     * @param array $config
      */
-    protected function initialize()
+    protected function initialize(array $config)
     {
-        $this->swooleServer = $this->createSwooleServer();
+        $this->swooleServer = $this->createSwooleServer($config);
 
         $this->configureDefaultServerSocket();
 
-        $this->setOptions($this->config['options'] ?? []);
+        $this->setOptions($config['options'] ?? []);
 
         $this->registerEventCallbacks($this->serverEvents);
 
@@ -150,14 +136,16 @@ class Server implements ServerContract, IteratorAggregate
     /**
      * Create the Swoole server instance.
      *
+     * @param array $config
+     *
      * @return \Swoole\Server
      */
-    protected function createSwooleServer()
+    protected function createSwooleServer(array $config)
     {
         return new SwooleServer(
             $this->serverSocket->getHost(),
             $this->serverSocket->getPort(),
-            $this->parseServerMode(),
+            $this->parseServerMode($config),
             $this->serverSocket->getSocketType()
         );
     }
@@ -165,11 +153,13 @@ class Server implements ServerContract, IteratorAggregate
     /**
      * Get the server mode constant from the configuration.
      *
+     * @param array $config
+     *
      * @return int
      */
-    protected function parseServerMode()
+    protected function parseServerMode(array $config)
     {
-        $mode = $this->config['mode'] ?? 'process';
+        $mode = $config['mode'] ?? 'process';
 
         switch ($mode) {
             case 'base':
@@ -226,59 +216,11 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * Set the event handler.
+     * Add a listening defined in the given server socket.
      *
-     * @param mixed $handler
-     *
-     * @return $this
+     * @param \Lawoole\Contracts\Server\ServerSocket $serverSocket
      */
-    public function setEventHandler($handler)
-    {
-        $this->handler = $handler;
-
-        return $this;
-    }
-
-    /**
-     * Get the event handler.
-     *
-     * @return mixed
-     */
-    public function getEventHandler()
-    {
-        return $this->handler;
-    }
-
-    /**
-     * Set the output for console.
-     *
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     *
-     * @return $this
-     */
-    public function setOutput(OutputInterface $output)
-    {
-        $this->output = $output;
-
-        return $this;
-    }
-
-    /**
-     * Get the output for console.
-     *
-     * @return \Symfony\Component\Console\Output\OutputInterface
-     */
-    public function getOutput()
-    {
-        return $this->output;
-    }
-
-    /**
-     * Add a port listening.
-     *
-     * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
-     */
-    public function listen(ServerSocket $serverSocket)
+    public function listen(ServerSocketContract $serverSocket)
     {
         if ($this->isRunning()) {
             throw new LogicException('Cannot add listening while the server is serving.');
@@ -288,7 +230,7 @@ class Server implements ServerContract, IteratorAggregate
             throw new LogicException('The server socket can be bound to server only once.');
         }
 
-        $address = $serverSocket->getHost().':'.$serverSocket->getPort();
+        $address = "{$serverSocket->getHost()}:{$serverSocket->getPort()}";
 
         if (isset($this->serverSockets[$address])) {
             throw new LogicException('The same address has been listened before.');
@@ -315,11 +257,11 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * Add a child process.
+     * Add a child process managed by the server.
      *
-     * @param \Lawoole\Server\Process\Process $process
+     * @param \Lawoole\Contracts\Server\Process $process
      */
-    public function fork(Process $process)
+    public function fork(ProcessContract $process)
     {
         $this->swooleServer->addProcess($process->getSwooleProcess());
 
@@ -381,27 +323,17 @@ class Server implements ServerContract, IteratorAggregate
     }
 
     /**
-     * Get an iterator for all connected connections.
+     * Retrieve an iterator for all connections connected to the server.
      *
-     * @return \Iterator
+     * @return \Traversable
      */
-    public function getConnectionIterator()
+    public function getIterator()
     {
         if ($this->isRunning()) {
             return $this->swooleServer->connections;
         }
 
         return new EmptyIterator;
-    }
-
-    /**
-     * Get an iterator for all connected connections.
-     *
-     * @return \Iterator
-     */
-    public function getIterator()
-    {
-        return $this->getConnectionIterator();
     }
 
     /**
@@ -415,6 +347,18 @@ class Server implements ServerContract, IteratorAggregate
     public function closeConnection($fd, $force = false)
     {
         return $this->swooleServer->close($fd, $force);
+    }
+
+    /**
+     * Set the current process name.
+     *
+     * @param string $name
+     */
+    protected function setProcessName($name)
+    {
+        if (php_uname('s') != 'Darwin') {
+            swoole_set_process_name($name);
+        }
     }
 
     /**
@@ -435,11 +379,9 @@ class Server implements ServerContract, IteratorAggregate
     protected function registerStartCallback()
     {
         $this->swooleServer->on('Start', function () {
-            $this->outputStyle->info("{$this->app->name()} server is running.");
+            $this->output->writeln("{$this->app->name()} server is running.");
 
-            if (php_uname('s') != 'Darwin') {
-                swoole_set_process_name("{$this->app->name()} : Master");
-            }
+            $this->setProcessName("{$this->app->name()} : Master");
 
             $this->events->dispatch(new Events\ServerStarted($this));
 
@@ -465,9 +407,7 @@ class Server implements ServerContract, IteratorAggregate
     protected function registerManagerStartCallback()
     {
         $this->swooleServer->on('ManagerStart', function () {
-            if (php_uname('s') != 'Darwin') {
-                swoole_set_process_name("{$this->app->name()} : Manager");
-            }
+            $this->setProcessName("{$this->app->name()} : Manager");
 
             $this->events->dispatch(new Events\ManagerStarted($this));
 
@@ -493,10 +433,9 @@ class Server implements ServerContract, IteratorAggregate
     protected function registerWorkerStartCallback()
     {
         $this->swooleServer->on('WorkerStart', function ($server, $workerId) {
-            if (php_uname('s') != 'Darwin') {
-                swoole_set_process_name(sprintf('%s : Worker %d%s', $this->app->name(), $workerId,
-                    $server->taskworker ? ' Task' : ''));
-            }
+            $this->setProcessName(sprintf(
+                '%s : Worker %d%s', $this->app->name(), $workerId, $server->taskworker ? ' Task' : ''
+            ));
 
             $this->events->dispatch(new Events\WorkerStarted($this, $workerId));
 
@@ -636,14 +575,10 @@ class Server implements ServerContract, IteratorAggregate
      */
     protected function reportWorkerError($workerId, $workerPid, $exitCode, $signal)
     {
-        $message = sprintf('The worker %d quit unexpected with exit code %d, signal %d, pid %d.', $workerId, $exitCode,
-            $signal, $workerPid);
-
-        $handler = $this->app->make(ExceptionHandler::class);
-
-        $handler->report(new WorkerExitUnexpectedException($message));
-
-        $this->outputStyle->warn($message);
+        $this->handleException(new WorkerExitUnexpectedException(sprintf(
+            'The worker %d quit unexpected with exit code %d, signal %d, pid %d.',
+            $workerId, $exitCode, $signal, $workerPid
+        )));
     }
 
     /**
@@ -656,6 +591,12 @@ class Server implements ServerContract, IteratorAggregate
      */
     public function __call($method, $parameters)
     {
-        return $this->swooleServer->$method(...$parameters);
+        if (method_exists($this->swooleServer, $method)) {
+            return $this->swooleServer->$method(...$parameters);
+        }
+
+        throw new BadMethodCallException(sprintf(
+            'Method %s::%s does not exist.', static::class, $method
+        ));
     }
 }

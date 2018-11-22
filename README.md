@@ -7,7 +7,7 @@
 
 ## About Lawoole
 
-> **Note** This repository contains the core code of the Lawoole framework. If you want to build an application using Lawoole, visit the main [Lawoole repository](https://github.com/lawoole/lawoole).
+> **Note:** This repository contains the core code of the Lawoole framework. If you want to build an application using Lawoole, visit the main [Lawoole repository](https://github.com/lawoole/lawoole).
 
 Lawoole is a high-performance PHP framework based on Laravel and Swoole.
 

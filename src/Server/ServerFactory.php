@@ -21,22 +21,13 @@ class ServerFactory implements FactoryContract
     protected $app;
 
     /**
-     * The output for console.
-     *
-     * @var \Symfony\Component\Console\Output\OutputInterface
-     */
-    protected $output;
-
-    /**
      * Create a new server factory instance.
      *
      * @param \Illuminate\Contracts\Foundation\Application $app
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
      */
-    public function __construct($app, $output)
+    public function __construct($app)
     {
         $this->app = $app;
-        $this->output = $output;
     }
 
     /**
@@ -50,15 +41,15 @@ class ServerFactory implements FactoryContract
     {
         $driver = $this->getDriver($config);
 
-        if (method_exists($this, $method = 'create'.Str::studly($driver).'Driver')) {
-            $server = $this->$method($config);
-
-            $this->configureServer($server, $config);
-
-            return $server;
+        if (! method_exists($this, $method = 'create'.Str::studly($driver).'Driver')) {
+            throw new InvalidArgumentException("Driver [{$driver}] is not supported.");
         }
 
-        throw new InvalidArgumentException("Driver [{$driver}] is not supported.");
+        $server = $this->$method($config);
+
+        $this->configureServer($server, $config);
+
+        return $server;
     }
 
     /**
@@ -118,15 +109,25 @@ class ServerFactory implements FactoryContract
      */
     protected function getDefaultServerSocket(array $config)
     {
-        $unixSock = $config['unix_sock'] ?? $this->app->storagePath().'/framework/server.sock';
+        $unixSock = $config['unix_sock'] ?? $this->getDefaultUnixSock();
 
-        $serverSocket = new UnixServerSocket($this->app, $this->output, [
+        $serverSocket = new UnixServerSocket($this->app, [
             'unix_sock' => $unixSock
         ]);
 
         $serverSocket->setEventHandler(new ServerEventHandler);
 
         return $serverSocket;
+    }
+
+    /**
+     * Generate a unix sock file path for default server socket.
+     *
+     * @return string
+     */
+    protected function getDefaultUnixSock()
+    {
+        return $this->app->storagePath().'/framework/server-'.Str::random(8).'.sock';
     }
 
     /**
@@ -210,7 +211,7 @@ class ServerFactory implements FactoryContract
             return $this->$method($config);
         }
 
-        throw new InvalidArgumentException("The protocol [{$config['protocol']}] is not supported.");
+        throw new InvalidArgumentException("The protocol [{$protocol}] is not supported.");
     }
 
     /**
@@ -222,7 +223,7 @@ class ServerFactory implements FactoryContract
      */
     protected function createTcpServerSocket(array $config)
     {
-        return new ServerSocket($this->app, $this->output, $config);
+        return new ServerSocket($this->app, $config);
     }
 
     /**
@@ -234,7 +235,7 @@ class ServerFactory implements FactoryContract
      */
     protected function createUdpServerSocket(array $config)
     {
-        return new UdpServerSocket($this->app, $this->output, $config);
+        return new UdpServerSocket($this->app, $config);
     }
 
     /**
@@ -246,7 +247,7 @@ class ServerFactory implements FactoryContract
      */
     protected function createHttpServerSocket(array $config)
     {
-        return new HttpServerSocket($this->app, $this->output, $config);
+        return new HttpServerSocket($this->app, $config);
     }
 
     /**
@@ -258,7 +259,7 @@ class ServerFactory implements FactoryContract
      */
     protected function createWebsocketServerSocket(array $config)
     {
-        return new WebSocketServerSocket($this->app, $this->output, $config);
+        return new WebSocketServerSocket($this->app, $config);
     }
 
     /**
@@ -270,7 +271,7 @@ class ServerFactory implements FactoryContract
      */
     protected function createUnixServerSocket(array $config)
     {
-        return new UnixServerSocket($this->app, $this->output, $config);
+        return new UnixServerSocket($this->app, $config);
     }
 
     /**
@@ -301,6 +302,6 @@ class ServerFactory implements FactoryContract
      */
     protected function createProcess(array $config)
     {
-        return new Process($this->app, $this->output, $config);
+        return new Process($this->app, $config);
     }
 }

@@ -1,14 +1,31 @@
 <?php
 namespace Lawoole\Contracts\Server;
 
-interface Server
+use IteratorAggregate;
+use Lawoole\Contracts\Support\EventDispatcher;
+
+interface Server extends EventDispatcher, IteratorAggregate
 {
     /**
-     * Get the Swoole server instance.
+     * Set the server options.
      *
-     * @return \Swoole\Server
+     * @param array $options
      */
-    public function getSwooleServer();
+    public function setOptions(array $options = []);
+
+    /**
+     * Add a listening defined in the given server socket.
+     *
+     * @param \Lawoole\Contracts\Server\ServerSocket $serverSocket
+     */
+    public function listen(ServerSocket $serverSocket);
+
+    /**
+     * Add a child process managed by the server.
+     *
+     * @param \Lawoole\Contracts\Server\Process $process
+     */
+    public function fork(Process $process);
 
     /**
      * Return whether the server is running.
@@ -41,9 +58,9 @@ interface Server
     public function reload($onlyTask = false);
 
     /**
-     * Get an iterator for all connected connections.
+     * Retrieve an iterator for all connections connected to the server.
      *
-     * @return \Iterator
+     * @return \Traversable
      */
-    public function getConnectionIterator();
+    public function getIterator();
 }

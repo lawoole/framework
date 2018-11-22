@@ -20,14 +20,16 @@ class WebSocketServer extends HttpServer
     /**
      * Create the Swoole server instance.
      *
-     * @return \Swoole\WebSocket\Server
+     * @param array $config
+     *
+     * @return \Swoole\Server
      */
-    protected function createSwooleServer()
+    protected function createSwooleServer(array $config)
     {
         return new WebSocketHttpServer(
             $this->serverSocket->getHost(),
             $this->serverSocket->getPort(),
-            $this->parseServerMode(),
+            $this->parseServerMode($config),
             $this->serverSocket->getSocketType()
         );
     }

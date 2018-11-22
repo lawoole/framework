@@ -3,15 +3,13 @@ namespace Lawoole\Server\ServerSockets;
 
 use EmptyIterator;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Support\Arr;
-use IteratorAggregate;
+use Lawoole\Contracts\Server\ServerSocket as ServerSocketContract;
 use Lawoole\Server\Concerns\DispatchEvents;
 use Lawoole\Server\Server;
 use LogicException;
-use Swoole\Server\Port;
-use Symfony\Component\Console\Output\OutputInterface;
+use Swoole\Server\Port as SwoolePort;
 
-class ServerSocket implements IteratorAggregate
+class ServerSocket implements ServerSocketContract
 {
     use DispatchEvents;
 
@@ -28,20 +26,6 @@ class ServerSocket implements IteratorAggregate
      * @var \Lawoole\Contracts\Server\Server
      */
     protected $server;
-
-    /**
-     * The event handler.
-     *
-     * @var mixed
-     */
-    protected $handler;
-
-    /**
-     * The output for console.
-     *
-     * @var \Symfony\Component\Console\Output\OutputInterface
-     */
-    protected $output;
 
     /**
      * The Swoole port instance.
@@ -80,33 +64,14 @@ class ServerSocket implements IteratorAggregate
      * Create a new server socket instance.
      *
      * @param \Illuminate\Contracts\Foundation\Application $app
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @param array $config
      */
-    public function __construct(Application $app, OutputInterface $output, array $config)
+    public function __construct(Application $app, array $config)
     {
         $this->app = $app;
-        $this->output = $output;
         $this->config = $config;
 
         $this->setOptions($config['options'] ?? []);
-    }
-
-    /**
-     * Get the server socket configurations.
-     *
-     * @param string $key
-     * @param mixed $default
-     *
-     * @return array
-     */
-    public function getConfig($key = null, $default = null)
-    {
-        if ($key === null) {
-            return $this->config;
-        }
-
-        return Arr::get($this->config, $key, $default);
     }
 
     /**
@@ -218,60 +183,12 @@ class ServerSocket implements IteratorAggregate
     }
 
     /**
-     * Set the event handler.
-     *
-     * @param mixed $handler
-     *
-     * @return $this
-     */
-    public function setEventHandler($handler)
-    {
-        $this->handler = $handler;
-
-        return $this;
-    }
-
-    /**
-     * Get the event handler.
-     *
-     * @return mixed
-     */
-    public function getEventHandler()
-    {
-        return $this->handler;
-    }
-
-    /**
-     * Set the output for console.
-     *
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     *
-     * @return $this
-     */
-    public function setOutput(OutputInterface $output)
-    {
-        $this->output = $output;
-
-        return $this;
-    }
-
-    /**
-     * Get the output for console.
-     *
-     * @return \Symfony\Component\Console\Output\OutputInterface
-     */
-    public function getOutput()
-    {
-        return $this->output;
-    }
-
-    /**
      * Bind the server socket to a server instance.
      *
      * @param \Lawoole\Server\Server $server
      * @param \Swoole\Server\Port $swoolePort
      */
-    public function listen(Server $server, Port $swoolePort = null)
+    public function listen(Server $server, SwoolePort $swoolePort = null)
     {
         if ($this->isBound()) {
             throw new LogicException('The server socket can be bound to server only once.');
@@ -313,27 +230,17 @@ class ServerSocket implements IteratorAggregate
     }
 
     /**
-     * Get an iterator for all connected connections in the server socket.
+     * Retrieve an iterator for all connections in this port.
      *
      * @return \Iterator
      */
-    public function getConnectionIterator()
+    public function getIterator()
     {
         if ($this->isBound() && $this->server->isRunning()) {
             return $this->swoolePort->connections;
         }
 
         return new EmptyIterator;
-    }
-
-    /**
-     * Get an iterator for all connected connections in the server socket.
-     *
-     * @return \Iterator
-     */
-    public function getIterator()
-    {
-        return $this->getConnectionIterator();
     }
 
     /**
