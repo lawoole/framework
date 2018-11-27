@@ -3,8 +3,8 @@ namespace Lawoole\Server\Process;
 
 use Illuminate\Contracts\Foundation\Application;
 use Lawoole\Contracts\Server\Process as ProcessContract;
-use Lawoole\Server\Concerns\DispatchEvents;
 use Lawoole\Server\Server;
+use Lawoole\Support\DispatchEvents;
 use LogicException;
 use Swoole\Process as SwooleProcess;
 

@@ -12,7 +12,8 @@ class ReloadCommand extends Command
      * @var string
      */
     protected $signature = 'server:reload
-                            {--task : Reload task worker processes only}';
+                            {--task : Reload task worker processes only}
+                            {--f|filename= : The file to save runtime info}';
 
     /**
      * The console command description.
@@ -26,18 +27,30 @@ class ReloadCommand extends Command
      */
     public function handle()
     {
-        $runtimeFile = storage_path('framework/server.runtime');
+        $payload = $this->getServerRuntime();
 
-        if (file_exists($runtimeFile)) {
-            return $this->info("No {$this->laravel->name()} server is running.");
+        if (empty($payload)) {
+            return $this->info("{$this->laravel->name()} server is not running.");
         }
 
-        $data = json_decode(file_get_contents(storage_path('framework/server.runtime')), true);
+        Process::kill($payload['pid'], $this->option('task') ? SIGUSR2 : SIGUSR1);
 
-        $signal = $this->option('task') ? SIGUSR2 : SIGUSR1;
+        $this->info("{$this->laravel->name()} server is going to reload...");
+    }
 
-        Process::kill($data['pid'], $signal);
+    /**
+     * Get the running info.
+     *
+     * @return array
+     */
+    protected function getServerRuntime()
+    {
+        $filename = $this->option('filename') ?? storage_path('framework/server.runtime');
 
-        $this->info("{$this->laravel->name()} server is going to reload.");
+        if (! file_exists($filename)) {
+            return null;
+        }
+
+        return json_decode(file_get_contents($filename), true);
     }
 }

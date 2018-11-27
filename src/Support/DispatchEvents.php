@@ -21,7 +21,14 @@ trait DispatchEvents
      *
      * @var mixed
      */
-    protected $handler;
+    protected $eventHandler;
+
+    /**
+     * The event callbacks.
+     *
+     * @var array
+     */
+    protected $eventCallbacks = [];
 
     /**
      * Get the event handler.
@@ -30,7 +37,7 @@ trait DispatchEvents
      */
     public function getEventHandler()
     {
-        return $this->handler;
+        return $this->eventHandler;
     }
 
     /**
@@ -40,25 +47,82 @@ trait DispatchEvents
      */
     public function setEventHandler($handler)
     {
-        $this->handler = $handler;
+        $this->eventHandler = $handler;
     }
 
     /**
-     * Dispatch the event to the handler.
+     * Get all callbacks for the given event.
+     *
+     * @param string $event
+     *
+     * @return array
+     */
+    public function getEventCallbacks($event = null)
+    {
+        if ($event === null) {
+            return $this->eventCallbacks;
+        }
+
+        return $this->eventCallbacks[strtolower($event)] ?? [];
+    }
+
+    /**
+     * Register an event callback.
+     *
+     * @param string $event
+     * @param callable $callback
+     */
+    public function registerEventCallback($event, $callback)
+    {
+        $this->eventCallbacks[strtolower($event)][] = $callback;
+    }
+
+    /**
+     * Dispatch the event.
      *
      * @param string $event
      * @param array $arguments
      */
     public function dispatchEvent($event, ...$arguments)
     {
-        if ($this->handler == null) {
+        $this->dispatchEventToEventCallbacks($event, $arguments);
+
+        $this->dispatchEventToEventHandler($event, $arguments);
+    }
+
+    /**
+     * Dispatch the event to the event callbacks.
+     *
+     * @param string $event
+     * @param array $arguments
+     */
+    protected function dispatchEventToEventCallbacks($event, $arguments)
+    {
+        foreach ($this->getEventCallbacks($event) as $callback) {
+            try {
+                call_user_func_array($callback, $arguments);
+            } catch (Exception $e) {
+                $this->handleException($e);
+            } catch (Throwable $e) {
+                $this->handleException(new FatalThrowableError($e));
+            }
+        }
+    }
+
+    /**
+     * Dispatch the event to the event handler.
+     *
+     * @param string $event
+     * @param array $arguments
+     */
+    protected function dispatchEventToEventHandler($event, $arguments)
+    {
+        if ($this->eventHandler == null || ! method_exists($this->eventHandler, $method = "on{$event}")) {
             return;
         }
 
         try {
-            if (method_exists($this->handler, $method = "on{$event}")) {
-                $this->handler->$method(...$arguments);
-            }
+            $this->eventHandler->$method(...$arguments);
         } catch (Exception $e) {
             $this->handleException($e);
         } catch (Throwable $e) {

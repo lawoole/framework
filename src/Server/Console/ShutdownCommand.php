@@ -11,7 +11,8 @@ class ShutdownCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'server:shutdown';
+    protected $signature = 'server:shutdown
+                            {--f|filename= : The file to save runtime info}';
 
     /**
      * The console command description.
@@ -25,16 +26,30 @@ class ShutdownCommand extends Command
      */
     public function handle()
     {
-        $runtimeFile = storage_path('framework/server.runtime');
+        $payload = $this->getServerRuntime();
 
-        if (!file_exists($runtimeFile)) {
+        if (empty($payload)) {
             return $this->info("{$this->laravel->name()} server is not running.");
         }
 
-        $payload = json_decode(file_get_contents(storage_path('framework/server.runtime')), true);
-
         Process::kill($payload['pid'], SIGTERM);
 
-        $this->info("{$this->laravel->name()} server is shutting down.");
+        $this->info("{$payload['name']} server is shutting down...");
+    }
+
+    /**
+     * Get the running info.
+     *
+     * @return array
+     */
+    protected function getServerRuntime()
+    {
+        $filename = $this->option('filename') ?? storage_path('framework/server.runtime');
+
+        if (! file_exists($filename)) {
+            return null;
+        }
+
+        return json_decode(file_get_contents($filename), true);
     }
 }

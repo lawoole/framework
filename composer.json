@@ -19,6 +19,7 @@
         "laravel/framework": "5.7.*"
     },
     "require-dev": {
+        "lawoole/swoole": "dev-master",
         "phpunit/phpunit": "~7.0",
         "guzzlehttp/guzzle": "~6.0",
         "mockery/mockery": "~1.0"

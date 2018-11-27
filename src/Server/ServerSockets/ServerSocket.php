@@ -4,8 +4,8 @@ namespace Lawoole\Server\ServerSockets;
 use EmptyIterator;
 use Illuminate\Contracts\Foundation\Application;
 use Lawoole\Contracts\Server\ServerSocket as ServerSocketContract;
-use Lawoole\Server\Concerns\DispatchEvents;
 use Lawoole\Server\Server;
+use Lawoole\Support\DispatchEvents;
 use LogicException;
 use Swoole\Server\Port as SwoolePort;
 

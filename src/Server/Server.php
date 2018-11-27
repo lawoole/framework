@@ -8,7 +8,7 @@ use Lawoole\Contracts\Server\Process as ProcessContract;
 use Lawoole\Contracts\Server\Server as ServerContract;
 use Lawoole\Contracts\Server\ServerSocket as ServerSocketContract;
 use Lawoole\Contracts\Server\WorkerExitUnexpectedException;
-use Lawoole\Server\Concerns\DispatchEvents;
+use Lawoole\Support\DispatchEvents;
 use LogicException;
 use RuntimeException;
 use Swoole\Server as SwooleServer;
@@ -30,13 +30,6 @@ class Server implements ServerContract
      * @var \Illuminate\Contracts\Events\Dispatcher
      */
     protected $events;
-
-    /**
-     * The output for console.
-     *
-     * @var \Symfony\Component\Console\Output\OutputInterface
-     */
-    protected $output;
 
     /**
      * The Swoole server instance.
@@ -106,7 +99,6 @@ class Server implements ServerContract
     {
         $this->app = $app;
         $this->events = $app['events'];
-        $this->output = $app['console.output'];
 
         $this->serverSocket = $serverSocket;
 
@@ -289,6 +281,8 @@ class Server implements ServerContract
 
         $this->running = true;
 
+        $this->dispatchEvent('Launching', $this);
+
         $result = $this->swooleServer->start();
 
         $this->running = false;
@@ -379,8 +373,6 @@ class Server implements ServerContract
     protected function registerStartCallback()
     {
         $this->swooleServer->on('Start', function () {
-            $this->output->writeln("{$this->app->name()} server is running.");
-
             $this->setProcessName("{$this->app->name()} : Master");
 
             $this->events->dispatch(new Events\ServerStarted($this));

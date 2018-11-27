@@ -1,6 +1,7 @@
 <?php
 namespace Lawoole\Server\Console;
 
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 class StartCommand extends Command
@@ -11,7 +12,7 @@ class StartCommand extends Command
      * @var string
      */
     protected $signature = 'server:start
-                            {--d|detach= : Run the server in background}';
+                            {--f|filename= : The file to save runtime info}';
 
     /**
      * The console command description.
@@ -27,51 +28,60 @@ class StartCommand extends Command
     {
         $server = $this->laravel->make('server');
 
-        if ($this->option('detach')) {
-            $server->setOptions(['daemon' => true]);
-        }
+        $this->line("{$this->laravel->name()} server is starting...");
 
-        $this->saveRuntime();
+        $this->processRuntime($server);
 
         $server->start();
+    }
 
-        $this->removeRuntime();
+    /**
+     * Process the server runtime info.
+     *
+     * @param \Lawoole\Contracts\Server\Server $server
+     */
+    protected function processRuntime($server)
+    {
+        $filename = $this->option('filename') ?? storage_path('framework/server.runtime');
+
+        $server->registerEventCallback('Launching', function () use ($filename) {
+            $this->saveRuntime($filename);
+        });
+
+        $server->registerEventCallback('Start', function () {
+            $this->info("{$this->laravel->name()} server is running.");
+        });
+
+        $server->registerEventCallback('Shutdown', function () use ($filename) {
+            $this->removeRuntime($filename);
+
+            $this->info("{$this->laravel->name()} server is stopped.");
+        });
     }
 
     /**
      * Record server runtime info.
+     *
+     * @param string $filename
      */
-    protected function saveRuntime()
+    protected function saveRuntime($filename)
     {
         $payload = [
             'name' => $this->laravel->name(),
             'pid'  => getmypid(),
-            'time' => time()
+            'time' => (string) Carbon::now(),
         ];
 
-        file_put_contents(
-            storage_path('framework/server.runtime'),
-            json_encode($payload, JSON_PRETTY_PRINT)
-        );
+        file_put_contents($filename, json_encode($payload, JSON_PRETTY_PRINT));
     }
 
     /**
      * Remove server runtime records.
-     */
-    protected function removeRuntime()
-    {
-        $runtime = $this->getRuntimeFilePath();
-
-        @unlink($runtime);
-    }
-
-    /**
-     * Get the file path which to save server runtime info.
      *
-     * @return string
+     * @param string $filename
      */
-    protected function getRuntimeFilePath()
+    protected function removeRuntime($filename)
     {
-        return storage_path('framework/server.runtime');
+        @unlink($filename);
     }
 }
