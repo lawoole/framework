@@ -109,7 +109,7 @@ abstract class Client
         try {
             $this->doConnect();
 
-            if (!$this->isConnected()) {
+            if (! $this->isConnected()) {
                 $this->disconnect();
 
                 throw new TransportException('Failed to connect to server '.$this->getRemoteAddress()

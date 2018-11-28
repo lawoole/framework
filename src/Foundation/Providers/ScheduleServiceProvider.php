@@ -39,7 +39,7 @@ class ScheduleServiceProvider extends ServiceProvider
         foreach ($schedules as $definition) {
             $type = $definition['type'] ?? 'command';
 
-            if (!method_exists($this, $method = 'define'.ucfirst($type).'Schedule')) {
+            if (! method_exists($this, $method = 'define'.ucfirst($type).'Schedule')) {
                 throw new InvalidArgumentException("Schedule [{$type}] is not support.");
             }
 

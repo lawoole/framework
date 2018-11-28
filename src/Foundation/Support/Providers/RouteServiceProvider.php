@@ -72,7 +72,7 @@ class RouteServiceProvider extends BaseServiceProvider
      */
     protected function getGroupRouteNamespace($namespace, $attributes)
     {
-        if (!isset($attributes['namespace'])) {
+        if (! isset($attributes['namespace'])) {
             return $namespace;
         } elseif (strpos($attributes['namespace'], '\\') !== 0) {
             return $namespace.'\\'.$attributes['namespace'];

@@ -113,7 +113,7 @@ class ProxyFactory
         try {
             $reflection = new ReflectionClass($interface);
 
-            if (!$reflection->isInterface()) {
+            if (! $reflection->isInterface()) {
                 throw new InvalidArgumentException("{$interface} must be an interface.");
             }
 
@@ -161,7 +161,7 @@ class ProxyFactory
             $definition .= $parameter->isVariadic() ? '...' : '';
             $definition .= '$'.$parameter->getName();
 
-            if (!$parameter->isVariadic()) {
+            if (! $parameter->isVariadic()) {
                 if ($parameter->isDefaultValueAvailable()) {
                     $definition .= ' = '.var_export($parameter->getDefaultValue(), true);
                 } elseif ($parameter->isOptional()) {
@@ -192,7 +192,7 @@ class ProxyFactory
             // If the type is not a built in types, we should add a leading slash
             // in the type hint be make the class name not confusing.
             if (
-                !in_array($typeHint, [
+                ! in_array($typeHint, [
                     'self', 'array', 'callable', 'bool', 'float', 'int', 'string',
                     'object', 'iterable', 'void'
                 ])

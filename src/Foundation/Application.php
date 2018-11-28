@@ -2,7 +2,9 @@
 namespace Lawoole\Foundation;
 
 use Illuminate\Contracts\Foundation\Application as ApplicationContract;
+use Illuminate\Events\EventServiceProvider;
 use Illuminate\Foundation\Application as BaseApplication;
+use Illuminate\Log\LogServiceProvider;
 
 class Application extends BaseApplication implements ApplicationContract
 {
@@ -46,6 +48,15 @@ class Application extends BaseApplication implements ApplicationContract
     public function version()
     {
         return static::VERSION.' (Laravel Components 5.6.*)';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function registerBaseServiceProviders()
+    {
+        $this->register(new EventServiceProvider($this));
+        $this->register(new LogServiceProvider($this));
     }
 
     /**

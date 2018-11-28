@@ -101,7 +101,7 @@ class ConcreteInvoker extends Invoker
             $instance = $this->context->getContainer()->make($this->concrete);
         }
 
-        if (!$this->isDynamic()) {
+        if (! $this->isDynamic()) {
             $this->checkConcreteInstance($instance);
         }
 
@@ -117,11 +117,11 @@ class ConcreteInvoker extends Invoker
     {
         $interface = $this->getInterface();
 
-        if (!is_object($instance)) {
+        if (! is_object($instance)) {
             throw new InvalidArgumentException("The concrete instance for {$interface} must be an object.");
         }
 
-        if (!$instance instanceof $interface) {
+        if (! $instance instanceof $interface) {
             throw new InvalidArgumentException("The concrete must an instance of {$interface}.");
         }
     }

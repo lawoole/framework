@@ -50,7 +50,7 @@ class ProxyClass implements ProxyInterface
 
         $result = $this->invoker->invoke($invocation);
 
-        if (!$result instanceof Result) {
+        if (! $result instanceof Result) {
             $resultType = get_class($result) ?: 'unknown';
 
             Log::channel('homer')->warning("The result is not a Result instance.", [

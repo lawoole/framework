@@ -210,7 +210,7 @@ class OutputStyle extends BaseOutputStyle
      */
     public function warn($string, $verbosity = null)
     {
-        if (!$this->getFormatter()->hasStyle('warning')) {
+        if (! $this->getFormatter()->hasStyle('warning')) {
             $style = new OutputFormatterStyle('yellow');
 
             $this->getFormatter()->setStyle('warning', $style);
@@ -269,7 +269,7 @@ class OutputStyle extends BaseOutputStyle
     {
         if (isset($this->verbosityMap[$level])) {
             $level = $this->verbosityMap[$level];
-        } elseif (!is_int($level)) {
+        } elseif (! is_int($level)) {
             $level = $this->verbosity;
         }
 

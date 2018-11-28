@@ -21,7 +21,7 @@ class Respondent
      *
      * @var bool
      */
-    protected $chucked = false;
+    protected $chunked = false;
 
     /**
      * Create a respondent instance.
@@ -74,7 +74,7 @@ class Respondent
      */
     protected function addDateHeaderIfNecessary($statusCode, $headerBag)
     {
-        if ($statusCode >= 200 && $statusCode < 500 && !$headerBag->has('Date')) {
+        if ($statusCode >= 200 && $statusCode < 500 && ! $headerBag->has('Date')) {
             $date = DateTime::createFromFormat('U', time(), new DateTimeZone('UTC'));
 
             $headerBag->set('Date', $date->format('D, d M Y H:i:s').' GMT');
@@ -116,9 +116,9 @@ class Respondent
      *
      * @return bool
      */
-    public function isChucked()
+    public function isChunked()
     {
-        return $this->chucked;
+        return $this->chunked;
     }
 
     /**
@@ -128,24 +128,24 @@ class Respondent
      */
     public function sendBody($body)
     {
-        if ($this->chucked) {
-            throw new RuntimeException('Cannot send data by sendBody() while the response is chucked.');
+        if ($this->isChunked()) {
+            throw new RuntimeException('Cannot send data by sendBody() while the response is chunked.');
         }
 
         $this->response->end($body);
     }
 
     /**
-     * Send response body in chucked.
+     * Send response body in chunked.
      *
      * @param string $data
-     * @param bool $last
+     * @param bool $lastChunk
      */
-    public function sendChuck($data, $last = false)
+    public function sendChunk($data, $lastChunk = false)
     {
-        $this->chucked = true;
+        $this->chunked = true;
 
-        if ($last == true) {
+        if ($lastChunk) {
             $this->response->end($data);
         } elseif (strlen($data) > 0) {
             $this->response->write($data);
@@ -153,9 +153,9 @@ class Respondent
     }
 
     /**
-     * Finish the chuck sending.
+     * Finish the chunk sending.
      */
-    public function finishChuck()
+    public function finishChunk()
     {
         $this->response->end();
     }

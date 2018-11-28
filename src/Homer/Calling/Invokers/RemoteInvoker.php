@@ -57,7 +57,7 @@ class RemoteInvoker extends Invoker
         try {
             $result = $this->client->request($invocation);
 
-            if (!$result instanceof Result) {
+            if (! $result instanceof Result) {
                 Log::channel('homer')->warning('Server response an error message', [
                     'result' => (string) $result
                 ]);

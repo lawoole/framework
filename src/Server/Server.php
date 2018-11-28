@@ -297,7 +297,7 @@ class Server implements ServerContract
      */
     public function shutdown()
     {
-        if (!$this->isRunning()) {
+        if (! $this->isRunning()) {
             return true;
         }
 

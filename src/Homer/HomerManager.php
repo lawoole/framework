@@ -133,7 +133,7 @@ class HomerManager implements HomerContract, Registrar
         $this->app['events']->listen(ServerLaunching::class, function () {
             $services = Arr::get($this->config, 'services');
 
-            if (!is_array($services) || empty($services)) {
+            if (! is_array($services) || empty($services)) {
                 return;
             }
 
@@ -171,7 +171,7 @@ class HomerManager implements HomerContract, Registrar
     {
         $references = $this->config['references'] ?? [];
 
-        if (!is_array($references) || empty($references)) {
+        if (! is_array($references) || empty($references)) {
             return;
         }
 
@@ -213,7 +213,7 @@ class HomerManager implements HomerContract, Registrar
      */
     protected function normalizeClientConfig(array $config)
     {
-        if (!isset($config['client'])) {
+        if (! isset($config['client'])) {
             $config['client'] = ['url' => $config['url']];
         } elseif (is_string($config['client'])) {
             $client = Arr::get($this->config, 'clients.'.$config['client']);

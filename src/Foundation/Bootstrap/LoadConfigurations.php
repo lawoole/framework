@@ -84,7 +84,7 @@ class LoadConfigurations extends BaseLoadConfigurations
     {
         $files = [];
 
-        if (!is_dir($configPath)) {
+        if (! is_dir($configPath)) {
             return $files;
         }
 

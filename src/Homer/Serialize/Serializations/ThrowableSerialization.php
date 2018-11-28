@@ -83,7 +83,7 @@ class ThrowableSerialization extends Serialization
      */
     public function recover()
     {
-        if (!class_exists($this->class)) {
+        if (! class_exists($this->class)) {
             return new RuntimeException($this->message);
         }
 
@@ -92,7 +92,7 @@ class ThrowableSerialization extends Serialization
 
             $e = $reflection->newInstanceWithoutConstructor();
 
-            if (!$e instanceof Throwable) {
+            if (! $e instanceof Throwable) {
                 throw new RuntimeException("Class [{$this->class}] is not an exception.");
             }
 

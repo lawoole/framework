@@ -49,7 +49,7 @@ class MemoryStream extends Stream implements StreamContract
      */
     public function eof()
     {
-        return !$this->stream || feof($this->stream);
+        return ! $this->stream || feof($this->stream);
     }
 
     /**
@@ -204,7 +204,7 @@ class MemoryStream extends Stream implements StreamContract
      */
     public function __destruct()
     {
-        if (!$this->isClosed()) {
+        if (! $this->isClosed()) {
             $this->close();
         }
     }
