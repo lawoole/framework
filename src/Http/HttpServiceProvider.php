@@ -20,19 +20,13 @@ class HttpServiceProvider extends AggregateServiceProvider
     ];
 
     /**
-     * Boot the service provider.
-     */
-    public function boot()
-    {
-
-    }
-
-    /**
      * Register the service provider.
      */
     public function register()
     {
         parent::register();
+
+        $this->app->bind('http.socket.handler', HttpServerSocketHandler::class);
 
         $this->registerRequestValidation();
         $this->registerRequestSignatureValidation();

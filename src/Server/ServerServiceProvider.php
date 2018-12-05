@@ -28,11 +28,11 @@ class ServerServiceProvider extends ServiceProvider
             return new ServerFactory($app);
         });
 
-        // By default, the server factory creates a server instance based on the
+        // By default, the server manager creates a server instance based on the
         // 'server' configuration. We can easily get it through the IoC container
         // or the server facade.
         $this->app->singleton('server', function ($app) {
-            return $app['server.factory']->make($app['config']['server']);
+            return new ServerManager($app, $app['server.factory'], $app['config']['server']);
         });
 
         // We can get a Swoole server instance from server, this allows us to easily

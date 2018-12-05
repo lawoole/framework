@@ -8,10 +8,11 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Pipeline;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Facade;
+use Lawoole\Contracts\Http\HttpServerSocketHandler as HttpServerSocketHandlerContract;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
 
-class HttpServerSocketHandler
+class HttpServerSocketHandler implements HttpServerSocketHandlerContract
 {
     /**
      * The application instance.

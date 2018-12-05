@@ -4,6 +4,7 @@ namespace Lawoole\Server;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Lawoole\Contracts\Server\Factory as FactoryContract;
+use Lawoole\Contracts\Server\ServerSocket as ServerSocketContract;
 use Lawoole\Server\Process\Process;
 use Lawoole\Server\ServerSockets\HttpServerSocket;
 use Lawoole\Server\ServerSockets\ServerSocket;
@@ -19,6 +20,20 @@ class ServerFactory implements FactoryContract
      * @var \Illuminate\Contracts\Foundation\Application
      */
     protected $app;
+
+    /**
+     * The custom server resolvers.
+     *
+     * @var array
+     */
+    protected $serverExtensions = [];
+
+    /**
+     * The custom server socket resolvers.
+     *
+     * @var array
+     */
+    protected $serverSocketExtensions = [];
 
     /**
      * Create a new server factory instance.
@@ -41,15 +56,36 @@ class ServerFactory implements FactoryContract
     {
         $driver = $this->getDriver($config);
 
-        if (! method_exists($this, $method = 'create'.Str::studly($driver).'Driver')) {
-            throw new InvalidArgumentException("Driver [{$driver}] is not supported.");
+        // First we will check by the server driver type to see if an extension
+        // has been registered specifically for that server.
+        if (isset($this->serverExtensions[$driver])) {
+            $server = call_user_func($this->serverExtensions[$driver], $config);
         }
 
-        $server = $this->$method($config);
+        // Create a built-in server with given driver type.
+        elseif (method_exists($this, $method = 'create'.Str::studly($driver).'Driver')) {
+            $server = $this->$method($config);
+        }
+
+        // Otherwise, if the driver type does not support, an exception will be thrown.
+        else {
+            throw new InvalidArgumentException("Driver [{$driver}] is not supported.");
+        }
 
         $this->configureServer($server, $config);
 
         return $server;
+    }
+
+    /**
+     * Register an extension server resolver.
+     *
+     * @param string $driver
+     * @param callable $resolver
+     */
+    public function extendServer($driver, callable $resolver)
+    {
+        $this->serverExtensions[$driver] = $resolver;
     }
 
     /**
@@ -187,24 +223,37 @@ class ServerFactory implements FactoryContract
     }
 
     /**
+     * Register an extension server socket resolver.
+     *
+     * @param string $protocol
+     * @param callable $resolver
+     */
+    public function extendServerSocket($protocol, callable $resolver)
+    {
+        $this->serverSocketExtensions[$protocol] = $resolver;
+    }
+
+    /**
      * Create a server socket instance.
      *
      * @param array $config
      *
-     * @return \Lawoole\Server\ServerSockets\ServerSocket
+     * @return \Lawoole\Contracts\Server\ServerSocket
      */
     protected function createServerSocket(array $config)
     {
         $protocol = $config['protocol'] ?? 'tcp';
 
-        if ($this->app->bound($key = "server.sockets.{$protocol}")) {
-            $serverSocket = $this->app->make($key);
+        if (isset($this->serverSocketExtensions[$protocol])) {
+            $serverSocket = call_user_func($this->serverSocketExtensions[$protocol], $config);
 
-            if (is_object($serverSocket) && $serverSocket instanceof ServerSocket) {
-                return $serverSocket;
+            if (! $serverSocket instanceof ServerSocketContract) {
+                throw new InvalidArgumentException(
+                    "The protocol [{$protocol}] resolver must return a ServerSocket instance."
+                );
             }
 
-            return $this->app->make($serverSocket, ['config' => $config]);
+            return $serverSocket;
         }
 
         if (method_exists($this, $method = 'create'.Str::studly($protocol).'ServerSocket')) {
