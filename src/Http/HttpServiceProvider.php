@@ -26,8 +26,6 @@ class HttpServiceProvider extends AggregateServiceProvider
     {
         parent::register();
 
-        $this->app->bind('socket.handler.http', HttpServerSocketHandler::class);
-
         $this->registerRequestValidation();
         $this->registerRequestSignatureValidation();
     }

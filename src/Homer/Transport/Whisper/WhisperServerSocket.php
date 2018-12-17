@@ -16,7 +16,7 @@ class WhisperServerSocket extends ServerSocket
         'open_length_check'     => true,
         'package_length_type'   => 'N',
         'package_max_length'    => 5120000,
-        'package_length_offset' => 0,
-        'package_body_offset'   => 4
+        'package_length_offset' => 4,
+        'package_body_offset'   => 8
     ];
 }

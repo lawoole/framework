@@ -3,14 +3,21 @@ namespace Lawoole\Homer\Transport\Whisper;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Lawoole\Homer\Calling\Dispatcher;
 use Lawoole\Homer\Serialize\Factory as SerializerFactory;
 use Lawoole\Homer\Transport\SerializeServerSocketMessages;
+use Lawoole\Homer\Transport\TransportException;
 use Throwable;
 
 class WhisperServerSocketHandler
 {
     use SerializeServerSocketMessages;
+
+    /**
+     * Message magic header.
+     */
+    const MAGIC_HEADER = 'wsp:';
 
     /**
      * The application instance.
@@ -47,7 +54,19 @@ class WhisperServerSocketHandler
      */
     protected function getDefaultSerializer()
     {
-        return 'swoole';
+        return 'php';
+    }
+
+    /**
+     * Check the data just received.
+     *
+     * @param string $data
+     */
+    protected function checkReceivedDataMagic($data)
+    {
+        if (! Str::startsWith($data, self::MAGIC_HEADER)) {
+            throw new TransportException('Receive data with error bytes.', TransportException::REMOTE);
+        }
     }
 
     /**
@@ -62,9 +81,11 @@ class WhisperServerSocketHandler
     public function onReceive($server, $serverSocket, $fd, $reactorId, $data)
     {
         try {
+            $this->checkReceivedDataMagic($data);
+
             $serializer = $this->getSerializer($serverSocket);
 
-            $message = $serializer->deserialize(substr($data, 4));
+            $message = $serializer->deserialize(substr($data, 8));
 
             $result = $this->dispatcher->handleMessage($message);
 
@@ -94,8 +115,7 @@ class WhisperServerSocketHandler
     {
         $swooleServer = $server->getSwooleServer();
 
-        $swooleServer->send($fd, pack('n', $status));
-        $swooleServer->send($fd, pack('N', strlen($body)));
+        $swooleServer->send($fd, static::MAGIC_HEADER.pack('NN', $status, strlen($body)));
         $swooleServer->send($fd, $body);
     }
 }

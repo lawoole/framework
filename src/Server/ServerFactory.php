@@ -245,7 +245,7 @@ class ServerFactory implements FactoryContract
         $protocol = $config['protocol'] ?? 'tcp';
 
         if (isset($this->serverSocketExtensions[$protocol])) {
-            $serverSocket = call_user_func($this->serverSocketExtensions[$protocol], $config);
+            $serverSocket = call_user_func($this->serverSocketExtensions[$protocol], $this->app, $config);
 
             if (! $serverSocket instanceof ServerSocketContract) {
                 throw new InvalidArgumentException(

@@ -10,6 +10,11 @@ use Throwable;
 class WhisperClient extends Client
 {
     /**
+     * Message magic header.
+     */
+    const MAGIC_HEADER = 'wsp:';
+
+    /**
      * The Swoole client instance.
      *
      * @var \Swoole\Client
@@ -23,7 +28,7 @@ class WhisperClient extends Client
      */
     protected function getDefaultSerializer()
     {
-        return 'swoole';
+        return 'php';
     }
 
     /**
@@ -48,8 +53,8 @@ class WhisperClient extends Client
                 'open_length_check'     => true,
                 'package_length_type'   => 'N',
                 'package_max_length'    => 5120000,
-                'package_length_offset' => 2,
-                'package_body_offset'   => 6,
+                'package_length_offset' => 8,
+                'package_body_offset'   => 12,
             ]);
 
             $result = $this->client->connect($this->getHost(), $this->getPort(), $this->getTimeout() / 1000.0);
@@ -84,6 +89,18 @@ class WhisperClient extends Client
     }
 
     /**
+     * Check the data just received.
+     *
+     * @param string $data
+     */
+    protected function checkReceivedDataMagic($data)
+    {
+        if (! Str::startsWith($data, self::MAGIC_HEADER)) {
+            throw new TransportException('Receive data with error bytes.', TransportException::REMOTE);
+        }
+    }
+
+    /**
      * Send calling request.
      *
      * @param string $data
@@ -92,12 +109,15 @@ class WhisperClient extends Client
      */
     protected function doRequest($data)
     {
-        $this->send(pack('N', strlen($data)).$data);
+        $this->send(self::MAGIC_HEADER.pack('N', strlen($data)));
+        $this->send($data);
 
         $data = $this->receive();
 
-        $status = unpack('nstatus', substr($data, 0, 2))['status'];
-        $data = substr($data, 6);
+        $this->checkReceivedDataMagic($data);
+
+        $status = unpack('Nstatus', substr($data, 4, 4))['status'];
+        $data = substr($data, 12);
 
         if ($status != 200) {
             throw new TransportException($data ?: 'Http request failed, status: '.$status,

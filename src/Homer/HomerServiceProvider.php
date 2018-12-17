@@ -4,9 +4,7 @@ namespace Lawoole\Homer;
 use Illuminate\Support\ServiceProvider;
 use Lawoole\Contracts\Server\Factory as ServerFactory;
 use Lawoole\Homer\Calling\Dispatcher;
-use Lawoole\Homer\Transport\Http\HttpServerSocketHandler;
 use Lawoole\Homer\Transport\Whisper\WhisperServerSocket;
-use Lawoole\Homer\Transport\Whisper\WhisperServerSocketHandler;
 
 class HomerServiceProvider extends ServiceProvider
 {
@@ -30,11 +28,10 @@ class HomerServiceProvider extends ServiceProvider
     protected function registerServerSockets()
     {
         $this->app->afterResolving(ServerFactory::class, function ($factory) {
-            $factory->extendServerSocket('whisper', WhisperServerSocket::class);
+            $factory->extendServerSocket('whisper', function ($app, $config) {
+                return new WhisperServerSocket($app, $config);
+            });
         });
-
-        $this->app->bind('socket.handler.homer.http', WhisperServerSocketHandler::class);
-        $this->app->bind('socket.handler.homer.whisper', HttpServerSocketHandler::class);
     }
 
     /**
