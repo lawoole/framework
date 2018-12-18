@@ -72,6 +72,7 @@ class Server implements ServerContract
      * @var array
      */
     protected $options = [
+        'dispatch_mode'    => 2,
         'enable_coroutine' => false,
         'reload_async'     => true,
     ];
