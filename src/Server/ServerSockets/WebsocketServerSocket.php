@@ -1,7 +1,7 @@
 <?php
 namespace Lawoole\Server\ServerSockets;
 
-class WebSocketServerSocket extends HttpServerSocket
+class WebsocketServerSocket extends HttpServerSocket
 {
     /**
      * The server socket options.
