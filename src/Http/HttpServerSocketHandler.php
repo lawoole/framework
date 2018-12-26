@@ -102,29 +102,44 @@ class HttpServerSocketHandler
 
         $respondent = $this->createRespondent($response);
 
-        try {
-            $this->app->instance('respondent', $respondent);
+        $httpRequest->attributes->add([
+            'request'    => $request,
+            'response'   => $response,
+            'respondent' => $respondent
+        ]);
 
-            $httpRequest->attributes->add([
-                'request'    => $request,
-                'response'   => $response,
-                'respondent' => $respondent
-            ]);
-
-            $httpRequest->enableHttpMethodParameterOverride();
-
-            $httpResponse = $this->sendRequestThroughRouter($httpRequest);
-        } catch (Exception $e) {
-            $httpResponse = $this->handleException($httpRequest, $e);
-        } catch (Throwable $e) {
-            $httpResponse = $this->handleException($httpRequest, new FatalThrowableError($e));
-        }
-
-        $this->app->forgetInstance('respondent');
+        $httpResponse = $this->handleRequest($httpRequest, $respondent);
 
         $this->sendResponse($respondent, $httpResponse);
 
         $this->app->instance('request', $swapHttpRequest);
+    }
+
+    /**
+     * Process the request and get response.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \Lawoole\Http\Respondent $respondent
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function handleRequest($request, $respondent)
+    {
+        try {
+            $this->app->instance('respondent', $respondent);
+
+            $request->enableHttpMethodParameterOverride();
+
+            $response = $this->sendRequestThroughRouter($request);
+        } catch (Exception $e) {
+            $response = $this->handleException($request, $e);
+        } catch (Throwable $e) {
+            $response = $this->handleException($request, new FatalThrowableError($e));
+        }
+
+        $this->app->forgetInstance('respondent');
+
+        return $response;
     }
 
     /**

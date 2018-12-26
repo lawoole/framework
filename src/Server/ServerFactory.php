@@ -10,7 +10,7 @@ use Lawoole\Server\ServerSockets\HttpServerSocket;
 use Lawoole\Server\ServerSockets\ServerSocket;
 use Lawoole\Server\ServerSockets\UdpServerSocket;
 use Lawoole\Server\ServerSockets\UnixServerSocket;
-use Lawoole\Server\ServerSockets\WebsocketServerSocket;
+use Lawoole\Server\ServerSockets\WebSocketServerSocket;
 
 class ServerFactory implements FactoryContract
 {
@@ -125,15 +125,15 @@ class ServerFactory implements FactoryContract
     }
 
     /**
-     * Create a Websocket server.
+     * Create a WebSocket server.
      *
      * @param array $config
      *
-     * @return \Lawoole\Server\WebsocketServer
+     * @return \Lawoole\Server\WebSocketServer
      */
     protected function createWebsocketDriver(array $config)
     {
-        return new WebsocketServer($this->app, $this->getDefaultServerSocket($config), $config);
+        return new WebSocketServer($this->app, $this->getDefaultServerSocket($config), $config);
     }
 
     /**
@@ -300,7 +300,7 @@ class ServerFactory implements FactoryContract
     }
 
     /**
-     * Create a Websocket server socket.
+     * Create a WebSocket server socket.
      *
      * @param array $config
      *
@@ -308,7 +308,7 @@ class ServerFactory implements FactoryContract
      */
     protected function createWebsocketServerSocket(array $config)
     {
-        return new WebsocketServerSocket($this->app, $config);
+        return new WebSocketServerSocket($this->app, $config);
     }
 
     /**

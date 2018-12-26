@@ -1,7 +1,7 @@
 <?php
 namespace Lawoole\Server\ServerSockets;
 
-class WebsocketServerSocket extends HttpServerSocket
+class WebSocketServerSocket extends HttpServerSocket
 {
     /**
      * The server socket options.
@@ -21,16 +21,16 @@ class WebsocketServerSocket extends HttpServerSocket
      * @var array
      */
     protected $serverSocketEvents = [
-        'Close', 'Request', 'Open', 'Message', 'BufferFull', 'BufferEmpty'
+        'Close', 'Request', 'HandShake', 'Message', 'BufferFull', 'BufferEmpty'
     ];
 
     /**
      * Register the event callback.
      */
-    protected function registerOpenCallback()
+    protected function registerHandShakeCallback()
     {
-        $this->swoolePort->on('Open', function ($server, $request) {
-            $this->dispatchEvent('Open', $this->server, $this, $request);
+        $this->swoolePort->on('HandShake', function ($server, $request, $response) {
+            $this->dispatchEvent('HandShake', $this->server, $this, $request, $response);
         });
     }
 
