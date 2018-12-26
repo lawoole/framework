@@ -22,11 +22,11 @@ interface Connection
      *
      * @param string $data
      * @param bool $finish
-     * @param bool $binary
+     * @param bool $isBinary
      *
      * @return bool
      */
-    public function push($data, $finish = false, $binary = false);
+    public function push($data, $finish = true, $isBinary = false);
 
     /**
      * Push binary data to the client.
@@ -36,7 +36,7 @@ interface Connection
      *
      * @return bool
      */
-    public function pushBinary($data, $finish = false);
+    public function pushBinary($data, $finish = true);
 
     /**
      * Disconnect to the client.

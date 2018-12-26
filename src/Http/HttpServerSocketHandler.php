@@ -132,9 +132,13 @@ class HttpServerSocketHandler
 
             $response = $this->sendRequestThroughRouter($request);
         } catch (Exception $e) {
+            $this->reportException($e);
+
             $response = $this->handleException($request, $e);
         } catch (Throwable $e) {
-            $response = $this->handleException($request, new FatalThrowableError($e));
+            $this->reportException($e = new FatalThrowableError($e));
+
+            $response = $this->handleException($request, $e);
         }
 
         $this->app->forgetInstance('respondent');
@@ -241,7 +245,19 @@ class HttpServerSocketHandler
     }
 
     /**
-     * Report and render the exception to a response.
+     * Report the exception to a response.
+     *
+     * @param \Exception $e
+     */
+    protected function reportException(Exception $e)
+    {
+        $handler = $this->app->make(ExceptionHandler::class);
+
+        $handler->report($e);
+    }
+
+    /**
+     * Render the exception to a response.
      *
      * @param \Illuminate\Http\Request $request
      * @param \Exception $e
@@ -251,8 +267,6 @@ class HttpServerSocketHandler
     protected function handleException($request, Exception $e)
     {
         $handler = $this->app->make(ExceptionHandler::class);
-
-        $handler->report($e);
 
         return $handler->render($request, $e);
     }

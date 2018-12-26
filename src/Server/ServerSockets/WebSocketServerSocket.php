@@ -29,7 +29,7 @@ class WebSocketServerSocket extends HttpServerSocket
      */
     protected function registerHandShakeCallback()
     {
-        $this->swoolePort->on('HandShake', function ($server, $request, $response) {
+        $this->swoolePort->on('HandShake', function ($request, $response) {
             $this->dispatchEvent('HandShake', $this->server, $this, $request, $response);
         });
     }

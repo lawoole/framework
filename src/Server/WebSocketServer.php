@@ -14,7 +14,7 @@ class WebSocketServer extends HttpServer
         'Start', 'Shutdown', 'ManagerStart', 'ManagerStop',
         'WorkerStart', 'WorkerStop', 'WorkerExit', 'WorkerError',
         'Task', 'Finish', 'PipeMessage', 'BufferFull', 'BufferEmpty',
-        'Connect', 'Close', 'Receive', 'Request', 'HandShake', 'Message'
+        'Connect', 'Close', 'Receive', 'Request', 'Message'
     ];
 
     /**
@@ -37,21 +37,9 @@ class WebSocketServer extends HttpServer
     /**
      * Register the event callback.
      */
-    protected function registerHandShakeCallback()
-    {
-        $this->swooleServer->on('HandShake', function ($server, $request, $response) {
-            $this->dispatchEvent('HandShake', $this, $request, $response);
-        });
-    }
-
-    /**
-     * Register the event callback.
-     */
     protected function registerMessageCallback()
     {
-        $this->swooleServer->on('Message', function ($server, $frame) {
-            $this->dispatchEvent('Message', $this, $frame);
-        });
+        $this->swooleServer->on('Message', function () {});
     }
 }
 

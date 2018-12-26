@@ -60,7 +60,7 @@ class WebSocketConnection implements Connection
      *
      * @return bool
      */
-    public function push($data, $finish = false, $binary = false)
+    public function push($data, $finish = true, $binary = false)
     {
         return $this->server->push(
             $this->id, $data, $binary ? WEBSOCKET_OPCODE_BINARY : WEBSOCKET_OPCODE_TEXT, $finish
@@ -75,7 +75,7 @@ class WebSocketConnection implements Connection
      *
      * @return bool
      */
-    public function pushBinary($data, $finish = false)
+    public function pushBinary($data, $finish = true)
     {
         return $this->push($data, $finish, true);
     }

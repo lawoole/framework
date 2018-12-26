@@ -57,7 +57,7 @@ class ServerSocket implements ServerSocketContract
      *
      * @var array
      */
-    protected $serverEvents = [
+    protected $serverSocketEvents = [
         'Connect', 'Close', 'Receive', 'Packet', 'BufferFull', 'BufferEmpty'
     ];
 
@@ -224,7 +224,7 @@ class ServerSocket implements ServerSocketContract
 
         $this->swoolePort->set($this->options);
 
-        $this->registerEventCallbacks($this->serverEvents);
+        $this->registerEventCallbacks($this->serverSocketEvents);
 
         $this->dispatchEvent('Bind', $server, $this);
     }

@@ -10,6 +10,6 @@ class WebSocketServiceProvider extends ServiceProvider
      */
     public function register()
     {
-
+        //
     }
 }

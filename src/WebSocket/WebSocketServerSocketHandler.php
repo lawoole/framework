@@ -1,7 +1,10 @@
 <?php
 namespace Lawoole\WebSocket;
 
+use Exception;
 use Lawoole\Http\HttpServerSocketHandler;
+use Symfony\Component\Debug\Exception\FatalThrowableError;
+use Throwable;
 
 class WebSocketServerSocketHandler extends HttpServerSocketHandler
 {
@@ -37,7 +40,7 @@ class WebSocketServerSocketHandler extends HttpServerSocketHandler
         $httpResponse = $this->handleRequest($httpRequest, $respondent);
 
         if ($httpResponse instanceof HandShakeResponse && $httpResponse->isAccepted()) {
-            $this->acceptConnection($server, $request, $httpResponse->getMessageHandler());
+            $this->acceptConnection($server, $request, $httpRequest, $httpResponse->getHandler());
         }
 
         $this->sendResponse($respondent, $httpResponse);
@@ -56,12 +59,11 @@ class WebSocketServerSocketHandler extends HttpServerSocketHandler
     {
         $id = $frame->fd;
 
-        if (isset($this->connections[$id]) && $this->connections[$id]['handler']) {
-            call_user_func(
+        if (isset($this->connections[$id])) {
+            $this->fireMessageEvent(
                 $this->connections[$id]['handler'],
                 $this->connections[$id]['connection'],
-                $frame->opcode == WEBSOCKET_OPCODE_BINARY,
-                $frame->data
+                $frame
             );
         }
     }
@@ -71,11 +73,18 @@ class WebSocketServerSocketHandler extends HttpServerSocketHandler
      *
      * @param \Lawoole\Server\Server $server
      * @param \Lawoole\Server\ServerSockets\ServerSocket $serverSocket
-     * @param int $fd
+     * @param int $id
      */
-    public function onClose($server, $serverSocket, $fd)
+    public function onClose($server, $serverSocket, $id)
     {
-        unset($this->connections[$fd]);
+        if (isset($this->connections[$id])) {
+            $this->fireCloseEvent(
+                $this->connections[$id]['handler'],
+                $this->connections[$id]['connection']
+            );
+
+            unset($this->connections[$id]);
+        }
     }
 
     /**
@@ -97,15 +106,18 @@ class WebSocketServerSocketHandler extends HttpServerSocketHandler
      *
      * @param \Lawoole\Server\Server $server
      * @param \Swoole\Http\Request $request
-     * @param callable $handler
+     * @param \Illuminate\Http\Request $httpRequest
+     * @param \Lawoole\Contracts\WebSocket\WebSocketHandler $handler
      */
-    protected function acceptConnection($server, $request, $handler)
+    protected function acceptConnection($server, $request, $httpRequest, $handler)
     {
         $id = $request->fd;
 
         $connection = $this->createWebSocketConnection($server, $id);
 
-        $this->connections[$id] = compact($connection, $handler);
+        $this->fireOpenEvent($handler, $connection, $httpRequest);
+
+        $this->connections[$id] = compact('connection', 'handler');
     }
 
     /**
@@ -119,5 +131,64 @@ class WebSocketServerSocketHandler extends HttpServerSocketHandler
     protected function createWebSocketConnection($server, $id)
     {
         return new WebSocketConnection($server, $id);
+    }
+
+    /**
+     * Fire the connection opened event.
+     *
+     * @param \Lawoole\Contracts\WebSocket\WebSocketHandler $handler
+     * @param \Lawoole\Contracts\WebSocket\Connection $connection
+     * @param \Illuminate\Http\Request $request
+     */
+    protected function fireOpenEvent($handler, $connection, $request)
+    {
+        $this->fireWebSocketHandler($handler, 'onOpen', $connection, $request);
+    }
+
+    /**
+     * Fire the message received event.
+     *
+     * @param \Lawoole\Contracts\WebSocket\WebSocketHandler $handler
+     * @param \Lawoole\Contracts\WebSocket\Connection $connection
+     * @param \Swoole\WebSocket\Frame $frame
+     */
+    protected function fireMessageEvent($handler, $connection, $frame)
+    {
+        $isBinary = $frame->opcode == WEBSOCKET_OPCODE_BINARY;
+
+        $this->fireWebSocketHandler($handler, 'onMessage', $connection, $isBinary, $frame->data);
+    }
+
+    /**
+     * Fire the connection closed event.
+     *
+     * @param \Lawoole\Contracts\WebSocket\WebSocketHandler $handler
+     * @param \Lawoole\Contracts\WebSocket\Connection $connection
+     */
+    protected function fireCloseEvent($handler, $connection)
+    {
+        $this->fireWebSocketHandler($handler, 'onClose', $connection);
+    }
+
+    /**
+     * Send the event to the handler.
+     *
+     * @param \Lawoole\Contracts\WebSocket\WebSocketHandler $handler
+     * @param string $method
+     * @param array $arguments
+     */
+    protected function fireWebSocketHandler($handler, $method, ...$arguments)
+    {
+        if ($handler == null) {
+            return;
+        }
+
+        try {
+            call_user_func([$handler, $method], ...$arguments);
+        } catch (Exception $e) {
+            $this->reportException($e);
+        } catch (Throwable $e) {
+            $this->reportException(new FatalThrowableError($e));
+        }
     }
 }

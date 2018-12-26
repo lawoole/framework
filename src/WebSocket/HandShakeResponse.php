@@ -3,15 +3,16 @@ namespace Lawoole\WebSocket;
 
 use Illuminate\Http\Response;
 use InvalidArgumentException;
+use Lawoole\Contracts\WebSocket\WebSocketHandler;
 
 class HandShakeResponse extends Response
 {
     /**
-     * The handler for the WebSocket message.
+     * The handler for the web socket.
      *
-     * @var callable
+     * @var \Lawoole\Contracts\WebSocket\WebSocketHandler
      */
-    protected $messageHandler;
+    protected $handler;
 
     /**
      * Return whether the response is to accept the WebSocket connection or not.
@@ -24,30 +25,30 @@ class HandShakeResponse extends Response
     }
 
     /**
-     * Get the message handler.
+     * Get the web socket handler.
      *
-     * @return callable
+     * @return \Lawoole\Contracts\WebSocket\WebSocketHandler
      */
-    public function getMessageHandler()
+    public function getHandler()
     {
-        return $this->messageHandler;
+        return $this->handler;
     }
 
     /**
-     * Set the message handler.
+     * Set the web socket handler.
      *
-     * @param callable $handler
+     * @param \Lawoole\Contracts\WebSocket\WebSocketHandler $handler
      */
-    public function setMessageHandler(callable $handler)
+    public function setHandler(WebSocketHandler $handler)
     {
-        $this->messageHandler = $handler;
+        $this->handler = $handler;
     }
 
     /**
      * Accept the handshake request and open the connection.
      *
      * @param \Lawoole\WebSocket\HandShakeRequest $request
-     * @param callable $handler
+     * @param \Lawoole\Contracts\WebSocket\WebSocketHandler $handler
      *
      * @return static
      */
@@ -73,7 +74,9 @@ class HandShakeResponse extends Response
             $response->header('Sec-WebSocket-Protocol', $webSocketProtocol);
         }
 
-        $response->setMessageHandler($handler);
+        if ($handler !== null) {
+            $response->setHandler($handler);
+        }
 
         return $response;
     }

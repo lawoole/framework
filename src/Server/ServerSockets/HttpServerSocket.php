@@ -19,7 +19,7 @@ class HttpServerSocket extends ServerSocket
      *
      * @var array
      */
-    protected $serverEvents = [
+    protected $serverSocketEvents = [
         'Close', 'Request', 'BufferFull', 'BufferEmpty'
     ];
 
