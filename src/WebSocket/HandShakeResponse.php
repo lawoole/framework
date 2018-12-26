@@ -47,7 +47,7 @@ class HandShakeResponse extends Response
     /**
      * Accept the handshake request and open the connection.
      *
-     * @param \Lawoole\WebSocket\HandShakeRequest $request
+     * @param \Illuminate\Http\Request $request
      * @param \Lawoole\Contracts\WebSocket\WebSocketHandler $handler
      *
      * @return static

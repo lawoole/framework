@@ -81,14 +81,14 @@ class WebSocketConnection implements Connection
     }
 
     /**
-     * Disconnect to the client.
+     * Close to the connection.
      *
      * @param int $code
      * @param string $reason
      *
      * @return bool
      */
-    public function disconnect($code = 1000, $reason = '')
+    public function close($code = 1000, $reason = '')
     {
         return $this->server->disconnect($this->id, $code, $reason);
     }

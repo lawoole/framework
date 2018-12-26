@@ -39,12 +39,12 @@ interface Connection
     public function pushBinary($data, $finish = true);
 
     /**
-     * Disconnect to the client.
+     * Close to the connection.
      *
      * @param int $code
      * @param string $reason
      *
      * @return bool
      */
-    public function disconnect($code = 1000, $reason = '');
+    public function close($code = 1000, $reason = '');
 }
