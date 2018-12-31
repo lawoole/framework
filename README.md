@@ -23,9 +23,13 @@ Thank for the shoulders of giants:
 - Laravel ( [https://laravel.com](https://laravel.com) )
 - Swoole ( [https://www.swoole.com](https://www.swoole.com) )
 
+## Community
+
+- QQ Group: 729916224
+
 ## Documentation
 
-Here the [documentation](https://github.com/lawoole/docs/tree/0.5) of Lawoole . Of course, you can also find relevant knowledge about Lawoole from the Internet.
+Here the [documentation](https://github.com/lawoole/docs/tree/1.0) of Lawoole . Of course, you can also find relevant knowledge about Lawoole from the Internet.
 
 ## License
 
