@@ -42,4 +42,3 @@ class WebSocketServer extends HttpServer
         $this->swooleServer->on('Message', function () {});
     }
 }
-
