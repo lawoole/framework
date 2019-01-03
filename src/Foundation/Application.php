@@ -47,7 +47,7 @@ class Application extends BaseApplication implements ApplicationContract
      */
     public function version()
     {
-        return static::VERSION.' (Laravel Components 5.6.*)';
+        return static::VERSION.' (Laravel Components 5.7.*)';
     }
 
     /**
