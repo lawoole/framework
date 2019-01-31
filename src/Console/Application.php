@@ -36,10 +36,17 @@ class Application extends BaseApplication implements ApplicationContract
      */
     protected function doRunCommand(Command $command, InputInterface $input, OutputInterface $output)
     {
+        // Share the input and the output, so that we can get them anywhere easily.
+        $this->laravel->instance('console.input', $input);
+        $this->laravel->instance('console.output', $output);
+
         $this->laravel->instance('console.command', $command);
 
         parent::doRunCommand($command, $input, $output);
 
         $this->laravel->forgetInstance('console.command');
+
+        $this->laravel->forgetInstance('console.input');
+        $this->laravel->forgetInstance('console.output');
     }
 }

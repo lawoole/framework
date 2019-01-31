@@ -4,7 +4,6 @@ namespace Lawoole\Foundation\Console;
 use Illuminate\Contracts\Console\Kernel as KernelContract;
 use Illuminate\Foundation\Console\Kernel as BaseKernel;
 use Lawoole\Console\Application as Artisan;
-use Symfony\Component\Console\Output\ConsoleOutput;
 
 class Kernel extends BaseKernel implements KernelContract
 {
@@ -28,31 +27,6 @@ class Kernel extends BaseKernel implements KernelContract
     protected function defineConsoleSchedule()
     {
         $this->schedule($this->app['schedule']);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function handle($input, $output = null)
-    {
-        $output = $output ?: new ConsoleOutput;
-
-        // Share the input and the output, so that we can get them anywhere easily.
-        $this->shareIoStream($input, $output);
-
-        parent::handle($input, $output);
-    }
-
-    /**
-     * Share the input stream and output stream with the container.
-     *
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     */
-    protected function shareIoStream($input, $output)
-    {
-        $this->app->instance('console.input', $input);
-        $this->app->instance('console.output', $output);
     }
 
     /**
