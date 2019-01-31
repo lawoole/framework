@@ -13,7 +13,7 @@ class Application extends BaseApplication implements ApplicationContract
      *
      * @var string
      */
-    const VERSION = '1.0.2';
+    const VERSION = '1.0.3';
 
     /**
      * The name of service.
